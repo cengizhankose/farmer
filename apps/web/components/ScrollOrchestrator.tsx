@@ -15,7 +15,7 @@ type Scene = {
   theme?: "dark" | "light";
 };
 
-export function ScrollOrchestrator({ scenes, heightPerSceneVh = 120 }: { scenes: Scene[]; heightPerSceneVh?: number }) {
+export function ScrollOrchestrator({ scenes, heightPerSceneVh = 120, tailVh = 20 }: { scenes: Scene[]; heightPerSceneVh?: number; tailVh?: number }) {
   const [progress, setProgress] = React.useState(0); // 0..1
   const totalHeightRef = React.useRef(0);
 
@@ -26,7 +26,7 @@ export function ScrollOrchestrator({ scenes, heightPerSceneVh = 120 }: { scenes:
       setProgress(p);
     };
     const onResize = () => {
-      totalHeightRef.current = Math.round((scenes.length * heightPerSceneVh * window.innerHeight) / 100);
+      totalHeightRef.current = Math.round(((scenes.length * heightPerSceneVh + tailVh) * window.innerHeight) / 100);
       onScroll();
     };
     onResize();
@@ -36,7 +36,7 @@ export function ScrollOrchestrator({ scenes, heightPerSceneVh = 120 }: { scenes:
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onResize);
     };
-  }, [scenes.length, heightPerSceneVh]);
+  }, [scenes.length, heightPerSceneVh, tailVh]);
 
   // Update header theme according to active scene
   React.useEffect(() => {
@@ -54,7 +54,7 @@ export function ScrollOrchestrator({ scenes, heightPerSceneVh = 120 }: { scenes:
   return (
     <div className="relative">
       {/* Phantom spacer to drive scroll; stage remains fixed */}
-      <div style={{ height: `${scenes.length * heightPerSceneVh}vh` }} />
+      <div style={{ height: `${scenes.length * heightPerSceneVh + tailVh}vh` }} />
       <div className="scroll-stage pointer-events-none fixed inset-0">
         {scenes.map((s) => {
           const span = Math.max(0.0001, s.end - s.start);
@@ -68,22 +68,26 @@ export function ScrollOrchestrator({ scenes, heightPerSceneVh = 120 }: { scenes:
             else if (clamped > 1 - edge) opacity = (1 - clamped) / edge;
             else opacity = 1;
           }
-          // Ensure first scene is fully visible on load
-          if (s.start === 0 && clamped === 0) {
+          // Ensure first scene is fully visible on load (opacity only here)
+          if (s.start === 0 && clamped <= 0.08) {
             opacity = 1;
           }
-          // Blur only near edges; crisp on plateau
+          const style: React.CSSProperties = {
+            opacity,
+            transition: "opacity 120ms linear, filter 120ms linear",
+            filter: undefined,
+            background: s.bg,
+          };
+          // Blur only near edges; crisp on plateau (compute after style base)
           const blurMax = 8;
           let blur = 0;
           if (clamped > 0 && clamped < edge) blur = ((edge - clamped) / edge) * blurMax;
           else if (clamped > 1 - edge && clamped < 1) blur = ((clamped - (1 - edge)) / edge) * blurMax;
-
-          const style: React.CSSProperties = {
-            opacity,
-            transition: "opacity 120ms linear, filter 120ms linear",
-            filter: blur ? `blur(${blur.toFixed(2)}px)` : undefined,
-            background: s.bg,
-          };
+          if (s.start === 0 && clamped <= 0.08) {
+            // hold the first scene fully sharp at the very top
+            blur = 0;
+          }
+          if (blur) (style as React.CSSProperties).filter = `blur(${blur.toFixed(2)}px)`;
           return (
             <div key={s.id} className="absolute inset-0" style={style}>
               <div className="h-full w-full pointer-events-auto">
