@@ -1,5 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
-@import url('https://fonts.cdnfonts.com/css/clash-display');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+@import url("https://fonts.cdnfonts.com/css/clash-display");
 
 @tailwind base;
 @tailwind components;
@@ -7,15 +7,24 @@
 
 body {
   margin: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
-    "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
-    "Helvetica Neue", sans-serif;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+    "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+html, body { overscroll-behavior-y: none; }
 
-h1, h2, h3, .font-display { font-family: 'Clash Display', 'Space Grotesk', 'Inter', system-ui, sans-serif; }
-.font-mono-tech { font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+h1,
+h2,
+h3,
+.font-display {
+  font-family: "Clash Display", "Space Grotesk", "Inter", system-ui, sans-serif;
+}
+.font-mono-tech {
+  font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, "Liberation Mono", "Courier New", monospace;
+}
 
 @layer base {
   :root {
@@ -43,38 +52,95 @@ h1, h2, h3, .font-display { font-family: 'Clash Display', 'Space Grotesk', 'Inte
 }
 
 @layer base {
-  * { @apply border-border; }
-  body { @apply bg-background text-foreground; }
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }
 
 /* Scroll stage orchestration */
-.scroll-stage { will-change: opacity, transform, filter; }
+.scroll-stage {
+  will-change: opacity, transform, filter;
+}
 
 /* Header theming to blend with scene backgrounds on landing */
 :root[data-theme="dark"] .site-header {
   background: transparent !important;
   border-color: transparent !important;
 }
-:root[data-theme="dark"] .site-header, 
+:root[data-theme="dark"] .site-header,
 :root[data-theme="dark"] .site-header a {
   color: #fff !important;
 }
 
 /* Thread styles */
-.thread-center { background: linear-gradient(to bottom, rgba(255,255,255,0.12), rgba(255,255,255,0.12)); border-radius: 999px; position: sticky; }
-.thread-center::after { content: ""; position: absolute; inset: 0; height: var(--thread-progress, 0%); background: linear-gradient(to bottom, rgba(255,125,39,0.95), rgba(255,125,39,0.5)); border-radius: 999px; }
-.thread-card { opacity: 0; transform: translateY(22px); transition: opacity .6s ease, transform .6s ease; }
-.thread-card-show { opacity: 1; transform: translateY(0); }
+.thread-center {
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.073),
+    rgba(255, 255, 255, 0.073)
+  );
+  border-radius: 999px;
+  position: sticky;
+}
+.thread-center::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  height: var(--thread-progress, 0%);
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 125, 39, 0.95),
+    rgba(255, 125, 39, 0.5)
+  );
+  border-radius: 999px;
+}
+.thread-card {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.thread-card-show {
+  opacity: 1;
+  transform: translateY(0);
+}
 
 /* LiveFeed animation */
-.livefeed { display: block; animation: liveFeed 16s linear infinite; }
+.livefeed {
+  display: block;
+  animation: liveFeed 16s linear infinite;
+}
 @keyframes liveFeed {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(-50%); }
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-50%);
+  }
 }
 
 /* Marquee rows */
-@keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-@keyframes marquee-rev { 0% { transform: translateX(-50%); } 100% { transform: translateX(0); } }
-.animate-marquee { animation: marquee 28s linear infinite; }
-.animate-marquee-rev { animation: marquee-rev 32s linear infinite; }
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+@keyframes marquee-rev {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+.animate-marquee {
+  animation: marquee 28s linear infinite;
+}
+.animate-marquee-rev {
+  animation: marquee-rev 32s linear infinite;
+}

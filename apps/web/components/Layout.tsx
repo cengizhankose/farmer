@@ -61,7 +61,7 @@ const ConnectButton = () => {
     return (
       <button
         onClick={() => window.open("https://leather.io", "_blank")}
-        className="group relative h-9 w-44 overflow-hidden rounded-md border border-zinc-300 bg-neutral-800 px-3 text-left text-sm font-bold text-gray-50 underline underline-offset-2 duration-500 hover:border-rose-300 hover:text-rose-300 hover:underline hover:underline-offset-4 before:absolute before:right-1 before:top-1 before:z-10 before:h-6 before:w-6 before:rounded-full before:bg-violet-500 before:blur-lg before:content-[''] after:absolute after:right-4 after:top-1.5 after:z-10 after:h-8 after:w-12 after:rounded-full after:bg-rose-300 after:blur-lg after:content-['']"
+        className="group relative h-9 w-34 overflow-hidden rounded-md border border-zinc-300 bg-neutral-800 px-3 text-left text-sm font-bold text-gray-50 underline underline-offset-2 duration-500 hover:border-rose-300 hover:text-rose-300 hover:underline hover:underline-offset-4 before:absolute before:right-1 before:top-1 before:z-10 before:h-6 before:w-6 before:rounded-full before:bg-violet-500 before:blur-lg before:content-[''] after:absolute after:right-4 after:top-1.5 after:z-10 after:h-8 after:w-12 after:rounded-full after:bg-rose-300 after:blur-lg after:content-['']"
         aria-label="Install Leather"
       >
         Install Leather
@@ -119,17 +119,17 @@ export const Header = () => {
 
 export const Footer = () => (
   <footer className="relative mt-28 bg-zinc-950 text-zinc-200">
-    <div className="pointer-events-none absolute -top-10 left-0 right-0 h-10">
+    <div className="pointer-events-none absolute -top-9 left-0 right-0 h-12">
       <svg
         width="100%"
         height="100%"
         viewBox="0 0 100 120"
         preserveAspectRatio="none"
       >
-        <polygon points="0,115 100,0 100,110" fill="#0a0a0a" />
+        <polygon points="0,90 100,0 100,130" fill="#0a0a0a" />
       </svg>
     </div>
-    <div className="mx-auto max-w-7xl px-6 py-12">
+    <div className="mx-auto max-w-7xl px-6 py-14">
       <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
         <div>
           <div className="font-[Sora] text-xl text-white">

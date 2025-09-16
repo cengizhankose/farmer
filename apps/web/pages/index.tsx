@@ -43,7 +43,10 @@ export default function Landing() {
   return (
     <div className="relative">
       <div
-        style={{ background: "linear-gradient(to right, #e9e9e9, #1c1d1f)" }}
+        style={{
+          background:
+            "var(--scene-bg, linear-gradient(to right, #e9e9e9, #1c1d1f))",
+        }}
       >
         <ScrollOrchestrator
           heightPerSceneVh={120}
@@ -147,7 +150,7 @@ export default function Landing() {
               start: 0.66,
               end: 1.0,
               theme: "dark",
-              bg: "linear-gradient(to right, #e9e9e9, #1c1d1f)",
+              bg: "linear-gradient(to right, #D1913C, #1c1d1f)",
               render: (p) => (
                 <section className="h-full">
                   <div className="mx-auto flex h-full max-w-7xl items-center px-6">
@@ -167,6 +170,7 @@ export default function Landing() {
             },
           ]}
         />
+        <div style={{ height: "16vh", background: "var(--scene-bg)" }} />
       </div>
     </div>
   );
