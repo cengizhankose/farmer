@@ -9,6 +9,10 @@ type Scene = {
   end: number;
   /** render with local progress [0..1] */
   render: (progress: number) => React.ReactNode;
+  /** CSS background (e.g., gradient) applied to full scene */
+  bg?: string;
+  /** Header theme hint for this scene */
+  theme?: "dark" | "light";
 };
 
 export function ScrollOrchestrator({ scenes, heightPerSceneVh = 120 }: { scenes: Scene[]; heightPerSceneVh?: number }) {
@@ -34,6 +38,17 @@ export function ScrollOrchestrator({ scenes, heightPerSceneVh = 120 }: { scenes:
     };
   }, [scenes.length, heightPerSceneVh]);
 
+  // Update header theme according to active scene
+  React.useEffect(() => {
+    const active = scenes.find((s) => progress >= s.start && progress < s.end);
+    const theme = active?.theme;
+    const root = document.documentElement;
+    if (theme) root.setAttribute("data-theme", theme);
+    return () => {
+      root.removeAttribute("data-theme");
+    };
+  }, [progress, scenes]);
+
   return (
     <div className="relative">
       {/* Phantom spacer to drive scroll; stage remains fixed */}
@@ -43,12 +58,25 @@ export function ScrollOrchestrator({ scenes, heightPerSceneVh = 120 }: { scenes:
           const span = Math.max(0.0001, s.end - s.start);
           const local = (progress - s.start) / span;
           const clamped = Math.min(1, Math.max(0, local));
-          // Visible only when within [start, end] with gentle fade at edges
-          const visible = clamped > 0 && clamped < 1;
-          const edgeFade = Math.max(0, Math.min(1, Math.min(clamped * 2, (1 - clamped) * 2)));
+          // Plateau visibility: ramp in first 20%, hold, ramp out last 20%
+          const edge = 0.2;
+          let opacity = 0;
+          if (clamped > 0 && clamped < 1) {
+            if (clamped < edge) opacity = clamped / edge;
+            else if (clamped > 1 - edge) opacity = (1 - clamped) / edge;
+            else opacity = 1;
+          }
+          // Blur only near edges; crisp on plateau
+          const blurMax = 8;
+          let blur = 0;
+          if (clamped > 0 && clamped < edge) blur = ((edge - clamped) / edge) * blurMax;
+          else if (clamped > 1 - edge && clamped < 1) blur = ((clamped - (1 - edge)) / edge) * blurMax;
+
           const style: React.CSSProperties = {
-            opacity: visible ? edgeFade : 0,
-            transition: "opacity 120ms linear",
+            opacity,
+            transition: "opacity 120ms linear, filter 120ms linear",
+            filter: blur ? `blur(${blur.toFixed(2)}px)` : undefined,
+            background: s.bg,
           };
           return (
             <div key={s.id} className="absolute inset-0" style={style}>
@@ -62,4 +90,3 @@ export function ScrollOrchestrator({ scenes, heightPerSceneVh = 120 }: { scenes:
     </div>
   );
 }
-

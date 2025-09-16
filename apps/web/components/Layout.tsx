@@ -73,7 +73,7 @@ const ConnectButton = () => {
 export const Header = () => {
   const { network } = useWallet();
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-zinc-200/60 bg-white/70 backdrop-blur-2xl">
+    <header className="site-header sticky top-0 z-40 w-full border-b border-zinc-200/60 bg-white/70 backdrop-blur-2xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
         <Link href="/" className="font-semibold tracking-tight text-zinc-900">
           Stacks Opportunities

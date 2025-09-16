@@ -49,6 +49,16 @@ h1, h2, h3, .font-[Sora] { font-family: 'Space Grotesk', 'Sora', 'Inter', system
 /* Scroll stage orchestration */
 .scroll-stage { will-change: opacity, transform, filter; }
 
+/* Header theming to blend with scene backgrounds on landing */
+:root[data-theme="dark"] .site-header {
+  background: transparent !important;
+  border-color: transparent !important;
+}
+:root[data-theme="dark"] .site-header, 
+:root[data-theme="dark"] .site-header a {
+  color: #fff !important;
+}
+
 /* Thread styles */
 .thread-center { background: linear-gradient(to bottom, rgba(255,255,255,0.12), rgba(255,255,255,0.12)); border-radius: 999px; position: sticky; }
 .thread-center::after { content: ""; position: absolute; inset: 0; height: var(--thread-progress, 0%); background: linear-gradient(to bottom, rgba(255,125,39,0.95), rgba(255,125,39,0.5)); border-radius: 999px; }
