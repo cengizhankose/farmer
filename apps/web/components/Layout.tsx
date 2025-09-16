@@ -64,7 +64,7 @@ const ConnectButton = () => {
   }
 
   return (
-    <Button onClick={connect as any} disabled={connecting} className="gap-2 bg-zinc-900 text-white hover:bg-black">
+    <Button onClick={() => void connect()} disabled={connecting} className="gap-2 bg-zinc-900 text-white hover:bg-black">
       {connecting ? "Connecting…" : "Connect Leather"}
     </Button>
   );
@@ -129,4 +129,3 @@ export const Layout = ({ children }: React.PropsWithChildren) => {
     </div>
   );
 };
-

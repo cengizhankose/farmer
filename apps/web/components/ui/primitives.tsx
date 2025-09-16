@@ -56,29 +56,29 @@ export const Slider: React.FC<{ value: number[]; onValueChange: (v: number[]) =>
     <input type="range" value={value[0]} onChange={(e) => onValueChange([Number(e.target.value)])} min={min} max={max} step={step} className={`w-full ${className}`} />
   );
 
-export function Tabs({ value, onValueChange, children }: { value: string; onValueChange: (v: string) => void; children: React.ReactNode }) {
-  return <div>{React.Children.map(children as any, (c: any) => React.cloneElement(c, { value, onValueChange }))}</div>;
+export function Tabs({ children }: { value: string; onValueChange: (v: string) => void; children: React.ReactNode }) {
+  return <div>{children}</div>;
 }
 export function TabsList({ children }: { children: React.ReactNode }) {
   return <div className="inline-flex rounded-md border bg-white p-1">{children}</div>;
 }
-export function TabsTrigger({ value, onValueChange, children }: { value: string; onValueChange?: (v: string) => void; children: React.ReactNode }) {
+export function TabsTrigger({ value, onSelect, children }: { value: string; onSelect?: (v: string) => void; children: React.ReactNode }) {
   return (
-    <button onClick={() => onValueChange && onValueChange(value)} className="rounded-sm px-3 py-1 text-sm text-zinc-700 hover:bg-zinc-50">
+    <button onClick={() => onSelect && onSelect(value)} className="rounded-sm px-3 py-1 text-sm text-zinc-700 hover:bg-zinc-50">
       {children}
     </button>
   );
 }
 
-export function Select({ value, onValueChange, children }: { value: string; onValueChange: (v: string) => void; children: React.ReactNode }) {
+export function Select(props: { value: string; onValueChange: (v: string) => void; children: React.ReactNode }) {
+  const { value, children } = props;
   return <div data-value={value}>{children}</div>;
 }
-export function SelectTrigger({ className = "", children, onClick }: any) {
-  return <div className={`h-9 w-full cursor-default rounded-md border border-zinc-300 bg-white px-3 text-sm ${className}`} onClick={onClick}>{children}</div>;
+export function SelectTrigger({ className = "", children, onClick }: React.HTMLAttributes<HTMLDivElement> & { className?: string }) {
+  return <div className={`h-9 w-full cursor-default rounded-md border border-zinc-300 bg-white px-3 text-sm ${className}`} onClick={onClick}>{children as React.ReactNode}</div>;
 }
 export function SelectValue({ placeholder }: { placeholder?: string }) { return <span className="text-zinc-500">{placeholder}</span>; }
 export function SelectContent({ children }: { children: React.ReactNode }) { return <div className="mt-2 rounded-md border bg-white p-1 text-sm shadow-sm">{children}</div>; }
-export function SelectItem({ value, children, onSelect }: any) {
+export function SelectItem({ value, children, onSelect }: { value: string; children: React.ReactNode; onSelect?: (v: string) => void }) {
   return <div className="cursor-pointer rounded px-2 py-1 hover:bg-zinc-50" onClick={() => onSelect?.(value)}>{children}</div>;
 }
-

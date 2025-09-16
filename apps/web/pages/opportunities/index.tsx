@@ -1,20 +1,20 @@
 "use client";
 import React from "react";
 import { useRouter } from "next/router";
-import { opportunities, CHAINS, RISK_COLORS } from "@/lib/mock";
+import { opportunities, CHAINS, RISK_COLORS, type ChainId } from "@/lib/mock";
 import { Card, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Tabs, TabsList, TabsTrigger, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger, Badge, Button } from "@/components/ui/primitives";
 import { Info } from "lucide-react";
 
 export default function OpportunitiesPage() {
   const [query, setQuery] = React.useState("");
-  const [risk, setRisk] = React.useState("all");
-  const [chain, setChain] = React.useState("stacks");
+  const [risk, setRisk] = React.useState<"all" | "Low" | "Medium" | "High">("all");
+  const [chain, setChain] = React.useState<ChainId>("stacks");
   const router = useRouter();
 
   const filtered = React.useMemo(() => {
     return opportunities.filter((o) => {
-      if (chain && o.chain !== (chain as any)) return false;
-      if (risk !== "all" && o.risk !== (risk as any)) return false;
+      if (chain && o.chain !== chain) return false;
+      if (risk !== "all" && o.risk !== risk) return false;
       if (query) {
         const q = query.toLowerCase();
         return o.protocol.toLowerCase().includes(q) || o.pair.toLowerCase().includes(q);
@@ -52,7 +52,7 @@ export default function OpportunitiesPage() {
         <Tabs value={chain} onValueChange={setChain}>
           <TabsList>
             {CHAINS.map((c) => (
-              <TabsTrigger key={c.id} value={c.id}>{c.label}</TabsTrigger>
+              <TabsTrigger key={c.id} value={c.id} onSelect={setChain}>{c.label}</TabsTrigger>
             ))}
           </TabsList>
         </Tabs>
@@ -118,4 +118,3 @@ export default function OpportunitiesPage() {
     </div>
   );
 }
-

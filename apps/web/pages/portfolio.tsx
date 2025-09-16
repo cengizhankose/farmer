@@ -1,12 +1,13 @@
 "use client";
 import React from "react";
 import Link from "next/link";
-import { getRecentRedirects } from "@/lib/mock";
-import { Card, Button, Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/primitives";
+import Image from "next/image";
+import { getRecentRedirects, type RedirectEntry } from "@/lib/mock";
+import { Card, Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/primitives";
 import { toast } from "sonner";
 
 export default function PortfolioPage() {
-  const [rows, setRows] = React.useState<any[]>([]);
+  const [rows, setRows] = React.useState<RedirectEntry[]>([]);
 
   React.useEffect(() => {
     setRows(getRecentRedirects());
@@ -27,7 +28,9 @@ export default function PortfolioPage() {
 
       {rows.length === 0 ? (
         <Card className="mt-8 overflow-hidden border-white/40 bg-white/60 backdrop-blur-2xl">
-          <img src={emptyIllustration} alt="empty" className="h-48 w-full object-cover" />
+          <div className="relative h-48 w-full">
+            <Image src={emptyIllustration} alt="empty" fill className="object-cover" />
+          </div>
           <div className="p-6">
             <h3 className="text-lg font-medium text-zinc-900">Start farming now</h3>
             <p className="mt-1 text-sm text-zinc-600">Explore opportunities and use the deposit button to add entries here.</p>
@@ -79,4 +82,3 @@ export default function PortfolioPage() {
     </div>
   );
 }
-

@@ -94,18 +94,28 @@ export function getOpportunityById(id?: string | string[]) {
 
 const LOCAL_KEY = "stacks_portfolio_mock";
 
-export function addRecentRedirect(entry: any) {
+export type RedirectEntry = {
+  id: string;
+  protocol: string;
+  pair: string;
+  apr: number;
+  amount: number;
+  days: number;
+  ts: number;
+  chain: ChainId;
+};
+
+export function addRecentRedirect(entry: RedirectEntry) {
   const prev = JSON.parse(globalThis.localStorage?.getItem(LOCAL_KEY) || "[]");
   const next = [entry, ...prev].slice(0, 25);
   globalThis.localStorage?.setItem(LOCAL_KEY, JSON.stringify(next));
   return next;
 }
 
-export function getRecentRedirects() {
+export function getRecentRedirects(): RedirectEntry[] {
   try {
     return JSON.parse(globalThis.localStorage?.getItem(LOCAL_KEY) || "[]");
-  } catch (e) {
-    return [] as any[];
+  } catch {
+    return [] as RedirectEntry[];
   }
 }
-
