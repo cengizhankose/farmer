@@ -40,8 +40,10 @@ export function ScrollOrchestrator({ scenes, heightPerSceneVh = 120 }: { scenes:
 
   // Update header theme according to active scene
   React.useEffect(() => {
-    const active = scenes.find((s) => progress >= s.start && progress < s.end);
-    const theme = active?.theme;
+    // Use current active scene theme, otherwise hold last seen theme
+    const activeNow = scenes.find((s) => progress >= s.start && progress < s.end);
+    const fallback = scenes.reduce((acc, s) => (progress >= s.start ? s : acc), scenes[0]);
+    const theme = (activeNow || fallback)?.theme;
     const root = document.documentElement;
     if (theme) root.setAttribute("data-theme", theme);
     return () => {
@@ -59,12 +61,16 @@ export function ScrollOrchestrator({ scenes, heightPerSceneVh = 120 }: { scenes:
           const local = (progress - s.start) / span;
           const clamped = Math.min(1, Math.max(0, local));
           // Plateau visibility: ramp in first 20%, hold, ramp out last 20%
-          const edge = 0.2;
+          const edge = 0.12; // shorter in/out distance
           let opacity = 0;
           if (clamped > 0 && clamped < 1) {
             if (clamped < edge) opacity = clamped / edge;
             else if (clamped > 1 - edge) opacity = (1 - clamped) / edge;
             else opacity = 1;
+          }
+          // Ensure first scene is fully visible on load
+          if (s.start === 0 && clamped === 0) {
+            opacity = 1;
           }
           // Blur only near edges; crisp on plateau
           const blurMax = 8;

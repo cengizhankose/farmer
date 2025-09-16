@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.cdnfonts.com/css/clash-display');
 
 @tailwind base;
 @tailwind components;
@@ -13,8 +14,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3, .font-[Sora] { font-family: 'Space Grotesk', 'Sora', 'Inter', system-ui, sans-serif; }
-.font-display { font-family: 'Space Grotesk', 'Sora', 'Inter', system-ui, sans-serif; }
+h1, h2, h3, .font-display { font-family: 'Clash Display', 'Space Grotesk', 'Inter', system-ui, sans-serif; }
+.font-mono-tech { font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
 
 @layer base {
   :root {

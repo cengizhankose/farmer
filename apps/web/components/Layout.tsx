@@ -93,8 +93,8 @@ export const Header = () => {
 export const Footer = () => (
   <footer className="relative mt-28 bg-zinc-950 text-zinc-200">
     <div className="pointer-events-none absolute -top-10 left-0 right-0 h-10">
-      <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <polygon points="0,100 100,0 100,100" fill="#0a0a0a" />
+      <svg width="100%" height="100%" viewBox="0 0 100 120" preserveAspectRatio="none">
+        <polygon points="0,115 100,0 100,110" fill="#0a0a0a" />
       </svg>
     </div>
     <div className="mx-auto max-w-7xl px-6 py-12">
