@@ -1,5 +1,11 @@
 # Repository Guidelines
 
+## Language & Communication
+- Repository content is English-only: code, comments, docs, tests, env names, commit messages, PRs, and issues.
+- Conversations may include Turkish, but all persisted artifacts (PR/issue descriptions, code comments, docs) must be in English. Summarize/translate any Turkish context into English before merge/close.
+- UI copy can be localized later; default language is English. Prefer adding i18n scaffolding over mixing languages inline.
+- Use clear English identifiers and naming; avoid Turkish in variable/function/module names.
+
 ## Project Structure & Module Organization
 - apps/web: Next.js app (pages: `opportunities`, `opportunities/[id]`, `portfolio`; libs: `lib/adapters/{alex,arkadiko}.ts`, `lib/normalize/{apr,risk}.ts`; UI: `components/{OpportunityCard,DepositPanel,PortfolioTable}`).
 - contracts: Router contract (Stacks-first; e.g., `Router.clar`) and unit tests.
@@ -21,6 +27,7 @@
 - Frontend: Jest/Vitest + React Testing Library. Place tests as `*.test.ts(x)` near source or under `__tests__/`. Include adapters/normalizers and critical flows (connect wallet, list/detail, deposit CTA, portfolio state).
 
 ## Commit & Pull Request Guidelines
+- Language: Use English for titles and bodies. If a discussion happened in Turkish, include a brief English summary in the PR/issue description.
 - Commits: Imperative mood, concise scope prefix mirroring issues: `[FE]`, `[BE]`, `[DATA]`, `[DOCS]` (e.g., `[FE] Add portfolio table`). Reference issues with `#123` when applicable.
 - PRs: Clear description, linked issues, screenshots for UI changes, and testnet explorer links for contract flows. Include checklist: build passes, tests updated, security notes (if router/tx paths touched).
 
@@ -28,4 +35,3 @@
 - Contracts: Follow CEI pattern, keep `pausable`, `reentrancy` protections, and `perTxCap`. Log events for deposits.
 - Frontend: Show data `source` and `lastUpdated`; display NFA/BETA banners. Default to read-only on wrong chain.
 - Secrets: Use env files per app; never commit private keys or API tokens.
-

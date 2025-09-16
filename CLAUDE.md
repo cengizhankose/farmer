@@ -8,16 +8,21 @@ This is a **Stacks-focused Yield Farming Aggregator** being developed for a 5-da
 
 ## Architecture & Components
 
-### Planned Directory Structure
+### Current Directory Structure
 ```
 /contracts
   Router.clar (or equivalent smart contract)
   /test (unit tests)
-/apps/web (Next.js/Expo Router web)
-  pages: opportunities, [id], portfolio
-  lib/adapters/{alex, arkadiko}.ts
-  lib/normalize/apr.ts, risk.ts
-  components/{OpportunityCard, DepositPanel, PortfolioTable}
+/apps/web (React with CRACO)
+  src/
+    pages: Landing.jsx, Opportunities.jsx, OpportunityDetail.jsx, Portfolio.jsx
+    components/: CardFlow, Layout, LiveFeed, ThreadScroller
+    components/ui/: Complete shadcn/ui component library
+    contexts/: WalletContext
+    hooks/: use-toast
+    lib/: utils
+  package.json with optimized dependencies
+  tailwind.config.js, tsconfig.json, craco.config.js
 /packages/shared
   types/, utils/
 ```
@@ -127,6 +132,28 @@ interface Adapter {
 5. View transaction in portfolio dashboard
 6. Preview disabled multichain opportunities
 7. Present roadmap for vault and indexer features
+
+## Development Environment
+
+### Frontend Setup Status
+- ✅ React application with CRACO configuration
+- ✅ Complete shadcn/ui component library installed
+- ✅ Stacks wallet integration dependencies (@stacks/connect, @stacks/transactions)
+- ✅ Tailwind CSS with custom configuration
+- ✅ TypeScript support configured
+- ✅ Build process verified and optimized
+- ✅ Development server tested
+- ✅ Linting and type checking configured
+
+### Build Commands
+```bash
+cd apps/web
+npm start        # Start development server
+npm run build    # Production build
+npm run test     # Run tests
+npm run lint     # Lint code
+npm run type-check # TypeScript type checking
+```
 
 ## Important Notes
 

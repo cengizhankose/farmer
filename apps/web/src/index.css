@@ -1,0 +1,66 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+    "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
+    "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, .font-[Sora] { font-family: 'Space Grotesk', 'Sora', 'Inter', system-ui, sans-serif; }
+.font-display { font-family: 'Space Grotesk', 'Sora', 'Inter', system-ui, sans-serif; }
+
+@layer base {
+  :root {
+    --background: 30 6% 98%;
+    --foreground: 240 5% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 5% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 5% 10%;
+    --primary: 240 5% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 240 5% 10%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 240 4.8% 46.1%;
+    --accent: 24 95% 54%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
+    --radius: 0.9rem;
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  body { @apply bg-background text-foreground; }
+}
+
+/* Thread styles */
+.thread-center { background: linear-gradient(to bottom, rgba(255,255,255,0.12), rgba(255,255,255,0.12)); border-radius: 999px; position: sticky; }
+.thread-center::after { content: ""; position: absolute; inset: 0; height: var(--thread-progress, 0%); background: linear-gradient(to bottom, rgba(255,125,39,0.95), rgba(255,125,39,0.5)); border-radius: 999px; }
+.thread-card { opacity: 0; transform: translateY(22px); transition: opacity .6s ease, transform .6s ease; }
+.thread-card-show { opacity: 1; transform: translateY(0); }
+
+/* LiveFeed animation */
+.livefeed { display: block; animation: liveFeed 16s linear infinite; }
+@keyframes liveFeed {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+
+/* Marquee rows */
+@keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+@keyframes marquee-rev { 0% { transform: translateX(-50%); } 100% { transform: translateX(0); } }
+.animate-marquee { animation: marquee 28s linear infinite; }
+.animate-marquee-rev { animation: marquee-rev 32s linear infinite; }
