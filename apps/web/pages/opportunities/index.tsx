@@ -34,25 +34,25 @@ export default function OpportunitiesPage() {
         </div>
         <div className="flex flex-col gap-3 md:flex-row">
           <Input placeholder="Search protocol or pair" value={query} onChange={(e) => setQuery(e.target.value)} className="w-full md:w-64" />
-          <Select value={risk} onValueChange={setRisk}>
+          <Select value={risk}>
             <SelectTrigger className="w-full md:w-40">
               <SelectValue placeholder="Risk" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all" onSelect={setRisk}>All risks</SelectItem>
-              <SelectItem value="Low" onSelect={setRisk}>Low</SelectItem>
-              <SelectItem value="Medium" onSelect={setRisk}>Medium</SelectItem>
-              <SelectItem value="High" onSelect={setRisk}>High</SelectItem>
+              <SelectItem value="all" onSelect={(v) => setRisk(v as typeof risk)}>All risks</SelectItem>
+              <SelectItem value="Low" onSelect={(v) => setRisk(v as typeof risk)}>Low</SelectItem>
+              <SelectItem value="Medium" onSelect={(v) => setRisk(v as typeof risk)}>Medium</SelectItem>
+              <SelectItem value="High" onSelect={(v) => setRisk(v as typeof risk)}>High</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
 
       <div className="mt-6">
-        <Tabs value={chain} onValueChange={setChain}>
+        <Tabs value={chain} onValueChange={(v) => setChain(v as ChainId)}>
           <TabsList>
             {CHAINS.map((c) => (
-              <TabsTrigger key={c.id} value={c.id} onSelect={setChain}>{c.label}</TabsTrigger>
+              <TabsTrigger key={c.id} value={c.id} onSelect={(v) => setChain(v as ChainId)}>{c.label}</TabsTrigger>
             ))}
           </TabsList>
         </Tabs>

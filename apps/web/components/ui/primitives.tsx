@@ -70,7 +70,7 @@ export function TabsTrigger({ value, onSelect, children }: { value: string; onSe
   );
 }
 
-export function Select(props: { value: string; onValueChange: (v: string) => void; children: React.ReactNode }) {
+export function Select(props: { value: string; children: React.ReactNode }) {
   const { value, children } = props;
   return <div data-value={value}>{children}</div>;
 }
