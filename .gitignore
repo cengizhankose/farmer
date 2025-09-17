@@ -1,0 +1,8 @@
+node_modules
+dist
+.build
+.next
+.expo
+.env*
+coverage
+clarinet.json.lock
