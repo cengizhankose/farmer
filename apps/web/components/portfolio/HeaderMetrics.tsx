@@ -29,13 +29,13 @@ export const HeaderMetrics: React.FC<{ rows: RedirectEntry[] }>
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
         className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-3"
       >
-        <div className="rounded-lg border bg-white/80 p-4 backdrop-blur-xl">
+        <div className="rounded-lg border bg-white/80 p-4 backdrop-blur-xl" style={{ transform: 'scaleY(1.05)' }}>
           <div className={`text-xs text-[${colors.zinc[500]}]`}>Total Portfolio Value</div>
           <div className="mt-1 text-2xl font-semibold text-zinc-900">
             <CountUp end={total} decimals={2} prefix="$" duration={1} />
           </div>
         </div>
-        <div className="rounded-lg border bg-white/80 p-4 backdrop-blur-xl">
+        <div className="rounded-lg border bg-white/80 p-4 backdrop-blur-xl" style={{ transform: 'scaleY(1.05)' }}>
           <div className={`text-xs text-[${colors.zinc[500]}]`}>Net PnL</div>
           <div className="mt-1 flex items-center gap-2 text-2xl font-semibold">
             <span className={positive ? "text-emerald-600" : "text-rose-600"}>
@@ -47,7 +47,7 @@ export const HeaderMetrics: React.FC<{ rows: RedirectEntry[] }>
             {positive ? <TrendingUp size={18} className="text-emerald-600" /> : <TrendingDown size={18} className="text-rose-600" />}
           </div>
         </div>
-        <div className="rounded-lg border bg-white/80 p-4 backdrop-blur-xl">
+        <div className="rounded-lg border bg-white/80 p-4 backdrop-blur-xl" style={{ transform: 'scaleY(1.05)' }}>
           <div className={`text-xs text-[${colors.zinc[500]}]`}>24h Change</div>
           <div className="mt-1 h-10 w-full">
             <ResponsiveContainer width="100%" height="100%">

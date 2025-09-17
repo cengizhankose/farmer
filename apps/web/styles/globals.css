@@ -23,6 +23,14 @@
   --gp-10th: rgba(255, 255, 255, 0.16);
   --gp-unit: 16px;
   --gp-scale: 1;
+
+  /* UI Design System Colors */
+  --sand-50: #F6F4EF;
+  --sand-200: #E3DDD1;
+  --graph-bg: #0E0E10;
+  --brand-orange: #FF6A00;
+  --brand-orange-700: #E85F00;
+  --badge-lilac: #E6DBFF;
 }
 
 /* Chart lines background utility */
@@ -260,4 +268,26 @@ h3,
 }
 .animate-marquee-rev {
   animation: marquee-rev 32s linear infinite;
+}
+
+/* Tabular numbers utility */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Curved corner badge cap (optional decorative) */
+.card-corner-cap {
+  position: relative;
+}
+.card-corner-cap::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 46px;
+  height: 46px;
+  border-bottom-right-radius: 16px;
+  background: var(--badge-lilac);
+  transform: translate(-8px, -8px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
 }

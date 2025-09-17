@@ -56,14 +56,11 @@ export function ChainFilterPills({
           {CHAINS.map(({ key, label, disabled }) => {
             const isActive = key === active;
             const base =
-              'inline-flex items-center rounded-full px-4 py-1.5 text-sm ' +
-              'transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2';
-            const activeCls = 'bg-neutral-900 text-white';
-            const inactiveCls = 'text-neutral-700 hover:bg-neutral-200';
+              'inline-flex items-center rounded-full px-4 py-1.5 text-sm font-medium ' +
+              'transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2';
+            const activeCls = 'text-white ring-[var(--brand-orange)] hover:bg-[var(--brand-orange-700)]';
+            const inactiveCls = 'text-white hover:bg-white/15 ring-white/20';
             const disabledCls = 'opacity-50 cursor-not-allowed';
-            
-            // Kart background rengi #F6F4EF
-            const cardBg = '#F6F4EF';
 
             const classes = [
               base,
@@ -71,8 +68,8 @@ export function ChainFilterPills({
             ].join(' ');
 
             const buttonStyle = isActive 
-              ? {} 
-              : { backgroundColor: cardBg };
+              ? { backgroundColor: 'var(--brand-orange)' } 
+              : { backgroundColor: 'rgba(255, 255, 255, 0.1)' };
 
             return (
               <button

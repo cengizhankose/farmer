@@ -11,6 +11,8 @@ type Props = {
   onCta?: () => void;
   className?: string;
   children?: React.ReactNode;
+  pills?: React.ReactNode;
+  kpis?: React.ReactNode;
 };
 
 const sizeToMinH: Record<NonNullable<Props["size"]>, string> = {
@@ -27,6 +29,8 @@ export function HeroHeader({
   onCta,
   className,
   children,
+  pills,
+  kpis,
 }: Props) {
   const reduceMotion = useReducedMotion();
 
@@ -104,8 +108,8 @@ export function HeroHeader({
           ) : null}
         </div>
 
-        {/* Chain filter pills at bottom */}
-        {children && (
+        {/* Chain filter pills */}
+        {(pills || children) && (
           <motion.div
             className="relative z-10 w-full mt-1"
             initial={reduceMotion ? {} : { opacity: 0, y: 4 }}
@@ -116,7 +120,23 @@ export function HeroHeader({
                 : { duration: 0.3, ease: "easeOut", delay: 0.15 }
             }
           >
-            {children}
+            {pills || children}
+          </motion.div>
+        )}
+
+        {/* KPI Bar */}
+        {kpis && (
+          <motion.div
+            className="relative z-10 w-full mt-4"
+            initial={reduceMotion ? {} : { opacity: 0, y: 6 }}
+            animate={reduceMotion ? {} : { opacity: 1, y: 0 }}
+            transition={
+              reduceMotion
+                ? {}
+                : { duration: 0.3, ease: "easeOut", delay: 0.2 }
+            }
+          >
+            {kpis}
           </motion.div>
         )}
       </div>

@@ -11,11 +11,10 @@ import {
   type SortDir,
   type SortKey,
 } from "@/components/opportunities/MarketFilters";
-import { QuickStats } from "@/components/opportunities/QuickStats";
 // import { SkeletonGrid } from "@/components/opportunities/SkeletonGrid";
 import { EmptyState } from "@/components/opportunities/EmptyState";
-import { StickyStatsHeader } from "@/components/opportunities/StickyStatsHeader";
 import HeroHeader from "@/components/HeroHeader";
+import HeroKpiBar from "@/components/HeroKpiBar";
 import ChainFilterPills, { type ChainKey } from "@/components/ChainFilterPills";
 import OpportunityCardPlaceholder from "@/components/OpportunityCardPlaceholder";
 
@@ -80,13 +79,23 @@ export default function OpportunitiesPage() {
         title="Explore Yield Opportunities"
         subtitle="Find the best APR/APY on Stacks. Multichain coming soon."
         size="standard"
-      >
-        <ChainFilterPills 
-          defaultChain={chain as ChainKey}
-          onChange={handleChainChange}
-          sticky={false}
-        />
-      </HeroHeader>
+        pills={
+          <ChainFilterPills
+            defaultChain={chain as ChainKey}
+            onChange={handleChainChange}
+            sticky={false}
+          />
+        }
+        kpis={
+          <HeroKpiBar
+            kpis={{
+              avgApr7d: stats.avgAPR,
+              totalTvlUsd: stats.sumTVL,
+              results: stats.count,
+            }}
+          />
+        }
+      />
 
       <section className="mx-auto max-w-6xl px-4 py-8 sm:py-10">
         <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-center mb-6">
@@ -108,13 +117,6 @@ export default function OpportunitiesPage() {
             support is coming soon. Cards are disabled.
           </div>
         )}
-
-        <StickyStatsHeader count={stats.count} avgAPR={stats.avgAPR} sumTVL={stats.sumTVL} />
-        <QuickStats
-          count={stats.count}
-          avgAPR={stats.avgAPR}
-          sumTVL={stats.sumTVL}
-        />
 
         {loading ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { useRouter } from "next/router";
-import { Opportunity, CHAINS, RISK_COLORS } from "@/lib/mock";
+import { Opportunity, CHAINS } from "@/lib/mock";
 import {
   Card,
   Badge,
@@ -11,7 +11,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/primitives";
-import { colors } from "@/lib/colors";
 import { formatPct, formatTVL } from "@/lib/format";
 import { protocolLogo } from "@/lib/logos";
 
@@ -23,56 +22,60 @@ export const OpportunityCard: React.FC<
     CHAINS.find((c) => c.id === data.chain)?.label || data.chain;
   const Action = (
     <Button
-      className="w-full text-neutral-700 hover:bg-neutral-400 transition-colors"
-      style={{ backgroundColor: colors.zinc[300] }}
+      className="w-full text-neutral-700 hover:bg-neutral-200 transition-colors"
+      style={{ backgroundColor: 'var(--sand-50)' }}
       onClick={() =>
         onClick ? onClick() : router.push(`/opportunities/${data.id}`)
       }
+      aria-label={`View details for ${data.protocol} ${data.pair}`}
     >
       View details
     </Button>
   );
 
-  // Stacks ecosystem card vibe — calm sand/beige surface
-  const cardBg = "#F6F4EF"; // sand‑ish neutral
-  const borderCol = "rgba(0,0,0,0.06)";
-  // const cardBorder = "transparent";
+  const riskColors = {
+    Low: "bg-emerald-100 text-emerald-800",
+    Medium: "bg-amber-100 text-amber-900", 
+    High: "bg-rose-100 text-rose-800",
+  };
+
   return (
     <Card
-      className={`group relative overflow-hidden rounded-3xl border p-6 transition hover:-translate-y-0.5 hover:shadow-md ${
+      className={`group relative overflow-hidden rounded-3xl border border-black/5 bg-[var(--sand-50)] shadow-sm p-5 md:p-6 transition hover:-translate-y-1 hover:shadow-md ${
         disabled ? "opacity-60" : ""
       }`}
-      style={{ backgroundColor: cardBg, borderColor: borderCol }}
     >
-      {/* Corner logo notch */}
+      {/* Curved corner logo badge */}
       {(() => {
         const l = protocolLogo(data.protocol);
         return (
           <div
-            className="absolute -top-3 -left-3 grid h-12 w-12 place-items-center rounded-2xl shadow-sm"
-            style={{ background: l.bg, color: l.fg }}
+            className="absolute -top-3 -left-3 h-12 w-12 md:h-14 md:w-14 grid place-items-center"
+            style={{ 
+              background: 'var(--badge-lilac)', 
+              borderRadius: '16px',
+              boxShadow: '0 4px 10px rgba(0,0,0,.06)',
+            }}
             title={data.protocol}
             aria-hidden
           >
-            <span className="text-sm font-semibold">{l.letter}</span>
+            <span className="text-sm md:text-base font-semibold" style={{ color: l.fg }}>
+              {l.letter}
+            </span>
           </div>
         );
       })()}
 
       <div className="flex items-start justify-between">
         <div>
-          <div
-            className={`text-xs uppercase tracking-wide text-[${colors.zinc[500]}]`}
-          >
+          <div className="text-sm font-semibold text-zinc-600">
             {data.protocol}
           </div>
-          <div
-            className={`mt-1 text-lg font-semibold text-[${colors.zinc[900]}]`}
-          >
+          <div className="mt-1 text-base md:text-lg font-bold text-zinc-900">
             {data.pair}
           </div>
         </div>
-        <Badge className={`${RISK_COLORS[data.risk]} border`}>
+        <Badge className={`${riskColors[data.risk]} border-0 text-xs font-medium`}>
           {data.risk}
         </Badge>
       </div>
@@ -80,45 +83,34 @@ export const OpportunityCard: React.FC<
       {/* Metrics */}
       <div className="mt-4 grid grid-cols-3 gap-4">
         <div>
-          <div className={`text-xs text-[${colors.zinc[500]}]`}>APR</div>
-          <div
-            className={`text-2xl font-bold leading-tight text-[${colors.zinc[900]}]`}
-          >
+          <div className="text-[11px] uppercase font-medium text-zinc-500 tracking-wide">APR</div>
+          <div className="text-sm md:text-base font-semibold leading-tight text-zinc-900 tabular-nums">
             {formatPct(data.apr, 1)}
           </div>
         </div>
         <div>
-          <div className={`text-xs text-[${colors.zinc[500]}]`}>APY</div>
-          <div
-            className={`text-2xl font-bold leading-tight text-[${colors.zinc[900]}]`}
-          >
+          <div className="text-[11px] uppercase font-medium text-zinc-500 tracking-wide">APY</div>
+          <div className="text-sm md:text-base font-semibold leading-tight text-zinc-900 tabular-nums">
             {formatPct(data.apy, 1)}
           </div>
         </div>
         <div>
-          <div className={`text-xs text-[${colors.zinc[500]}]`}>TVL</div>
-          <div
-            className={`text-2xl font-bold leading-tight text-[${colors.zinc[900]}]`}
-          >
+          <div className="text-[11px] uppercase font-medium text-zinc-500 tracking-wide">TVL</div>
+          <div className="text-sm md:text-base font-semibold leading-tight text-zinc-900 tabular-nums">
             {formatTVL(data.tvlUsd)}
           </div>
         </div>
       </div>
 
-      <div
-        className={`mt-3 flex items-center justify-between text-xs text-[${colors.zinc[600]}]`}
-      >
-        <div>
+      <div className="mt-3 flex items-center justify-between text-[11px] text-zinc-600">
+        <div className="flex items-center gap-1">
           <span>Last updated {data.lastUpdated}</span>
-          <span
-            className={`ml-2 rounded-full bg-[${colors.zinc[100]}] px-2 py-0.5 text-[${colors.zinc[700]}]`}
-          >
+          <span className="text-zinc-400">·</span>
+          <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-zinc-700">
             source: demo
           </span>
         </div>
-        <div
-          className={`rounded-full bg-[${colors.zinc[100]}] px-2 py-0.5 text-[${colors.zinc[700]}]`}
-        >
+        <div className="rounded-full bg-zinc-100 px-2 py-0.5 text-zinc-700">
           {chainLabel}
         </div>
       </div>

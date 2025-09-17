@@ -9,7 +9,7 @@ import { colors } from "../lib/colors";
 import { SummaryChips } from "@/components/portfolio/SummaryChips";
 import { HeaderMetrics } from "@/components/portfolio/HeaderMetrics";
 import { PositionsList } from "@/components/portfolio/PositionsList";
-import { RewardsHub } from "@/components/portfolio/RewardsHub";
+import RewardsChart from "@/components/RewardsChart";
 import { ActivityFeed } from "@/components/portfolio/ActivityFeed";
 import { toCSV, downloadCSV } from "@/lib/csv";
 
@@ -64,7 +64,9 @@ export default function PortfolioPage() {
           <HeaderMetrics rows={rows} />
           <SummaryChips rows={rows} />
           <PositionsList rows={rows} />
-          <RewardsHub rows={rows} />
+          <div className="mt-8">
+            <RewardsChart className="mt-0" />
+          </div>
           <Card className="mt-6 border-white/40 bg-white/60 p-4 backdrop-blur-2xl">
             <div className="flex items-center justify-between px-2">
               <h3 className={`text-lg font-medium text-[${colors.zinc[900]}]`}>Recent activity</h3>
