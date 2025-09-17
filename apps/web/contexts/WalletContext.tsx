@@ -2,7 +2,15 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
-type Addresses = any;
+interface WalletAddress {
+  address: string;
+  publicKey?: string;
+}
+
+interface Addresses {
+  stx: WalletAddress[];
+  btc: WalletAddress[];
+}
 
 type WalletCtx = {
   installed: boolean;
@@ -22,7 +30,7 @@ const WalletContext = createContext<WalletCtx | undefined>(undefined);
 
 function detectLeather() {
   if (typeof window === "undefined") return false;
-  return !!(window as any).LeatherProvider;
+  return !!(window as typeof window & { LeatherProvider?: unknown }).LeatherProvider;
 }
 
 function parseNetworkFromAddress(stxAddress?: string | null) {
@@ -47,7 +55,7 @@ export const WalletProvider = ({ children, expected = "testnet" as const }: Reac
   }, []);
 
   const network = useMemo(() => {
-    const stx = (addresses as any)?.stx?.[0]?.address as string | undefined;
+    const stx = addresses?.stx?.[0]?.address;
     return parseNetworkFromAddress(stx);
   }, [addresses]);
 
@@ -64,15 +72,41 @@ export const WalletProvider = ({ children, expected = "testnet" as const }: Reac
     setConnecting(true);
     setError(null);
     try {
-      const resp = await (window as any).LeatherProvider.request("getAddresses", {});
-      if (!resp || !resp.addresses) throw new Error("No addresses returned");
-      setAddresses(resp.addresses);
-      localStorage.setItem("leather_addresses", JSON.stringify(resp.addresses));
+      const resp = await (window as typeof window & { 
+        LeatherProvider?: { request: (method: string, params: Record<string, unknown>) => Promise<{ addresses: Addresses }> } 
+      }).LeatherProvider?.request("getAddresses", {});
+      
+      
+      // Handle Leather's JSON-RPC 2.0 response format
+      let addresses;
+      if (resp && resp.result && Array.isArray(resp.result.addresses)) {
+        // Convert array to expected format
+        const addressArray = resp.result.addresses;
+        addresses = {
+          stx: addressArray.filter(addr => addr.symbol === 'STX').map(addr => ({
+            address: addr.address,
+            publicKey: addr.publicKey
+          })),
+          btc: addressArray.filter(addr => addr.symbol === 'BTC').map(addr => ({
+            address: addr.address,
+            publicKey: addr.publicKey
+          }))
+        };
+      } else if (resp && resp.addresses) {
+        addresses = resp.addresses;
+      } else {
+        console.error("Invalid response format:", resp);
+        throw new Error("No addresses returned");
+      }
+      
+      setAddresses(addresses);
+      localStorage.setItem("leather_addresses", JSON.stringify(addresses));
       toast("Wallet connected", { description: "Leather connected successfully" });
-    } catch (e: any) {
-      console.error("Leather connect error", e);
-      setError(e?.message || "Failed to connect");
-      toast("Connection failed", { description: e?.message || "Unknown error" });
+    } catch (e: unknown) {
+      const error = e as Error;
+      console.error("Leather connect error", error);
+      setError(error?.message || "Failed to connect");
+      toast("Connection failed", { description: error?.message || "Unknown error" });
     } finally {
       setConnecting(false);
     }
@@ -84,8 +118,8 @@ export const WalletProvider = ({ children, expected = "testnet" as const }: Reac
     toast("Disconnected", { description: "Wallet session cleared" });
   }, []);
 
-  const stxAddress = (addresses as any)?.stx?.[0]?.address || null;
-  const btcAddress = (addresses as any)?.btc?.[0]?.address || null;
+  const stxAddress = addresses?.stx?.[0]?.address || null;
+  const btcAddress = addresses?.btc?.[0]?.address || null;
 
   const value = useMemo<WalletCtx>(
     () => ({

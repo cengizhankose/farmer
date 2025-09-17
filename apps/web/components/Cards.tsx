@@ -11,7 +11,18 @@ export const CardsGrid: React.FC<{ progress?: number }> = ({ progress = 0 }) => 
   const prevCountRef = React.useRef(0);
 
   React.useEffect(() => {
-    const gsap: any = (typeof window !== "undefined" && (window as any).gsap) || null;
+    const gsap = (typeof window !== "undefined" && (window as typeof window & { 
+      gsap?: { 
+        context: (fn: () => void, ref?: unknown) => { revert: () => void };
+        utils: { toArray: <T>(selector: string) => T[] };
+        matchMedia: (ref: unknown) => {
+          add: (queries: Record<string, string>, callback: (context: { conditions: { reduceMotion: boolean } }) => void) => void;
+          revert: () => void;
+        };
+        to: (target: unknown, options: Record<string, unknown>) => void;
+        fromTo: (target: unknown, from: Record<string, unknown>, to: Record<string, unknown>) => void;
+      } 
+    }).gsap) || null;
     if (!gsap) return;
     const ctx = gsap.context(() => {
       const items = gsap.utils.toArray<HTMLElement>(".flow-card");
@@ -47,7 +58,7 @@ export const CardsGrid: React.FC<{ progress?: number }> = ({ progress = 0 }) => 
           fine: "(hover: hover) and (pointer: fine)",
           coarse: "(pointer: coarse)",
         },
-        (context: any) => {
+        (context: { conditions: { reduceMotion: boolean } }) => {
           const { reduceMotion } = context.conditions;
           const cleaners: Array<() => void> = [];
 
@@ -112,7 +123,12 @@ export const CardsGrid: React.FC<{ progress?: number }> = ({ progress = 0 }) => 
 
   // Progressive reveal: animate newly-visible items when visibleCount increases
   React.useEffect(() => {
-    const gsap: any = (typeof window !== "undefined" && (window as any).gsap) || null;
+    const gsap = (typeof window !== "undefined" && (window as typeof window & { 
+      gsap?: { 
+        to: (target: unknown, options: Record<string, unknown>) => void;
+        fromTo: (target: unknown, from: Record<string, unknown>, to: Record<string, unknown>) => void;
+      } 
+    }).gsap) || null;
     if (!gsap) return;
     const start = prevCountRef.current;
     const end = visibleCount;
