@@ -1,0 +1,30 @@
+{
+  "name": "@adapters/core",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "echo \"(adapters) no tests\"",
+    "lint": "eslint .",
+    "format": "prettier -w .",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "keywords": [
+    "stacks",
+    "defi",
+    "adapters",
+    "yield"
+  ],
+  "dependencies": {
+    "@shared/core": "workspace:*",
+    "axios": "^1.12.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0"
+  }
+}
