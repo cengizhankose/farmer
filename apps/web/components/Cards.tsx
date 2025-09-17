@@ -31,7 +31,7 @@ export const CardsGrid: React.FC<{ progress?: number }> = () => {
           {doubled.map((it, idx) => (
             <div
               key={`${it.id}-${idx}`}
-              className="flow-card relative mr-4 last:mr-0 w-[260px] shrink-0 rounded-xl border border-white/15 bg-white/10 p-4 text-left text-white/80 backdrop-blur-xl shadow-[0_10px_40px_rgba(0,0,0,0.08)]"
+              className="flow-card relative mr-4 last:mr-0 w-[260px] shrink-0 rounded-xl bg-white/10 p-4 text-left text-white/80 backdrop-blur-xl shadow-[0_10px_40px_rgba(0,0,0,0.08)]"
             >
               <div className="text-xs text-white/60">{it.subtitle}</div>
               <div className="mt-1 font-display text-lg text-white">{it.title}</div>

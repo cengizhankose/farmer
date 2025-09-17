@@ -6,10 +6,12 @@ export const CHAINS: { id: ChainId; label: string; enabled: boolean }[] = [
   { id: "solana", label: "Solana", enabled: false }
 ];
 
+import { riskColors } from "./colors";
+
 export const RISK_COLORS: Record<string, string> = {
-  Low: "bg-emerald-100 text-emerald-700 border-emerald-300",
-  Medium: "bg-amber-100 text-amber-700 border-amber-300",
-  High: "bg-rose-100 text-rose-700 border-rose-300"
+  Low: `bg-[${riskColors.Low.bg}] text-[${riskColors.Low.text}] border-[${riskColors.Low.border}]`,
+  Medium: `bg-[${riskColors.Medium.bg}] text-[${riskColors.Medium.text}] border-[${riskColors.Medium.border}]`,
+  High: `bg-[${riskColors.High.bg}] text-[${riskColors.High.text}] border-[${riskColors.High.border}]`
 };
 
 export type Opportunity = {
@@ -103,11 +105,22 @@ export type RedirectEntry = {
   days: number;
   ts: number;
   chain: ChainId;
+  txid?: string;
+  action?: "Deposit" | "Withdraw";
 };
+
+function randomHex(len = 64) {
+  const chars = "abcdef0123456789";
+  let out = "";
+  for (let i = 0; i < len; i++) out += chars[Math.floor(Math.random() * chars.length)];
+  return out;
+}
 
 export function addRecentRedirect(entry: RedirectEntry) {
   const prev = JSON.parse(globalThis.localStorage?.getItem(LOCAL_KEY) || "[]");
-  const next = [entry, ...prev].slice(0, 25);
+  const txid = entry.txid || `0x${randomHex(64)}`;
+  const withTx = { action: "Deposit" as const, ...entry, txid };
+  const next = [withTx, ...prev].slice(0, 25);
   globalThis.localStorage?.setItem(LOCAL_KEY, JSON.stringify(next));
   return next;
 }

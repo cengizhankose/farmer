@@ -2,6 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { ScrollOrchestrator } from "@/components/ScrollOrchestrator";
 import { CardsGrid } from "@/components/Cards";
+import { colors, buttonColors } from "../lib/colors";
 
 function Button(
   props: React.ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -12,9 +13,9 @@ function Button(
   const base =
     "inline-flex items-center justify-center rounded-xl text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50 h-12 px-6";
   const variants: Record<string, string> = {
-    default: "bg-orange-600 text-white hover:bg-orange-700",
-    outline: "border border-zinc-300 bg-white text-zinc-900 hover:bg-zinc-50",
-    secondary: "bg-zinc-100 text-zinc-900 hover:bg-zinc-200",
+    default: `bg-[${buttonColors.primary.bg}] text-[${buttonColors.primary.text}] hover:bg-[${buttonColors.primary.hover}]`,
+    outline: `border border-[${buttonColors.outline.border}] bg-[${buttonColors.outline.bg}] text-[${colors.zinc[900]}] hover:bg-[${buttonColors.outline.hover}]`,
+    secondary: `bg-[${buttonColors.secondary.bg}] text-[${buttonColors.secondary.text}] hover:bg-[${buttonColors.secondary.hover}]`,
   };
   return (
     <button className={`${base} ${variants[variant]} ${className}`} {...rest} />
@@ -45,8 +46,7 @@ export default function Landing() {
     <div className="relative">
       <div
         style={{
-          background:
-            "var(--scene-bg, linear-gradient(to right, #e9e9e9, #1c1d1f))",
+          background: `var(--scene-bg, ${colors.gradients.sceneBg})`,
         }}
       >
         <ScrollOrchestrator
@@ -58,13 +58,17 @@ export default function Landing() {
               start: 0.0,
               end: 0.24,
               theme: "dark",
-              bg: "linear-gradient(to right, #ff7d27, #0a0a0a)",
+              bg: colors.gradients.orangeToBlack,
               render: (p) => (
                 <section className="relative h-full">
                   <div className="mx-auto flex h-full items-center max-w-7xl px-6">
-                    <div className="relative w-full overflow-hidden rounded-[28px] border border-white/10 bg-white/10 p-12 shadow-[0_20px_80px_rgba(0,0,0,0.06)] backdrop-blur-xl md:p-16">
-                      <div className="absolute -left-16 -top-16 h-96 w-96 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(255,125,39,0.22),transparent_60%)]" />
-                      <div className="absolute -bottom-24 -right-16 h-80 w-80 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(15,16,18,0.18),transparent_60%)]" />
+                    <div className="relative w-full overflow-hidden rounded-[28px] bg-white/10 p-12 shadow-[0_20px_80px_rgba(0,0,0,0.06)] backdrop-blur-xl md:p-16">
+                      <div
+                        className={`absolute -left-16 -top-16 h-96 w-96 rounded-full bg-[${colors.radial.orangeGlow}]`}
+                      />
+                      <div
+                        className={`absolute -bottom-24 -right-16 h-80 w-80 rounded-full bg-[${colors.radial.darkGlow}]`}
+                      />
 
                       <div
                         className="relative grid grid-cols-1 items-start gap-10 md:grid-cols-2"
@@ -86,15 +90,27 @@ export default function Landing() {
                           </ul>
                           <div className="mt-10 flex flex-wrap gap-4">
                             <Link href="/opportunities">
-                              <Button>Explore opportunities</Button>
+                              <Button
+                                className="text-white hover:opacity-90"
+                                style={{ backgroundColor: colors.orange[50] }}
+                              >
+                                Explore opportunities
+                              </Button>
                             </Link>
                             <Link href="/portfolio">
-                              <Button variant="outline">View portfolio</Button>
+                              <Button
+                                variant="outline"
+                                className="border-white bg-white text-zinc-900 hover:bg-gray-50"
+                              >
+                                View portfolio
+                              </Button>
                             </Link>
                           </div>
                         </div>
                         <div className="relative">
-                          <div className="h-80 w-full rounded-2xl bg-gradient-to-b from-white/60 to-zinc-100/60" />
+                          <div
+                            className={`h-80 w-full rounded-2xl bg-gradient-to-b from-[${colors.white[60]}] to-[${colors.zinc[100]}]/60`}
+                          />
                         </div>
                       </div>
                     </div>
@@ -107,7 +123,7 @@ export default function Landing() {
               start: 0.24,
               end: 0.66,
               theme: "dark",
-              bg: "linear-gradient(to right, #0a0a0a, #e8de73)",
+              bg: colors.gradients.blackToAmber,
               render: (p) => (
                 <section className="h-full">
                   <div className="mx-auto flex h-full max-w-7xl items-center px-6">
@@ -130,12 +146,12 @@ export default function Landing() {
                         {whyItems.map((it, i) => (
                           <div
                             key={i}
-                            className="rounded-2xl border border-white/15 bg-white/10 p-6 backdrop-blur-xl"
+                            className="rounded-2xl bg-white/10 p-6 backdrop-blur-xl"
                           >
                             <div className="font-display text-lg text-white">
                               {it.title}
                             </div>
-                            <div className="mt-1 text-sm text-white/70">
+                            <div className="mt-1 text-sm text-white/90">
                               {it.subtitle}
                             </div>
                           </div>
@@ -151,12 +167,12 @@ export default function Landing() {
               start: 0.66,
               end: 1.0,
               theme: "dark",
-              bg: "linear-gradient(to right, #D1913C, #1c1d1f)",
+              bg: colors.gradients.brownToBlack,
               render: (p) => (
                 <section className="h-full">
                   <div className="mx-auto flex h-full max-w-7xl items-center px-6">
                     <div
-                      className="w-full rounded-2xl border border-white/15 bg-white/5 p-6 backdrop-blur-xl overflow-visible"
+                      className="w-full"
                       style={{
                         transform: `translateY(${(1 - p) * 20}px)`,
                         transition: "transform 120ms linear",

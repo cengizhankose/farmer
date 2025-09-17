@@ -79,9 +79,9 @@ export const WalletProvider = ({ children, expected = "testnet" as const }: Reac
       
       // Handle Leather's JSON-RPC 2.0 response format
       let addresses;
-      if (resp && resp.result && Array.isArray(resp.result.addresses)) {
+      if (resp && (resp as any).result && Array.isArray((resp as any).result.addresses)) {
         // Convert array to expected format
-        const addressArray = resp.result.addresses;
+        const addressArray = (resp as any).result.addresses;
         addresses = {
           stx: addressArray.filter(addr => addr.symbol === 'STX').map(addr => ({
             address: addr.address,

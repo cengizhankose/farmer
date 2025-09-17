@@ -72,7 +72,7 @@ h3,
 }
 :root[data-theme="dark"] .site-header,
 :root[data-theme="dark"] .site-header a {
-  color: #fff !important;
+  color: #ffffff !important;
 }
 
 /* Thread styles */
