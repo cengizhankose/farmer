@@ -53,6 +53,11 @@ export function ScrollOrchestrator({
 
   // Update header theme and a global CSS var for background (to avoid flicker)
   React.useEffect(() => {
+    // Expose global page progress for UI sync (0..1)
+    document.documentElement.style.setProperty(
+      "--page-progress",
+      String(progress)
+    );
     const activeNow = scenes.find((s) => progress >= s.start && progress < s.end);
     const fallback = scenes.reduce((acc, s) => (progress >= s.start ? s : acc), scenes[0]);
     const scene = activeNow || fallback;

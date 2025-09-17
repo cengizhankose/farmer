@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { ScrollOrchestrator } from "@/components/ScrollOrchestrator";
+import { CardsGrid } from "@/components/Cards";
 
 function Button(
   props: React.ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -155,14 +156,13 @@ export default function Landing() {
                 <section className="h-full">
                   <div className="mx-auto flex h-full max-w-7xl items-center px-6">
                     <div
-                      className="w-full rounded-2xl border border-white/15 bg-white/10 p-10 text-center text-sm text-white/80 backdrop-blur-xl"
+                      className="w-full rounded-2xl border border-white/15 bg-white/5 p-6 backdrop-blur-xl overflow-visible"
                       style={{
                         transform: `translateY(${(1 - p) * 20}px)`,
                         transition: "transform 120ms linear",
                       }}
                     >
-                      Flowing cards section (visual only) — preserved look &
-                      spacing
+                      <CardsGrid progress={p} />
                     </div>
                   </div>
                 </section>
