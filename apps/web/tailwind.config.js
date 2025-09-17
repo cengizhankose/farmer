@@ -9,6 +9,10 @@ module.exports = {
   theme: {
     container: { center: true },
     extend: {
+      fontFamily: {
+        sans: ['var(--font-inter)'],
+        display: ['var(--font-display)'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

@@ -9,9 +9,9 @@ export const CHAINS: { id: ChainId; label: string; enabled: boolean }[] = [
 import { riskColors } from "./colors";
 
 export const RISK_COLORS: Record<string, string> = {
-  Low: `bg-[${riskColors.Low.bg}] text-[${riskColors.Low.text}] border-[${riskColors.Low.border}]`,
-  Medium: `bg-[${riskColors.Medium.bg}] text-[${riskColors.Medium.text}] border-[${riskColors.Medium.border}]`,
-  High: `bg-[${riskColors.High.bg}] text-[${riskColors.High.text}] border-[${riskColors.High.border}]`
+  Low: "bg-green-100 text-green-800 border-green-300",
+  Medium: "bg-yellow-100 text-yellow-800 border-yellow-300", 
+  High: "bg-red-100 text-red-800 border-red-300"
 };
 
 export type Opportunity = {

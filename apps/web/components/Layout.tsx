@@ -63,7 +63,7 @@ const ConnectButton = () => {
     return (
       <button
         onClick={() => window.open("https://leather.io", "_blank")}
-        className={`group relative h-9 w-34 overflow-hidden rounded-md bg-transparent backdrop-blur-[40px] px-3 text-left text-sm font-bold text-[${colors.ui.navText}] duration-500`}
+        className="group relative h-9 w-34 overflow-hidden rounded-md bg-white/20 backdrop-blur-[40px] px-3 text-left text-sm font-bold text-white duration-500 hover:bg-white/30"
         aria-label="Install Leather"
       >
         Install Leather
@@ -74,8 +74,8 @@ const ConnectButton = () => {
   if (stxAddress) {
     return (
       <div className="flex items-center gap-2">
-        <Badge className={`bg-[${colors.zinc[900]}] text-[${colors.white.DEFAULT}]`}>{short(stxAddress)}</Badge>
-        <Button variant="secondary" onClick={disconnect} className="gap-2">
+        <Badge className="bg-white/20 text-white backdrop-blur">{short(stxAddress)}</Badge>
+        <Button variant="secondary" onClick={disconnect} className="gap-2 bg-white/20 text-white hover:bg-white/30 backdrop-blur">
           Logout
         </Button>
       </div>
@@ -86,7 +86,7 @@ const ConnectButton = () => {
     <Button
       onClick={() => void connect()}
       disabled={connecting}
-      className="gap-2 bg-black text-white hover:bg-zinc-800"
+      className="gap-2 bg-white/20 text-white hover:bg-white/30 backdrop-blur"
     >
       {connecting ? "Connecting…" : "Connect Leather"}
     </Button>
@@ -96,19 +96,21 @@ const ConnectButton = () => {
 export const Header = () => {
   useWallet();
   return (
-    <header className={`site-header sticky top-0 z-40 w-full border-b border-[${colors.zinc[200]}]/60 bg-[${colors.white.DEFAULT}]/70 backdrop-blur-2xl`}>
+    <header className="site-header sticky top-0 z-40 w-full backdrop-blur-2xl" style={{
+      background: colors.gradients.orangeToBlack
+    }}>
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
-        <Link href="/" className={`font-semibold tracking-tight text-[${colors.zinc[900]}]`}>
+        <Link href="/" className="font-semibold tracking-tight text-white">
           Stacks Opportunities
         </Link>
         <nav className="flex items-center gap-6 text-sm">
           <Link
             href="/opportunities"
-            className={`text-[${colors.zinc[600]}] hover:text-[${colors.zinc[900]}]`}
+            className="text-white/80 hover:text-white transition-colors"
           >
             Opportunities
           </Link>
-          <Link href="/portfolio" className={`text-[${colors.zinc[600]}] hover:text-[${colors.zinc[900]}]`}>
+          <Link href="/portfolio" className="text-white/80 hover:text-white transition-colors">
             Portfolio
           </Link>
           <ConnectButton />
@@ -133,19 +135,19 @@ export const Footer = () => (
       </svg>
       */}
     </div>
-    <div className="mx-auto max-w-7xl px-6 py-14">
-      <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+    <div className="mx-auto max-w-7xl px-6 py-6">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
         <div>
-          <div className="font-[Sora] text-xl text-white">
+          <div className="font-[Sora] text-base text-white">
             Stacks Opportunities
           </div>
-          <p className="mt-2 max-w-sm text-sm text-white">
+          <p className="mt-0.5 max-w-sm text-xs text-white">
             Minimal, luxurious interfaces for yield. Clarity over noise.
           </p>
         </div>
-        <div className="text-sm text-white">
+        <div className="text-xs text-white">
           <div className="text-white font-medium">Navigation</div>
-          <div className="mt-2 flex flex-col gap-1">
+          <div className="mt-0.5 flex flex-col gap-0.5">
             <Link href="/opportunities" className="text-white hover:text-orange-300">
               Opportunities
             </Link>
@@ -154,14 +156,14 @@ export const Footer = () => (
             </Link>
           </div>
         </div>
-        <div className="text-sm text-white">
+        <div className="text-xs text-white">
           <div className="text-white font-medium">Status</div>
-          <p className="mt-2 max-w-xs">
+          <p className="mt-0.5 max-w-xs">
             Beta UI, non‑custodial routing. One‑click router coming soon.
           </p>
         </div>
       </div>
-      <div className="mt-10 pt-6 text-xs text-white">
+      <div className="mt-4 pt-2 text-xs text-white">
         © {new Date().getFullYear()} Stacks Opportunities
       </div>
     </div>

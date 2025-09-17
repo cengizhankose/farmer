@@ -33,54 +33,60 @@ export const MarketFilters: React.FC<{
   }, []);
 
   return (
-    <div className="flex flex-col gap-3 md:flex-row">
-      <Input placeholder="Search protocol or pair" value={query} onChange={(e) => setQuery(e.target.value)} className="w-full md:w-64" />
-
-      {/* Risk dropdown */}
-      <div className="relative" data-dropdown-root>
-        <Select value={risk}>
-          <SelectTrigger className="w-full md:w-36" onClick={(e) => { e.stopPropagation(); setRiskOpen((v) => !v); setSortOpen(false); }}>
-            <SelectValue placeholder="Risk" />
-          </SelectTrigger>
-          {riskOpen && (
-            <div className="absolute z-20 mt-2 w-full">
-              <SelectContent>
-                {(["all", "Low", "Medium", "High"] as RiskFilter[]).map((v) => (
-                  <SelectItem key={v} value={v} onSelect={(val) => { setRisk(val as RiskFilter); setRiskOpen(false); }}>
-                    {v === "all" ? "All risks" : v}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </div>
-          )}
-        </Select>
+    <div className="flex flex-col gap-3 md:flex-row md:justify-between md:w-full">
+      {/* Search left */}
+      <div className="md:flex-1 md:max-w-xs">
+        <Input placeholder="Search protocol or pair" value={query} onChange={(e) => setQuery(e.target.value)} className="w-full" />
       </div>
 
-      {/* Sort dropdown */}
-      <div className="relative" data-dropdown-root>
-        <Select value={`${sort.key}:${sort.dir}`}>
-          <SelectTrigger className="w-full md:w-40" onClick={(e) => { e.stopPropagation(); setSortOpen((v) => !v); setRiskOpen(false); }}>
-            <SelectValue placeholder="Sort" />
-          </SelectTrigger>
-          {sortOpen && (
-            <div className="absolute z-20 mt-2 w-full">
-              <SelectContent>
-                {([
-                  ["apr", "APR"],
-                  ["apy", "APY"],
-                  ["tvlUsd", "TVL"],
-                  ["risk", "Risk"],
-                ] as [SortKey, string][]).map(([key, label]) => (
-                  <div key={key} className="px-1">
-                    <div className={`px-2 pb-1 pt-2 text-[${colors.zinc[500]}]`}>{label}</div>
-                    <SelectItem value={`${key}:desc`} onSelect={() => { setSort({ key, dir: "desc" }); setSortOpen(false); }}>High → Low</SelectItem>
-                    <SelectItem value={`${key}:asc`} onSelect={() => { setSort({ key, dir: "asc" }); setSortOpen(false); }}>Low → High</SelectItem>
-                  </div>
-                ))}
-              </SelectContent>
-            </div>
-          )}
-        </Select>
+      {/* Risk and Sort right */}
+      <div className="flex gap-3">
+        {/* Risk dropdown */}
+        <div className="relative" data-dropdown-root>
+          <Select value={risk}>
+            <SelectTrigger className="w-full md:w-36" onClick={(e) => { e.stopPropagation(); setRiskOpen((v) => !v); setSortOpen(false); }}>
+              <SelectValue placeholder="Risk" />
+            </SelectTrigger>
+            {riskOpen && (
+              <div className="absolute z-50 mt-2 w-full">
+                <SelectContent>
+                  {(["all", "Low", "Medium", "High"] as RiskFilter[]).map((v) => (
+                    <SelectItem key={v} value={v} onSelect={(val) => { setRisk(val as RiskFilter); setRiskOpen(false); }}>
+                      {v === "all" ? "All risks" : v}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </div>
+            )}
+          </Select>
+        </div>
+
+        {/* Sort dropdown */}
+        <div className="relative" data-dropdown-root>
+          <Select value={`${sort.key}:${sort.dir}`}>
+            <SelectTrigger className="w-full md:w-40" onClick={(e) => { e.stopPropagation(); setSortOpen((v) => !v); setRiskOpen(false); }}>
+              <SelectValue placeholder="Sort" />
+            </SelectTrigger>
+            {sortOpen && (
+              <div className="absolute z-50 mt-2 w-full">
+                <SelectContent>
+                  {([
+                    ["apr", "APR"],
+                    ["apy", "APY"],
+                    ["tvlUsd", "TVL"],
+                    ["risk", "Risk"],
+                  ] as [SortKey, string][]).map(([key, label]) => (
+                    <div key={key} className="px-1">
+                      <div className={`px-2 pb-1 pt-2 text-[${colors.zinc[500]}]`}>{label}</div>
+                      <SelectItem value={`${key}:desc`} onSelect={() => { setSort({ key, dir: "desc" }); setSortOpen(false); }}>High → Low</SelectItem>
+                      <SelectItem value={`${key}:asc`} onSelect={() => { setSort({ key, dir: "asc" }); setSortOpen(false); }}>Low → High</SelectItem>
+                    </div>
+                  ))}
+                </SelectContent>
+              </div>
+            )}
+          </Select>
+        </div>
       </div>
     </div>
   );

@@ -12,7 +12,8 @@ export const ActivityTable: React.FC<{
   rows: RedirectEntry[];
   sort: { key: SortKey; dir: SortDir };
   onSortChange: (s: { key: SortKey; dir: SortDir }) => void;
-}> = ({ rows, sort, onSortChange }) => {
+  highlightTs?: number | null;
+}> = ({ rows, sort, onSortChange, highlightTs = null }) => {
   const sorted = React.useMemo(() => {
     const withEst = rows.map((r) => ({ ...r, est: r.amount * (r.apr / 100) * (r.days / 365) }));
     const dir = sort.dir === "asc" ? 1 : -1;
@@ -56,8 +57,9 @@ export const ActivityTable: React.FC<{
           {sorted.map((r, idx) => {
             const est = (r.amount * (r.apr / 100) * (r.days / 365)).toFixed(2);
             const when = new Date(r.ts).toLocaleString();
+            const highlight = highlightTs && r.ts >= highlightTs;
             return (
-              <TableRow key={idx}>
+              <TableRow key={idx} className={highlight ? "bg-amber-50 transition-colors" : undefined}>
                 <TableCell>{when}</TableCell>
                 <TableCell>{r.protocol}</TableCell>
                 <TableCell>
@@ -75,4 +77,3 @@ export const ActivityTable: React.FC<{
     </div>
   );
 };
-

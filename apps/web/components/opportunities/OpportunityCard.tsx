@@ -23,7 +23,8 @@ export const OpportunityCard: React.FC<
     CHAINS.find((c) => c.id === data.chain)?.label || data.chain;
   const Action = (
     <Button
-      className={`w-full bg-[${colors.emerald[600]}] text-[${colors.white.DEFAULT}] hover:bg-[${colors.emerald[700]}]`}
+      className="w-full text-neutral-700 hover:bg-neutral-400 transition-colors"
+      style={{ backgroundColor: colors.zinc[300] }}
       onClick={() =>
         onClick ? onClick() : router.push(`/opportunities/${data.id}`)
       }
@@ -32,48 +33,43 @@ export const OpportunityCard: React.FC<
     </Button>
   );
 
-  // Very light neutral per guidance (zinc[200] #e4e4e7)
-  const cardBg = "#E4E4E7";
-  const cardBorder = "transparent";
+  // Stacks ecosystem card vibe — calm sand/beige surface
+  const cardBg = "#F6F4EF"; // sand‑ish neutral
+  const borderCol = "rgba(0,0,0,0.06)";
+  // const cardBorder = "transparent";
   return (
     <Card
-      className={`group relative overflow-hidden backdrop-blur-2xl transition hover:shadow-[0_10px_40px_${
-        colors.ui.shadowDark
-      }] ${disabled ? "opacity-60" : ""}`}
-      style={{ backgroundColor: cardBg, borderColor: cardBorder }}
+      className={`group relative overflow-hidden rounded-3xl border p-6 transition hover:-translate-y-0.5 hover:shadow-md ${
+        disabled ? "opacity-60" : ""
+      }`}
+      style={{ backgroundColor: cardBg, borderColor: borderCol }}
     >
-      {/* Accent bar */}
-      <div
-        className="absolute inset-x-0 top-0 h-1"
-        style={{ background: colors.gradients.whiteToZinc }}
-      />
+      {/* Corner logo notch */}
+      {(() => {
+        const l = protocolLogo(data.protocol);
+        return (
+          <div
+            className="absolute -top-3 -left-3 grid h-12 w-12 place-items-center rounded-2xl shadow-sm"
+            style={{ background: l.bg, color: l.fg }}
+            title={data.protocol}
+            aria-hidden
+          >
+            <span className="text-sm font-semibold">{l.letter}</span>
+          </div>
+        );
+      })()}
 
       <div className="flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          {(() => {
-            const l = protocolLogo(data.protocol);
-            return (
-              <div
-                aria-hidden
-                className="grid h-9 w-9 place-items-center rounded-full text-sm font-semibold"
-                style={{ background: l.bg, color: l.fg }}
-                title={data.protocol}
-              >
-                {l.letter}
-              </div>
-            );
-          })()}
-          <div>
-            <div
-              className={`text-xs uppercase tracking-wide text-[${colors.zinc[500]}]`}
-            >
-              {data.protocol}
-            </div>
-            <div
-              className={`mt-1 text-lg font-semibold text-[${colors.zinc[900]}]`}
-            >
-              {data.pair}
-            </div>
+        <div>
+          <div
+            className={`text-xs uppercase tracking-wide text-[${colors.zinc[500]}]`}
+          >
+            {data.protocol}
+          </div>
+          <div
+            className={`mt-1 text-lg font-semibold text-[${colors.zinc[900]}]`}
+          >
+            {data.pair}
           </div>
         </div>
         <Badge className={`${RISK_COLORS[data.risk]} border`}>

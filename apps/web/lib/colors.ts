@@ -40,6 +40,7 @@ export const colors = {
   // White/Transparent
   white: {
     DEFAULT: "#ffffff",
+    dirty: "#f8f6f3", // Dirty white for View Details buttons
     10: "rgba(255, 255, 255, 0.1)", // Glass background
     15: "rgba(255, 255, 255, 0.15)", // Glass borders
     8: "rgba(255, 255, 255, 0.08)", // Subtle glass borders

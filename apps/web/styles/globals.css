@@ -1,9 +1,113 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
-@import url("https://fonts.cdnfonts.com/css/clash-display");
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Fonts */
+@font-face {
+  font-family: 'Clash Display';
+  src: url('/fonts/ClashDisplay-Variable.woff2') format('woff2-variations');
+  font-weight: 200 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --font-display: 'Clash Display', ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
+    Roboto, Inter, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol';
+
+  /* Graph paper defaults (dark) */
+  --gp-bg: #0e0e10;
+  --gp-line: rgba(255, 255, 255, 0.06);
+  --gp-5th: rgba(255, 255, 255, 0.10);
+  --gp-10th: rgba(255, 255, 255, 0.16);
+  --gp-unit: 16px;
+  --gp-scale: 1;
+}
+
+/* Chart lines background utility */
+.graph-bg {
+  position: relative;
+  background-color: var(--gp-bg);
+
+  /* step variables for chart-style spacing */
+  --chart-step-h: calc(var(--gp-unit) * var(--gp-scale) * 2); /* Horizontal spacing (wider) */
+  --chart-step-v: calc(var(--gp-unit) * var(--gp-scale) * 1.5); /* Vertical spacing */
+  --chart-major-h: calc(var(--chart-step-h) * 4); /* Major horizontal lines */
+  --chart-major-v: calc(var(--chart-step-v) * 6); /* Major vertical lines */
+
+  /* Chart-style grid: horizontal dominance for trading feel */
+  background-image:
+    /* Major horizontal lines (thicker, like price levels) */
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent calc(var(--chart-major-h) - 1px),
+      var(--gp-10th) calc(var(--chart-major-h) - 1px),
+      var(--gp-10th) calc(var(--chart-major-h) + 1px),
+      transparent calc(var(--chart-major-h) + 1px)
+    ),
+    /* Regular horizontal lines (price grid) */
+    repeating-linear-gradient(
+      0deg,
+      var(--gp-line),
+      var(--gp-line) 0.5px,
+      transparent 0.5px,
+      transparent var(--chart-step-h)
+    ),
+    /* Subtle vertical lines (time grid) */
+    repeating-linear-gradient(
+      90deg,
+      var(--gp-5th),
+      var(--gp-5th) 0.5px,
+      transparent 0.5px,
+      transparent var(--chart-major-v)
+    ),
+    /* Fine vertical guides */
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.03),
+      rgba(255, 255, 255, 0.03) 0.5px,
+      transparent 0.5px,
+      transparent var(--chart-step-v)
+    );
+}
+
+.graph-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* Intense center darkness - grids invisible in center */
+  background:
+    /* Very strong horizontal gradient - almost black center */
+    linear-gradient(to right, 
+      rgba(0,0,0,0) 0%, 
+      rgba(0,0,0,0.3) 10%, 
+      rgba(0,0,0,0.7) 35%, 
+      rgba(0,0,0,0.85) 45%, 
+      rgba(0,0,0,0.92) 50%, 
+      rgba(0,0,0,0.85) 55%, 
+      rgba(0,0,0,0.7) 65%, 
+      rgba(0,0,0,0.3) 90%, 
+      rgba(0,0,0,0) 100%
+    ),
+    /* Additional center focus */
+    radial-gradient(ellipse 80% 100% at 50% 50%, 
+      rgba(0,0,0,0.6) 0%, 
+      rgba(0,0,0,0.3) 40%,
+      rgba(0,0,0,0) 70%
+    ),
+    /* Subtle top-to-bottom overlay */
+    linear-gradient(to bottom, rgba(0,15,25,0.1), rgba(0,0,0,0) 25%, rgba(0,0,0,0) 75%,
+      rgba(0,10,20,0.15));
+  z-index: 0;
+}
+
+/* Chart density helpers */
+.graph-density-tight { --gp-scale: 0.75; } /* Dense trading view */
+.graph-density-normal { --gp-scale: 1; } /* Standard chart */
+.graph-density-loose { --gp-scale: 1.4; } /* Spacious overview */
 
 body {
   margin: 0;
@@ -24,6 +128,16 @@ h3,
 .font-mono-tech {
   font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
     Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+/* Respect reduced motion globally for transitions (animations handled in components) */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 @layer base {
@@ -49,14 +163,17 @@ h3,
     --ring: 240 5.9% 10%;
     --radius: 0.9rem;
   }
-}
 
-@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  
   * {
     @apply border-border;
   }
+  
   body {
-    @apply bg-background text-foreground;
+    @apply bg-white text-neutral-900 antialiased;
   }
 }
 

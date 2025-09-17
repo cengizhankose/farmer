@@ -7,9 +7,17 @@ export const Card: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ className
 );
 
 export const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
-  ({ className = "", ...props }, ref) => (
-    <input ref={ref} className={`h-9 w-full rounded-md border border-[${colors.zinc[300]}] bg-[${colors.white.DEFAULT}] px-3 text-sm outline-none ring-0 placeholder:text-[${colors.zinc[400]}] focus:border-[${colors.zinc[400]}] ${className}`} {...props} />
-  )
+  ({ className = "", ...props }, ref) => {
+    const cardBg = '#F6F4EF';
+    return (
+      <input 
+        ref={ref} 
+        className={`h-9 w-full rounded-md px-3 text-sm outline-none ring-0 placeholder:text-[${colors.zinc[400]}] ${className}`} 
+        style={{ backgroundColor: cardBg }}
+        {...props} 
+      />
+    );
+  }
 );
 Input.displayName = "Input";
 
@@ -76,7 +84,8 @@ export function Select(props: { value: string; children: React.ReactNode }) {
   return <div data-value={value}>{children}</div>;
 }
 export function SelectTrigger({ className = "", children, onClick }: React.HTMLAttributes<HTMLDivElement> & { className?: string }) {
-  return <div className={`h-9 w-full cursor-default rounded-md border border-[${colors.zinc[300]}] bg-[${colors.white.DEFAULT}] px-3 text-sm ${className}`} onClick={onClick}>{children as React.ReactNode}</div>;
+  const cardBg = '#F6F4EF';
+  return <div className={`h-9 w-full cursor-default rounded-md px-3 py-2 text-sm flex items-center justify-center ${className}`} style={{ backgroundColor: cardBg }} onClick={onClick}>{children as React.ReactNode}</div>;
 }
 export function SelectValue({ placeholder }: { placeholder?: string }) { return <span className={`text-[${colors.zinc[500]}]`}>{placeholder}</span>; }
 export function SelectContent({ children }: { children: React.ReactNode }) { return <div className="mt-2 rounded-md border bg-white p-1 text-sm shadow-sm">{children}</div>; }
