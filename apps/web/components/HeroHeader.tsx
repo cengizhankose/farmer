@@ -48,7 +48,7 @@ export function HeroHeader({
     : {
         initial: { opacity: 0, y: 8 },
         animate: { opacity: 1, y: 0 },
-        transition: { duration: 0.35, ease: "easeOut" },
+        transition: { duration: 0.35 },
       };
 
   const subtitleAnim = reduceMotion
@@ -56,7 +56,7 @@ export function HeroHeader({
     : {
         initial: { opacity: 0, y: 6 },
         animate: { opacity: 1, y: 0 },
-        transition: { duration: 0.35, ease: "easeOut", delay: 0.05 },
+        transition: { duration: 0.35, delay: 0.05 },
       };
 
   const ctaAnim = reduceMotion
@@ -64,7 +64,7 @@ export function HeroHeader({
     : {
         initial: { opacity: 0, y: 4 },
         animate: { opacity: 1, y: 0 },
-        transition: { duration: 0.3, ease: "easeOut", delay: 0.1 },
+        transition: { duration: 0.3, delay: 0.1 },
       };
 
   return (

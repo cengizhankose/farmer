@@ -15,7 +15,7 @@ import { toCSV, downloadCSV } from "@/lib/csv";
 
 export default function PortfolioPage() {
   const [rows, setRows] = React.useState<RedirectEntry[]>([]);
-  const [sort, setSort] = React.useState<{ key: "ts" | "amount" | "apr" | "days" | "est"; dir: "asc" | "desc" }>({ key: "ts", dir: "desc" });
+  const [_sort, _setSort] = React.useState<{ key: "ts" | "amount" | "apr" | "days" | "est"; dir: "asc" | "desc" }>({ key: "ts", dir: "desc" });
 
   React.useEffect(() => {
     setRows(getRecentRedirects());

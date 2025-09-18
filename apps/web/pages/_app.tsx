@@ -7,7 +7,7 @@ import { inter } from "@/fonts";
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <div className={`${inter.variable}`}>
+    <div className={`${inter.variable} min-h-full`}>
       <WalletProvider expected="testnet">
         <Layout>
           <Component {...pageProps} />
@@ -17,4 +17,3 @@ export default function MyApp({ Component, pageProps }: AppProps) {
     </div>
   );
 }
-

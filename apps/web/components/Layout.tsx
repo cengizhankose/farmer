@@ -43,8 +43,14 @@ export const ChainGuardBanner = () => {
   const { networkMismatch, network, expected } = useWallet();
   if (!networkMismatch) return null;
   return (
-    <div className={`relative z-30 w-full border-b border-[${colors.orange[300]}] bg-[${colors.orange[50] || colors.orange[100]}]/80 backdrop-blur-xl`}>
-      <div className={`mx-auto max-w-7xl px-6 py-2 text-sm text-[${colors.orange[700]}]`}>
+    <div
+      className={`relative z-30 w-full border-b border-[${
+        colors.orange[300]
+      }] bg-[${colors.orange[50] || colors.orange[100]}]/80 backdrop-blur-xl`}
+    >
+      <div
+        className={`mx-auto max-w-7xl px-6 py-2 text-sm text-[${colors.orange[700]}]`}
+      >
         Network mismatch: Wallet on <strong>{network}</strong> but app expects{" "}
         <strong>{expected}</strong>. Open Leather &gt; Settings &gt; Network and
         switch. Refresh after switching.
@@ -74,8 +80,14 @@ const ConnectButton = () => {
   if (stxAddress) {
     return (
       <div className="flex items-center gap-2">
-        <Badge className="bg-white/20 text-white backdrop-blur">{short(stxAddress)}</Badge>
-        <Button variant="secondary" onClick={disconnect} className="gap-2 bg-white/20 text-white hover:bg-white/30 backdrop-blur">
+        <Badge className="bg-white/20 text-white backdrop-blur">
+          {short(stxAddress)}
+        </Badge>
+        <Button
+          variant="secondary"
+          onClick={disconnect}
+          className="gap-2 bg-white/20 text-white hover:bg-white/30 backdrop-blur"
+        >
           Logout
         </Button>
       </div>
@@ -96,9 +108,12 @@ const ConnectButton = () => {
 export const Header = () => {
   useWallet();
   return (
-    <header className="site-header sticky top-0 z-40 w-full backdrop-blur-2xl" style={{
-      background: colors.gradients.orangeToBlack
-    }}>
+    <header
+      className="site-header sticky top-0 z-40 w-full backdrop-blur-2xl"
+      style={{
+        background: colors.gradients.orangeToBlack,
+      }}
+    >
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
         <Link href="/" className="font-semibold tracking-tight text-white">
           Stacks Opportunities
@@ -110,7 +125,10 @@ export const Header = () => {
           >
             Opportunities
           </Link>
-          <Link href="/portfolio" className="text-white/80 hover:text-white transition-colors">
+          <Link
+            href="/portfolio"
+            className="text-white/80 hover:text-white transition-colors"
+          >
             Portfolio
           </Link>
           <ConnectButton />
@@ -122,7 +140,10 @@ export const Header = () => {
 };
 
 export const Footer = () => (
-  <footer className="relative mt-0 text-white" style={{ backgroundColor: colors.black.footer }}>
+  <footer
+    className="relative mt-0 text-white"
+    style={{ backgroundColor: colors.black.footer }}
+  >
     <div className="pointer-events-none absolute -top-9 left-0 right-0 h-12">
       {/*
       <svg
@@ -148,10 +169,16 @@ export const Footer = () => (
         <div className="text-xs text-white">
           <div className="text-white font-medium">Navigation</div>
           <div className="mt-0.5 flex flex-col gap-0.5">
-            <Link href="/opportunities" className="text-white hover:text-orange-300">
+            <Link
+              href="/opportunities"
+              className="text-white hover:text-orange-300"
+            >
               Opportunities
             </Link>
-            <Link href="/portfolio" className="text-white hover:text-orange-300">
+            <Link
+              href="/portfolio"
+              className="text-white hover:text-orange-300"
+            >
               Portfolio
             </Link>
           </div>
@@ -171,12 +198,12 @@ export const Footer = () => (
 );
 
 export const Layout = ({ children }: React.PropsWithChildren) => {
-  // Slow down global scroll 2x; keep it accessible
-  useSlowScroll({ factor: 0.5, enabled: true });
+  // Disable slow scroll to fix browser native scrolling issues
+  useSlowScroll({ factor: 0.5, enabled: false });
   return (
-    <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
+    <div className="min-h-full flex flex-col bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
       <Header />
-      <main>{children}</main>
+      <main className="flex-1">{children}</main>
       <Footer />
     </div>
   );

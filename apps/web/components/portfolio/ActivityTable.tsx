@@ -20,9 +20,7 @@ export const ActivityTable: React.FC<{
     return [...withEst].sort((a, b) => {
       const va = a[sort.key];
       const vb = b[sort.key];
-      // @ts-expect-error
       if (va < vb) return -1 * dir;
-      // @ts-expect-error
       if (va > vb) return 1 * dir;
       return 0;
     });

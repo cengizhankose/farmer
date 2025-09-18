@@ -117,15 +117,38 @@
 .graph-density-normal { --gp-scale: 1; } /* Standard chart */
 .graph-density-loose { --gp-scale: 1.4; } /* Spacious overview */
 
-body {
+html, body {
   margin: 0;
+  padding: 0;
+  height: 100%;
+  overscroll-behavior-y: none;
+}
+
+/* Next.js root div de height: 100% olmalı */
+#__next {
+  height: 100%;
+}
+
+/* Next.js dev indicator'ı tamamen gizle */
+div[style*="position: fixed"][style*="z-index"][style*="left"][style*="bottom"],
+div[style*="position:fixed"][style*="z-index"][style*="left"][style*="bottom"],
+[data-nextjs-toast-wrapper],
+.__next-dev-indicator,
+.__next-dev-overlay,
+[id*="__next"]:not(#__next) {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+body {
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
     "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-html, body { overscroll-behavior-y: none; }
 
 h1,
 h2,
@@ -181,7 +204,8 @@ h3,
   }
   
   body {
-    @apply bg-white text-neutral-900 antialiased;
+    @apply bg-white text-neutral-900 antialiased m-0 p-0;
+    height: 100%;
   }
 }
 

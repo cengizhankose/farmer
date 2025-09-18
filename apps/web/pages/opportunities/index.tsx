@@ -6,11 +6,11 @@ import { Info } from "lucide-react";
 import { colors } from "../../lib/colors";
 import { OpportunityCard } from "@/components/opportunities/OpportunityCard";
 import {
-  MarketFilters,
   type RiskFilter,
   type SortDir,
   type SortKey,
 } from "@/components/opportunities/MarketFilters";
+import AnimatedFilterBar from "@/components/AnimatedFilterBar";
 // import { SkeletonGrid } from "@/components/opportunities/SkeletonGrid";
 import { EmptyState } from "@/components/opportunities/EmptyState";
 import HeroHeader from "@/components/HeroHeader";
@@ -97,17 +97,23 @@ export default function OpportunitiesPage() {
         }
       />
 
+      <AnimatedFilterBar
+        defaultRisk={risk === "Low" ? "low" : risk === "Medium" ? "medium" : risk === "High" ? "high" : "all"}
+        defaultSort={`${sort.key === "tvlUsd" ? "tvl" : sort.key}-${sort.dir}` as "apr-desc" | "apr-asc" | "apy-desc" | "apy-asc" | "tvl-desc" | "tvl-asc" | "risk-desc" | "risk-asc"}
+        query={query}
+        onQueryChange={setQuery}
+        onRiskChange={(r) => {
+          const riskMap = { "all": "all" as const, "low": "Low" as const, "medium": "Medium" as const, "high": "High" as const };
+          setRisk(riskMap[r]);
+        }}
+        onSortChange={(s) => {
+          const [sortKey, dir] = s.split("-") as [string, SortDir];
+          const key = (sortKey === "tvl" ? "tvlUsd" : sortKey) as SortKey;
+          setSort({ key, dir });
+        }}
+      />
+
       <section className="mx-auto max-w-6xl px-4 py-8 sm:py-10">
-        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-center mb-6">
-          <MarketFilters
-            query={query}
-            setQuery={setQuery}
-            risk={risk}
-            setRisk={setRisk}
-            sort={sort}
-            setSort={setSort}
-          />
-        </div>
 
         {!chainObj?.enabled && (
           <div

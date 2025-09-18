@@ -80,7 +80,7 @@ export default function RewardsChart({
     <motion.section
       initial={reduceMotion ? undefined : { opacity: 0, y: 8 }}
       animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, ease: "easeOut" }}
+      transition={{ duration: 0.35 }}
       className={clsx(
         "rounded-3xl border border-black/5 bg-[var(--sand-50,#F6F4EF)] p-4 md:p-6",
         className
@@ -229,7 +229,7 @@ function TimeBtn({
       className={clsx(
         "rounded-full px-3.5 py-1.5 text-sm ring-1 transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-400",
         active
-          ? "bg-neutral-900 text-white ring-neutral-900"
+          ? "bg-[var(--brand-orange)] text-white ring-[var(--brand-orange)]"
           : "bg-white text-neutral-700 ring-neutral-200 hover:bg-neutral-100"
       )}
       aria-pressed={!!active}
