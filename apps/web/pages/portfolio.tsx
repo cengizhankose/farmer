@@ -13,15 +13,7 @@ import PortfolioOverviewChart from "@/components/PortfolioOverviewChart";
 import { ActivityFeed } from "@/components/portfolio/ActivityFeed";
 import { toCSV, downloadCSV } from "@/lib/csv";
 
-function calc(rows: RedirectEntry[]) {
-  const deposited = rows.reduce((a, r) => a + r.amount, 0);
-  const est = rows.reduce((a, r) => a + r.amount * (r.apr / 100) * (r.days / 365), 0);
-  const total = deposited + est;
-  const pnl = total - deposited;
-  // Mock 24h change for demo
-  const chg24h = total * (Math.random() - 0.5) * 0.02;
-  return { total, pnl, chg24h };
-}
+// Removed unused calc function - was used for MiniSummary that was removed
 
 export default function PortfolioPage() {
   const [rows, setRows] = React.useState<RedirectEntry[]>([]);
@@ -31,7 +23,7 @@ export default function PortfolioPage() {
     setRows(getRecentRedirects());
   }, []);
 
-  const { total, pnl, chg24h } = React.useMemo(() => calc(rows), [rows]);
+  // Removed unused variables - MiniSummary was removed per user request
 
   const clear = () => {
     localStorage.removeItem("stacks_portfolio_mock");

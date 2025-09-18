@@ -77,7 +77,7 @@ export function ScrollOrchestrator({
       <div
         style={{ height: `${scenes.length * heightPerSceneVh + tailVh}vh` }}
       />
-      <div className="scroll-stage pointer-events-none fixed inset-0">
+      <div className="scroll-stage fixed inset-0 pointer-events-none">
         {scenes.map((s) => {
           const span = Math.max(0.0001, s.end - s.start);
           const local = (progress - s.start) / span;
@@ -94,11 +94,16 @@ export function ScrollOrchestrator({
           if (s.start === 0 && clamped <= 0.08) {
             opacity = 1;
           }
+          
+          // Only allow pointer events when the scene is sufficiently visible
+          const isInteractive = opacity > 0.5;
+          
           const style: React.CSSProperties = {
             opacity,
             transition: "opacity 120ms linear, filter 120ms linear",
             filter: undefined,
             background: s.bg,
+            pointerEvents: isInteractive ? "auto" : "none",
           };
           // Blur only near edges; crisp on plateau (compute after style base)
           const blurMax = 8;
@@ -117,9 +122,7 @@ export function ScrollOrchestrator({
             )}px)`;
           return (
             <div key={s.id} className="absolute inset-0" style={style}>
-              <div className="h-full w-full pointer-events-auto">
-                {s.render(clamped)}
-              </div>
+              {s.render(clamped)}
             </div>
           );
         })}

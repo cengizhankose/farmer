@@ -2,25 +2,8 @@ import React from "react";
 import Link from "next/link";
 import { ScrollOrchestrator } from "@/components/ScrollOrchestrator";
 import { CardsGrid } from "@/components/Cards";
-import { colors, buttonColors } from "../lib/colors";
+import { colors } from "../lib/colors";
 
-function Button(
-  props: React.ButtonHTMLAttributes<HTMLButtonElement> & {
-    variant?: "outline" | "secondary" | "default";
-  }
-) {
-  const { className = "", variant = "default", ...rest } = props;
-  const base =
-    "inline-flex items-center justify-center rounded-xl text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50 h-12 px-6";
-  const variants: Record<string, string> = {
-    default: `bg-[${buttonColors.primary.bg}] text-[${buttonColors.primary.text}] hover:bg-[${buttonColors.primary.hover}]`,
-    outline: `border border-[${buttonColors.outline.border}] bg-[${buttonColors.outline.bg}] text-[${colors.zinc[900]}] hover:bg-[${buttonColors.outline.hover}]`,
-    secondary: `bg-[${buttonColors.secondary.bg}] text-[${buttonColors.secondary.text}] hover:bg-[${buttonColors.secondary.hover}]`,
-  };
-  return (
-    <button className={`${base} ${variants[variant]} ${className}`} {...rest} />
-  );
-}
 
 export default function Landing() {
   const whyItems = [
@@ -89,21 +72,19 @@ export default function Landing() {
                             </li>
                           </ul>
                           <div className="mt-10 flex flex-wrap gap-4">
-                            <Link href="/opportunities">
-                              <Button
-                                className="text-white hover:opacity-90"
-                                style={{ backgroundColor: colors.orange[50] }}
-                              >
-                                Explore opportunities
-                              </Button>
+                            <Link
+                              href="/opportunities"
+                              className="inline-flex items-center justify-center rounded-xl text-base font-medium h-12 px-6 text-white hover:opacity-90"
+                              style={{ backgroundColor: colors.orange[50] }}
+                            >
+                              Explore opportunities
                             </Link>
-                            <Link href="/portfolio">
-                              <Button
-                                variant="outline"
-                                className="border-white bg-white text-zinc-900 hover:bg-gray-50"
-                              >
-                                View portfolio
-                              </Button>
+                            <Link
+                              href="/portfolio"
+                              className="inline-flex items-center justify-center rounded-xl text-base font-medium h-12 px-6 border text-zinc-900 hover:bg-gray-50"
+                              style={{ backgroundColor: colors.white.DEFAULT, borderColor: colors.white.DEFAULT }}
+                            >
+                              View portfolio
                             </Link>
                           </div>
                         </div>

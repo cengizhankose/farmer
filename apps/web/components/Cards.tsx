@@ -1,10 +1,12 @@
 "use client";
 import React from "react";
+import { useRouter } from "next/router";
 import CountUp from "react-countup";
 
 // Horizontal marquee with two rows flowing in opposite directions.
 // Card count reduced by half (12).
 export const CardsGrid: React.FC<{ progress?: number }> = ({ progress = 0 }) => {
+  const router = useRouter();
   const [hasAnimated, setHasAnimated] = React.useState(false);
   
   // Trigger animation only once when cards become visible (progress > 0.1)
@@ -25,6 +27,9 @@ export const CardsGrid: React.FC<{ progress?: number }> = ({ progress = 0 }) => 
     const staticAPYs = [13.1, 9.2, 16.8, 12.3, 10.5, 14.7, 11.1, 18.2, 15.6, 8.4, 12.8, 14.9];
     const staticTVLs = [1.2, 0.8, 2.1, 1.5, 0.9, 1.7, 1.1, 2.3, 1.9, 0.7, 1.4, 1.8];
     
+    // Valid IDs that exist in mock data
+    const validIds = ["alex-stx-usda", "arkadiko-stx-diko", "alex-stx-usda", "arkadiko-stx-diko"];
+    
     return Array.from({ length: total }).map((_, i) => {
       const protocol = protocols[i % protocols.length];
       const pair = pairs[i % pairs.length];
@@ -32,8 +37,12 @@ export const CardsGrid: React.FC<{ progress?: number }> = ({ progress = 0 }) => 
       const color = colors[i % colors.length];
       const letter = protocol[0];
       
+      // Use valid IDs that exist in mock data
+      const routeId = validIds[i % validIds.length];
+      
       return {
         id: i,
+        routeId,
         protocol,
         pair,
         risk,
@@ -55,7 +64,7 @@ export const CardsGrid: React.FC<{ progress?: number }> = ({ progress = 0 }) => 
     const animClass = direction === "right" ? "animate-marquee-rev" : "animate-marquee";
     return (
       <div
-        className="relative mb-4 flex overflow-hidden"
+        className="relative mb-8 flex overflow-hidden"
         style={{
           maskImage: "linear-gradient(to right, transparent, black 10%, black 90%, transparent)",
           WebkitMaskImage:
@@ -73,7 +82,7 @@ export const CardsGrid: React.FC<{ progress?: number }> = ({ progress = 0 }) => 
             return (
               <div
                 key={`${it.id}-${idx}`}
-                className="flow-card group relative mr-4 last:mr-0 w-[280px] shrink-0 rounded-3xl border border-black/5 bg-[var(--sand-50,#F6F4EF)] shadow-sm p-5 md:p-6 transition hover:-translate-y-1 hover:shadow-md"
+                className="flow-card group relative mr-4 last:mr-0 w-[280px] shrink-0 rounded-3xl border border-black/5 bg-[var(--sand-50,#F6F4EF)] shadow-sm p-5 md:p-6 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
               >
                 {/* Curved corner logo badge */}
                 <div
@@ -175,6 +184,11 @@ export const CardsGrid: React.FC<{ progress?: number }> = ({ progress = 0 }) => 
                   <button
                     className="w-full text-white hover:bg-[var(--brand-orange-700)] transition-colors rounded-md py-2 px-4 text-sm font-medium"
                     style={{ backgroundColor: 'var(--brand-orange)' }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      router.push(`/opportunities/${it.routeId}`);
+                    }}
                   >
                     View details
                   </button>
@@ -188,7 +202,7 @@ export const CardsGrid: React.FC<{ progress?: number }> = ({ progress = 0 }) => 
   };
 
   return (
-    <div className="relative overflow-hidden">
+    <div className="relative overflow-hidden py-8">
       {renderRow(row1, "left")}
       {renderRow(row2, "right")}
     </div>
