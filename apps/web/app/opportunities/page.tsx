@@ -4,9 +4,7 @@ import { OpportunityFilters } from "../components/OpportunityFilters";
 export default async function OpportunitiesPage() {
   // Now fetches real data from multiple sources with caching
   const opportunities = await adapterManager.getAllOpportunities();
-  console.log("🚀 ~ OpportunitiesPage ~ opportunities:", opportunities)
   const stats = await adapterManager.getAdapterStats();
-  console.log("🚀 ~ OpportunitiesPage ~ stats:", stats)
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem' }}>
