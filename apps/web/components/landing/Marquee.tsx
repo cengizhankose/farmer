@@ -5,7 +5,7 @@ import { CardsGrid } from "@/components/Cards";
 export function Marquee({ progress = 0 }: { progress?: number }) {
   return (
     <section className="h-full">
-      <div className="mx-auto flex h-full max-w-6xl items-center px-6">
+      <div className="mx-auto flex h-full max-w-6xl items-center px-6 pt-20">
         <div
           className="w-full"
           style={{

@@ -54,7 +54,6 @@ export default function Landing() {
             },
           ]}
         />
-        <div style={{ height: "16vh", background: "var(--scene-bg)" }} />
       </div>
     </div>
   );

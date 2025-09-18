@@ -223,10 +223,13 @@ export function DepositCalculator({ data }: DepositCalculatorProps) {
               type="range"
               value={days}
               onChange={(e) => setDays(Number(e.target.value))}
-              className="w-full accent-zinc-900"
+              className="w-full accent-[var(--brand-orange)] range-orange"
               min={1}
               max={365}
               step={1}
+              style={{
+                background: `linear-gradient(to right, var(--brand-orange) 0%, var(--brand-orange) ${(days / 365) * 100}%, #e5e7eb ${(days / 365) * 100}%, #e5e7eb 100%)`
+              }}
             />
             <div className="mt-2 flex justify-between text-xs text-zinc-500">
               <span>1d</span>
@@ -251,7 +254,7 @@ export function DepositCalculator({ data }: DepositCalculatorProps) {
                   onClick={() => setCompoundFrequency(freq)}
                   className={`rounded-lg px-3 py-2 text-xs font-medium transition-all ${
                     compoundFrequency === freq
-                      ? "bg-zinc-900 text-white"
+                      ? "bg-[var(--brand-orange)] text-white"
                       : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200"
                   }`}
                 >
@@ -342,7 +345,7 @@ export function DepositCalculator({ data }: DepositCalculatorProps) {
                 className={`w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
                   isRouterMode
                     ? "bg-zinc-100 text-zinc-400 cursor-not-allowed"
-                    : "bg-zinc-900 text-white hover:bg-zinc-800 shadow-sm"
+                    : "bg-[var(--brand-orange)] text-white hover:bg-[var(--brand-orange-700)] shadow-sm"
                 }`}
               >
                 {isRouterMode ? (

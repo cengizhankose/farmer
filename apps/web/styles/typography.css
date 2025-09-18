@@ -18,7 +18,7 @@
 }
 
 .typo-h2 {
-  @apply font-display text-2xl md:text-3xl font-semibold text-neutral-900;
+  @apply font-display text-2xl md:text-3xl font-semibold text-white;
   letter-spacing: -0.01em;
 }
 

@@ -147,7 +147,7 @@ export function OpportunityOverviewCard({ data }: OpportunityOverviewCardProps) 
                   onClick={() => setTimeRange(range)}
                   className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
                     timeRange === range
-                      ? "bg-zinc-900 text-white"
+                      ? "bg-[var(--brand-orange)] text-white"
                       : "text-zinc-600 hover:text-zinc-900"
                   }`}
                 >

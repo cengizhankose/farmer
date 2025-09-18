@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 export function WhoWhy({ progress = 0 }: { progress?: number }) {
   return (
     <section className="h-full">
-      <div className="mx-auto flex h-full max-w-6xl items-center px-6">
+      <div className="mx-auto flex h-full max-w-6xl items-center px-6 pt-20">
         <div
           className="w-full"
           style={{
@@ -13,19 +13,21 @@ export function WhoWhy({ progress = 0 }: { progress?: number }) {
             transition: "transform 120ms linear",
           }}
         >
-          <div className="mb-8 text-center">
+          <div className="mb-5 text-center">
             <div className="typo-eyebrow">Who Are We?</div>
-            <h2 className="typo-h2">A pragmatic team building production-grade yield tooling</h2>
-            <p className="typo-lead mt-4">We build for users who care about returns and safety.</p>
-            <p className="typo-body max-w-3xl mx-auto">
-              We are developers experienced in React, mobile (RN) and blockchain infrastructure.
-              Our goal is to provide open and secure products that make capital efficient in DeFi.
-              Security, transparency and user control are at the forefront of every decision.
+            <h2 className="typo-h2">
+              A pragmatic team building production-grade yield tooling
+            </h2>
+            <p className="text-white/85 text-lg leading-relaxed mt-3">
+              Built for yield. Built for trust. Built for speed.
+            </p>
+            <p className="text-white/80 text-base leading-relaxed max-w-3xl mx-auto">
+              We're here to make your life easier and safer.
             </p>
           </div>
 
           <motion.div
-            className="grid grid-cols-1 gap-6 md:grid-cols-3 mb-12"
+            className="grid grid-cols-1 gap-5 md:grid-cols-3 mb-9"
             role="list"
             initial="hidden"
             whileInView="visible"
@@ -33,14 +35,29 @@ export function WhoWhy({ progress = 0 }: { progress?: number }) {
             variants={{ visible: { transition: { staggerChildren: 0.12 } } }}
           >
             {[
-              { metric: "4", title: "Core Engineers", desc: "Frontend, backend, smart-contract, UX specialists" },
-              { metric: "MVP→Prod", title: "Track Record", desc: "Hackathon MVP to audited smart contracts" },
-              { metric: "24/7", title: "Ops & Safety", desc: "Per-tx caps, unit tests, automated monitors" },
+              {
+                metric: "2",
+                title: "Founders & Engineers",
+                desc: "Frontend + UI/UX — Backend + Smart Contract",
+              },
+              {
+                metric: "MVP → Prod",
+                title: "Hackathon → Global",
+                desc: "Born in hackathons, now scaling worldwide",
+              },
+              {
+                metric: "24/7",
+                title: "Built for Trust",
+                desc: "Deep analysis, risk scoring, instant & secure execution",
+              },
             ].map((c, i) => (
               <motion.div
                 key={i}
                 className="rounded-2xl bg-white/10 p-6 backdrop-blur-xl border border-white/10 hover:bg-white/15 transition-all hover:-translate-y-[2px]"
-                variants={{ hidden: { y: 10, opacity: 0 }, visible: { y: 0, opacity: 1 } }}
+                variants={{
+                  hidden: { y: 10, opacity: 0 },
+                  visible: { y: 0, opacity: 1 },
+                }}
               >
                 <div className="typo-card-metric text-3xl mb-2">{c.metric}</div>
                 <div className="typo-card-h">{c.title}</div>
@@ -49,13 +66,13 @@ export function WhoWhy({ progress = 0 }: { progress?: number }) {
             ))}
           </motion.div>
 
-          <div className="mb-8 text-center">
+          <div className="mb-5 text-center">
             <div className="typo-eyebrow">Why Choose Us</div>
             <h2 className="typo-h2">Why Us</h2>
           </div>
 
           <motion.div
-            className="grid grid-cols-1 gap-6 md:grid-cols-2"
+            className="grid grid-cols-1 gap-5 md:grid-cols-2"
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, amount: 0.2 }}
@@ -86,7 +103,10 @@ export function WhoWhy({ progress = 0 }: { progress?: number }) {
               <motion.div
                 key={i}
                 className="rounded-2xl bg-white/10 p-6 backdrop-blur-xl border border-white/10 hover:bg-white/15 transition-all hover:-translate-y-[2px]"
-                variants={{ hidden: { y: 10, opacity: 0 }, visible: { y: 0, opacity: 1 } }}
+                variants={{
+                  hidden: { y: 10, opacity: 0 },
+                  visible: { y: 0, opacity: 1 },
+                }}
               >
                 <div className="typo-card-h">{it.title}</div>
                 <div className="typo-card-p">{it.subtitle}</div>

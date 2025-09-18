@@ -56,8 +56,8 @@
   --grad-why: linear-gradient(
     120deg,
     var(--warm-gold) 0%,
-    var(--bronze) 45%,
-    var(--near-black) 100%
+    #2A1F15 70%,
+    #0A0807 100%
   );
   --grad-market: linear-gradient(
     120deg,
@@ -354,6 +354,37 @@ h3,
 /* Tabular numbers utility */
 .tabular-nums {
   font-variant-numeric: tabular-nums;
+}
+
+/* Custom range slider styling */
+.range-orange {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  outline: none;
+}
+
+.range-orange::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--brand-orange);
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.range-orange::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--brand-orange);
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 /* Curved corner badge cap (optional decorative) */

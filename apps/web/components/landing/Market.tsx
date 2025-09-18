@@ -4,7 +4,7 @@ import React from "react";
 export function Market({ progress = 0 }: { progress?: number }) {
   return (
     <section className="h-full">
-      <div className="mx-auto flex h-full max-w-6xl items-center px-6">
+      <div className="mx-auto flex h-full max-w-6xl items-center px-6 pt-20">
         <div
           className="w-full text-center"
           style={{
@@ -14,7 +14,7 @@ export function Market({ progress = 0 }: { progress?: number }) {
         >
           <div className="typo-eyebrow">Market Environment</div>
           <h2 className="typo-h2">Built with awareness of liquidity, risk, and opportunity</h2>
-          <p className="typo-body max-w-3xl mx-auto mt-6">
+          <p className="text-white/80 text-base leading-relaxed max-w-3xl mx-auto mt-6">
             High APR in DeFi is often illusory. We match high returns with solid liquidity,
             street-tested mechanics, and risk measurement. We've built an infrastructure that
             tracks the market and responds immediately to anomalies.
