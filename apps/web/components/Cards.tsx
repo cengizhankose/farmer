@@ -14,34 +14,37 @@ export const CardsGrid: React.FC<{ progress?: number }> = ({ progress = 0 }) => 
     }
   }, [progress, hasAnimated]);
   const total = 12;
-  const items = React.useMemo(() => Array.from({ length: total }).map((_, i) => {
+  const items = React.useMemo(() => {
     const protocols = ["ALEX", "Arkadiko", "Bitflow", "StackSwap"];
     const pairs = ["STX/USDA", "STX/DIKO", "STX/ALEX", "USDA/ALEX"];
     const risks = ["Low", "Medium", "High"];
     const colors = ["#6C7BFF", "#22C55E", "#F97316", "#8B5CF6"];
     
-    const protocol = protocols[i % protocols.length];
-    const pair = pairs[i % pairs.length];
-    const risk = risks[i % risks.length];
-    const color = colors[i % colors.length];
-    const letter = protocol[0];
+    // Static values to prevent hydration mismatch
+    const staticAPRs = [12.3, 8.7, 15.2, 11.5, 9.8, 13.1, 10.4, 16.7, 14.2, 7.9, 11.8, 13.5];
+    const staticAPYs = [13.1, 9.2, 16.8, 12.3, 10.5, 14.7, 11.1, 18.2, 15.6, 8.4, 12.8, 14.9];
+    const staticTVLs = [1.2, 0.8, 2.1, 1.5, 0.9, 1.7, 1.1, 2.3, 1.9, 0.7, 1.4, 1.8];
     
-    const aprValue = parseFloat((8 + Math.random() * 15).toFixed(1));
-    const apyValue = parseFloat((9 + Math.random() * 18).toFixed(1));
-    const tvlValue = parseFloat((0.5 + Math.random() * 2).toFixed(1));
-    
-    return {
-      id: i,
-      protocol,
-      pair,
-      risk,
-      color,
-      letter,
-      apr: aprValue,
-      apy: apyValue,
-      tvl: tvlValue
-    };
-  }), []);
+    return Array.from({ length: total }).map((_, i) => {
+      const protocol = protocols[i % protocols.length];
+      const pair = pairs[i % pairs.length];
+      const risk = risks[i % risks.length];
+      const color = colors[i % colors.length];
+      const letter = protocol[0];
+      
+      return {
+        id: i,
+        protocol,
+        pair,
+        risk,
+        color,
+        letter,
+        apr: staticAPRs[i],
+        apy: staticAPYs[i],
+        tvl: staticTVLs[i]
+      };
+    });
+  }, []);
 
   const row1 = items.slice(0, Math.ceil(items.length / 2));
   const row2 = items.slice(Math.ceil(items.length / 2));

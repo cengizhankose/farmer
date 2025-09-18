@@ -31,12 +31,17 @@ function demo(rows = 30): Row[] {
 }
 
 export default function PortfolioOverviewChart({
-  data = demo(30),
+  data,
   className,
+  period = "30D",
 }: {
   data?: Row[];
   className?: string;
+  period?: "24H" | "7D" | "30D";
 }) {
+  // Generate demo data based on period
+  const periodDays = period === "24H" ? 1 : period === "7D" ? 7 : 30;
+  const chartData = data || demo(periodDays);
   const reduceMotion = useReducedMotion();
   const [visible, setVisible] = useState({
     total: true,
@@ -45,18 +50,21 @@ export default function PortfolioOverviewChart({
   });
 
   const kpis = useMemo(() => {
-    const last = data.at(-1)!;
-    const first = data[0]!;
+    const last = chartData.at(-1)!;
+    const first = chartData[0]!;
+    const periodLabel = period === "24H" ? "24h" : period === "7D" ? "7D" : "30D";
     return {
       total: last.total,
       pnl: last.pnl,
       change24h: last.chg24h,
-      changePct30d: ((last.total - first.total) / first.total) * 100,
+      changePct: ((last.total - first.total) / first.total) * 100,
+      periodLabel,
     };
-  }, [data]);
+  }, [chartData, period]);
 
   return (
     <motion.section
+      id="portfolio-overview"
       initial={reduceMotion ? undefined : { opacity: 0, y: 8 }}
       animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: "easeOut" }}
@@ -102,14 +110,14 @@ export default function PortfolioOverviewChart({
             <CountUp end={kpis.pnl} duration={0.8} prefix={kpis.pnl>=0?"+$":"-$"} separator="," />
           </span>
         </Kpi>
-        <Kpi label="30D %">
-          <CountUp end={kpis.changePct30d} decimals={2} duration={0.8} suffix="%" />
+        <Kpi label={`${kpis.periodLabel} %`}>
+          <CountUp end={kpis.changePct} decimals={2} duration={0.8} suffix="%" />
         </Kpi>
       </div>
 
       <div className="mt-4 h-[300px] md:h-[360px]">
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={data}>
+          <ComposedChart data={chartData}>
             <defs>
               <linearGradient id="gTotal" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#FF6A00" stopOpacity={0.7} />

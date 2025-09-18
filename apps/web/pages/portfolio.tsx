@@ -6,21 +6,32 @@ import { getRecentRedirects, type RedirectEntry } from "@/lib/mock";
 import { Card, Button } from "@/components/ui/primitives";
 import { toast } from "sonner";
 import { colors } from "../lib/colors";
-import { SummaryChips } from "@/components/portfolio/SummaryChips";
-import { HeaderMetrics } from "@/components/portfolio/HeaderMetrics";
+import { AccountSummary } from "@/components/portfolio/AccountSummary";
 import { PositionsList } from "@/components/portfolio/PositionsList";
 import RewardsChart from "@/components/RewardsChart";
 import PortfolioOverviewChart from "@/components/PortfolioOverviewChart";
 import { ActivityFeed } from "@/components/portfolio/ActivityFeed";
 import { toCSV, downloadCSV } from "@/lib/csv";
 
+function calc(rows: RedirectEntry[]) {
+  const deposited = rows.reduce((a, r) => a + r.amount, 0);
+  const est = rows.reduce((a, r) => a + r.amount * (r.apr / 100) * (r.days / 365), 0);
+  const total = deposited + est;
+  const pnl = total - deposited;
+  // Mock 24h change for demo
+  const chg24h = total * (Math.random() - 0.5) * 0.02;
+  return { total, pnl, chg24h };
+}
+
 export default function PortfolioPage() {
   const [rows, setRows] = React.useState<RedirectEntry[]>([]);
-  const [_sort, _setSort] = React.useState<{ key: "ts" | "amount" | "apr" | "days" | "est"; dir: "asc" | "desc" }>({ key: "ts", dir: "desc" });
+  const [period, setPeriod] = React.useState<"24H" | "7D" | "30D">("30D");
 
   React.useEffect(() => {
     setRows(getRecentRedirects());
   }, []);
+
+  const { total, pnl, chg24h } = React.useMemo(() => calc(rows), [rows]);
 
   const clear = () => {
     localStorage.removeItem("stacks_portfolio_mock");
@@ -62,10 +73,28 @@ export default function PortfolioPage() {
         </Card>
       ) : (
         <>
-          <HeaderMetrics rows={rows} />
-          <SummaryChips rows={rows} />
-          <div className="mt-8">
-            <PortfolioOverviewChart />
+          {/* Period Toggle */}
+          <div className="mt-6 flex justify-center">
+            <div className="inline-flex rounded-lg bg-neutral-100 p-1">
+              {(["24H", "7D", "30D"] as const).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setPeriod(p)}
+                  className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                    period === p
+                      ? "bg-[#FF6A00] text-white shadow-sm"
+                      : "text-neutral-700 hover:bg-neutral-200"
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <PortfolioOverviewChart period={period} />
+            <AccountSummary rows={rows} />
           </div>
           <PositionsList rows={rows} />
           <div className="mt-8">
