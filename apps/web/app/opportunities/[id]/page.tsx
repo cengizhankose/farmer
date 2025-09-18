@@ -1,11 +1,16 @@
-import { mockAdapter } from "@adapters/core";
+import { adapterManager } from "@adapters/core";
+import { notFound } from "next/navigation";
 
 export default async function OpportunityDetailPage({
   params
 }: {
   params: { id: string }
 }) {
-  const opportunity = await mockAdapter.detail(params.id);
+  const opportunity = await adapterManager.getOpportunityById(params.id);
+
+  if (!opportunity) {
+    notFound();
+  }
 
   return (
     <div>

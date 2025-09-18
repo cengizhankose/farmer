@@ -2,7 +2,6 @@ import { Adapter, Opportunity, Chain, CacheEntry, AdapterStats } from '@shared/c
 import { AlexAdapter } from './protocols/alex';
 import { ArkadikoAdapter } from './protocols/arkadiko';
 import { DefiLlamaAdapter } from './protocols/defillama';
-import { mockAdapter } from './mock';
 
 export class AdapterManager {
   private adapters: Map<string, Adapter> = new Map();
@@ -21,9 +20,6 @@ export class AdapterManager {
     this.adapters.set('defillama', new DefiLlamaAdapter(['alex', 'arkadiko']));
     this.adapters.set('arkadiko', new ArkadikoAdapter());
     this.adapters.set('alex', new AlexAdapter());
-
-    // Mock adapter for fallback
-    this.adapters.set('mock', mockAdapter as any);
 
     // TODO: Add Ethereum adapters in Phase B
     // this.adapters.set('uniswap', new UniswapAdapter());
@@ -99,11 +95,8 @@ export class AdapterManager {
 
       return deduped;
     } catch (error) {
-      console.error('Failed to fetch opportunities, using mock data:', error);
-
-      // Fallback to mock data
-      const mockOpportunities = await this.fetchOpportunities('mock');
-      return mockOpportunities;
+      console.error('Failed to fetch opportunities from external APIs:', error);
+      return [];
     }
   }
 

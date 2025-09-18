@@ -60,15 +60,15 @@ export class DefiLlamaAdapter extends BaseAdapter {
   async detail(id: string): Promise<Opportunity> {
     try {
       return await this.fetchWithRetry(async () => {
-        const poolId = this.extractPoolIdFromOpportunityId(id);
-        const pools = await this.service.getPools();
-        const pool = pools.find(p => p.pool === poolId);
+        // Get all opportunities and find by exact ID match
+        const opportunities = await this.list();
+        const opportunity = opportunities.find(o => o.id === id);
 
-        if (!pool) {
-          throw new Error(`Pool not found: ${poolId}`);
+        if (!opportunity) {
+          throw new Error(`Opportunity not found: ${id}`);
         }
 
-        return this.mapPoolToOpportunity(pool);
+        return opportunity;
       });
     } catch (error) {
       this.handleError(error, 'detail');
@@ -126,16 +126,6 @@ export class DefiLlamaAdapter extends BaseAdapter {
     };
   }
 
-  private extractPoolIdFromOpportunityId(opportunityId: string): string {
-    // Extract pool ID from opportunity ID format: "defillama-alex-stx-usda" -> find original pool UUID
-    const parts = opportunityId.split('-');
-    if (parts.length >= 3) {
-      const project = parts[1];
-      const symbol = parts.slice(2).join('-');
-      return `${project}-${symbol}`;
-    }
-    throw new Error(`Invalid opportunity ID format: ${opportunityId}`);
-  }
 
   private isStablecoinPair(tokens: string[]): boolean {
     const stablecoins = ['USDA', 'USDC', 'USDT', 'DAI', 'XUSD'];
