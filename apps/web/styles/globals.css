@@ -377,14 +377,23 @@ h3,
 .noise-overlay {
   position: relative;
 }
-.noise-overlay::after {
+ .noise-overlay::after {
   content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
   background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
   background-size: 3px 3px;
-  opacity: 1;
+  opacity: 0.95;
+  animation: noisePulse 10s ease-in-out infinite;
+}
+@keyframes noisePulse {
+  0% { opacity: 0.9; }
+  50% { opacity: 1; }
+  100% { opacity: 0.9; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .noise-overlay::after { animation: none; }
 }
 
 /* Gradient breathing (rotating hero gradient) */
