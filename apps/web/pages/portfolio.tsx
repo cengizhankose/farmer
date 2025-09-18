@@ -10,6 +10,7 @@ import { SummaryChips } from "@/components/portfolio/SummaryChips";
 import { HeaderMetrics } from "@/components/portfolio/HeaderMetrics";
 import { PositionsList } from "@/components/portfolio/PositionsList";
 import RewardsChart from "@/components/RewardsChart";
+import PortfolioOverviewChart from "@/components/PortfolioOverviewChart";
 import { ActivityFeed } from "@/components/portfolio/ActivityFeed";
 import { toCSV, downloadCSV } from "@/lib/csv";
 
@@ -45,8 +46,8 @@ export default function PortfolioPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12">
-      <h1 className={`font-[Sora] text-2xl text-[${colors.zinc[900]}]`}>Portfolio</h1>
-      <p className={`mt-2 max-w-2xl text-[${colors.zinc[600]}]`}>Recent redirects and estimated returns. Testnet canary transactions will appear here later.</p>
+      <h1 className="font-display text-4xl font-semibold text-neutral-900 tracking-tight">Portfolio</h1>
+      <p className="mt-3 max-w-2xl text-lg text-neutral-600">Recent redirects and estimated returns. Testnet canary transactions will appear here later.</p>
 
       {rows.length === 0 ? (
         <Card className="mt-8 overflow-hidden border-white/40 bg-white/60 backdrop-blur-2xl">
@@ -63,6 +64,9 @@ export default function PortfolioPage() {
         <>
           <HeaderMetrics rows={rows} />
           <SummaryChips rows={rows} />
+          <div className="mt-8">
+            <PortfolioOverviewChart />
+          </div>
           <PositionsList rows={rows} />
           <div className="mt-8">
             <RewardsChart className="mt-0" />

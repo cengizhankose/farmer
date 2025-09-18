@@ -129,17 +129,33 @@ html, body {
   height: 100%;
 }
 
-/* Next.js dev indicator'ı tamamen gizle */
+/* Next.js dev indicator'ı tamamen gizle - tüm olası seçiciler */
 div[style*="position: fixed"][style*="z-index"][style*="left"][style*="bottom"],
 div[style*="position:fixed"][style*="z-index"][style*="left"][style*="bottom"],
+div[style*="position: fixed"][style*="z-index"][style*="right"][style*="bottom"],
+div[style*="position:fixed"][style*="z-index"][style*="right"][style*="bottom"],
 [data-nextjs-toast-wrapper],
+[data-nextjs-toast],
+[data-nextjs-build-indicator],
+[data-nextjs-dev-indicator],
 .__next-dev-indicator,
 .__next-dev-overlay,
-[id*="__next"]:not(#__next) {
+.__nextjs_original_stack_trace,
+[id^="__nextjs"],
+[class*="__nextjs"],
+[id*="__next"]:not(#__next),
+/* NextJS 15 yeni seçiciler */
+div[data-nextjs-build-watcher],
+div[data-nextjs-compilation-indicator],
+div[style*="z-index: 99999"],
+div[style*="z-index:99999"] {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
   pointer-events: none !important;
+  position: absolute !important;
+  left: -9999px !important;
+  top: -9999px !important;
 }
 
 body {

@@ -29,8 +29,19 @@ This is a **Stacks-focused Yield Farming Aggregator** being developed for a 5-da
     utils.ts
   /components
     Layout.tsx
+    AnimatedFilterBar.tsx
+    RewardsChart.tsx
     /ui
       primitives.tsx
+    /opportunities
+      MarketFilters.tsx
+      OpportunityCard.tsx
+      EmptyState.tsx
+    /portfolio
+      SummaryChips.tsx
+      HeaderMetrics.tsx
+      PositionsList.tsx
+      ActivityFeed.tsx
   /contexts
     WalletContext.tsx
   /styles
@@ -81,6 +92,8 @@ interface Adapter {
 - ✅ Basic routing: home, opportunities list, individual opportunity details, portfolio
 - ✅ Responsive UI with Tailwind CSS
 - ✅ Wallet context setup (for future integration)
+- ✅ **AnimatedFilterBar component with framer-motion**: Sticky navbar with search, risk and sort filters
+- ✅ **Improved UI/UX**: Risk/Sort buttons aligned right, period buttons use brand orange, fixed footer spacing
 - 🚧 Router contract with security features (allowlist, pausable, reentrancy guard, per-tx cap)
 - 🚧 Live wallet integration (Leather/Hiro)
 - 🚧 Portfolio dashboard with real transaction tracking
@@ -118,10 +131,12 @@ interface Adapter {
 2. **Opportunity Discovery**: Normalized APR/APY display with risk scoring
 3. **Protocol Adapters**: Modular adapter system for ALEX, Arkadiko (extensible)
 4. **Responsive UI**: Tailwind CSS with custom components and mobile-first design
-5. **Wallet Integration**: Context setup for Leather/Hiro wallet support (Stacks)
-6. **Single-Click Deposits**: Router contract for streamlined UX (planned)
-7. **Portfolio Management**: Track investments and estimated returns (in progress)
-8. **Multichain Preview**: Preview cards for Ethereum/Solana (disabled)
+5. **AnimatedFilterBar**: Sticky navigation with framer-motion animations for search, risk and sort filtering
+6. **Wallet Integration**: Context setup for Leather/Hiro wallet support (Stacks)
+7. **Single-Click Deposits**: Router contract for streamlined UX (planned)
+8. **Portfolio Management**: Track investments and estimated returns with RewardsChart
+9. **Multichain Preview**: Preview cards for Ethereum/Solana (disabled)
+10. **Brand Consistency**: Orange theme (`--brand-orange: #FF6A00`) used throughout UI components
 
 ## Data Strategy
 
@@ -159,11 +174,17 @@ interface Adapter {
 ## Demo Flow (Current Implementation)
 
 1. **Home Page**: Overview with stats and quick navigation
-2. **Browse Opportunities**: View Stacks opportunities (ALEX, Arkadiko) with normalized APR/APY and risk labels
+2. **Browse Opportunities**: 
+   - View Stacks opportunities (ALEX, Arkadiko) with normalized APR/APY and risk labels
+   - Use AnimatedFilterBar with search, risk filtering, and sorting (APR/APY/TVL/Risk)
+   - Sticky navigation bar that remains visible while scrolling
 3. **Opportunity Details**: Click individual opportunities to see detailed breakdown and summary
 4. **Multichain Preview**: View disabled Ethereum and Solana cards showcasing future support
-5. **Portfolio Page**: Mock portfolio dashboard layout (ready for wallet integration)
-6. **Responsive Design**: Test mobile and desktop layouts
+5. **Portfolio Page**: 
+   - Mock portfolio dashboard layout with RewardsChart
+   - Interactive 7D/30D period buttons (orange theme)
+   - Ready for wallet integration
+6. **Responsive Design**: Test mobile and desktop layouts with proper footer spacing
 
 ### Planned Demo Flow (Next Steps)
 7. **Connect Wallet**: Leather/Hiro wallet integration
@@ -185,11 +206,13 @@ interface Adapter {
 
 ### Frontend
 - **Framework**: Next.js 15 with TypeScript 5.5
-- **Styling**: Tailwind CSS with custom components
+- **Styling**: Tailwind CSS with custom components and CSS variables
+- **Animations**: Framer Motion for component transitions and interactive elements
 - **State**: React Context (Wallet) + local component state
 - **Icons**: Lucide React
 - **Notifications**: Sonner (toast notifications)
 - **HTTP**: Axios for future API calls
+- **Utils**: clsx for conditional styling
 
 ### Development Tools
 - **Linting**: ESLint with Next.js config
