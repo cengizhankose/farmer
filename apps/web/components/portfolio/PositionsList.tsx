@@ -71,7 +71,7 @@ export const PositionsList: React.FC<{ rows: RedirectEntry[] }>
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.04 * idx }}
-                className={`rounded-xl border bg-white/80 p-4 backdrop-blur-xl`}
+                className={`rounded-3xl border border-black/5 bg-[var(--sand-50,#F6F4EF)] p-4 md:p-6`}
               >
                 <motion.div whileHover={{ y: -2, scale: 1.01 }} className="space-y-3">
                   <div className="flex items-start justify-between">

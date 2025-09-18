@@ -270,9 +270,14 @@ function RewardsTooltip({
   payload,
   label,
   tokens = ["ALEX", "DIKO", "OTHER"],
-}: any) {
+}: {
+  active?: boolean;
+  payload?: Array<{ name: string; value: number }>;
+  label?: string;
+  tokens?: Array<"ALEX" | "DIKO" | "OTHER">;
+}) {
   if (!active || !payload?.length) return null;
-  const row = Object.fromEntries(payload.map((p: any) => [p.name, p.value]));
+  const row = Object.fromEntries(payload.map((p) => [p.name, p.value]));
   const total =
     (row["ALEX"] ?? 0) + (row["DIKO"] ?? 0) + (row["OTHER"] ?? 0);
 
@@ -290,7 +295,7 @@ function RewardsTooltip({
       </div>
       <div className="mt-1 grid grid-cols-3 gap-2">
         {chips
-          .filter(([t]) => tokens.includes(t as any))
+          .filter(([t]) => tokens.includes(t as "ALEX" | "DIKO" | "OTHER"))
           .map(([t, c]) => (
             <div key={t} className="flex items-center gap-1.5 text-xs">
               <span
@@ -311,7 +316,7 @@ function RewardsTooltip({
 function topTokenLabel(data: Point[], tokens: string[]) {
   const totals: Record<string, number> = {};
   data.forEach((p) => {
-    tokens.forEach((t) => (totals[t] = (totals[t] ?? 0) + (p as any)[t]));
+    tokens.forEach((t) => (totals[t] = (totals[t] ?? 0) + (p[t as keyof Point] as number || 0)));
   });
   const best = Object.entries(totals).sort((a, b) => b[1] - a[1])[0];
   if (!best) return "—";

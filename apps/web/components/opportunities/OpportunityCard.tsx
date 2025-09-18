@@ -22,8 +22,8 @@ export const OpportunityCard: React.FC<
     CHAINS.find((c) => c.id === data.chain)?.label || data.chain;
   const Action = (
     <Button
-      className="w-full text-neutral-700 hover:bg-neutral-200 transition-colors"
-      style={{ backgroundColor: 'var(--sand-50)' }}
+      className="w-full text-white hover:bg-[var(--brand-orange-700)] transition-colors"
+      style={{ backgroundColor: 'var(--brand-orange)' }}
       onClick={() =>
         onClick ? onClick() : router.push(`/opportunities/${data.id}`)
       }
@@ -67,7 +67,7 @@ export const OpportunityCard: React.FC<
       })()}
 
       <div className="flex items-start justify-between">
-        <div>
+        <div className="ml-6">
           <div className="text-sm font-semibold text-zinc-600">
             {data.protocol}
           </div>
