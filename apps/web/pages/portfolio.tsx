@@ -49,8 +49,8 @@ export default function PortfolioPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12">
-      <h1 className="font-display text-4xl font-semibold text-neutral-900 tracking-tight">Portfolio</h1>
-      <p className="mt-3 max-w-2xl text-lg text-neutral-600">Recent redirects and estimated returns. Testnet canary transactions will appear here later.</p>
+      <h1 className="typo-portfolio-h1">Portfolio</h1>
+      <p className="typo-portfolio-sub max-w-2xl">Recent redirects and estimated returns. Testnet canary transactions will appear here later.</p>
 
       {rows.length === 0 ? (
         <Card className="mt-8 overflow-hidden border-white/40 bg-white/60 backdrop-blur-2xl">
@@ -58,9 +58,9 @@ export default function PortfolioPage() {
             <Image src={emptyIllustration} alt="empty" fill className="object-cover" />
           </div>
           <div className="p-6">
-            <h3 className={`text-lg font-medium text-[${colors.zinc[900]}]`}>Start farming now</h3>
-            <p className={`mt-1 text-sm text-[${colors.zinc[600]}]`}>Explore opportunities and use the deposit button to add entries here.</p>
-            <Link href="/opportunities" className={`mt-4 inline-block text-[${colors.emerald[700]}] hover:underline`}>Browse opportunities</Link>
+            <h3 className="typo-section-h">Start farming now</h3>
+            <p className="typo-empty mt-1">Explore opportunities and use the deposit button to add entries here.</p>
+            <Link href="/opportunities" className="typo-link-primary mt-4 inline-block">Browse opportunities →</Link>
           </div>
         </Card>
       ) : (
@@ -72,7 +72,7 @@ export default function PortfolioPage() {
                 <button
                   key={p}
                   onClick={() => setPeriod(p)}
-                  className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                  className={`typo-toggle px-4 py-2 rounded-md transition-colors ${
                     period === p
                       ? "bg-[#FF6A00] text-white shadow-sm"
                       : "text-neutral-700 hover:bg-neutral-200"
@@ -94,7 +94,7 @@ export default function PortfolioPage() {
           </div>
           <Card className="mt-6 border-white/40 bg-white/60 p-4 backdrop-blur-2xl">
             <div className="flex items-center justify-between px-2">
-              <h3 className={`text-lg font-medium text-[${colors.zinc[900]}]`}>Recent activity</h3>
+              <h3 className="typo-section-h">Recent activity</h3>
               <div className="flex items-center gap-2">
                 <Button variant="outline" onClick={exportCSV} className={`border-[${colors.zinc[300]}]`}>Export CSV</Button>
                 <Button variant="outline" onClick={clear} className={`border-[${colors.zinc[300]}]`}>Clear</Button>

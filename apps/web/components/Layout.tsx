@@ -141,57 +141,107 @@ export const Header = () => {
 
 export const Footer = () => (
   <footer
-    className="relative mt-0 text-white"
-    style={{ backgroundColor: colors.black.footer }}
+    className="relative mt-0 text-white border-t border-white/5"
+    style={{ 
+      background: `linear-gradient(to bottom, ${colors.black.footer}, #000000)`
+    }}
   >
-    <div className="pointer-events-none absolute -top-9 left-0 right-0 h-12">
-      {/*
-      <svg
-        width="100%"
-        height="100%"
-        viewBox="0 0 100 358"
-        preserveAspectRatio="none"
-      >
-        <polygon points="0,270 100,0 100,300" fill={colors.ui.dividerPolygon} />
-      </svg>
-      */}
-    </div>
-    <div className="mx-auto max-w-7xl px-6 py-6">
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-        <div>
-          <div className="font-[Sora] text-base text-white">
+    <div className="mx-auto max-w-7xl px-6 py-8">
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
+        <div className="md:col-span-2">
+          <div className="font-display text-xl text-white mb-3">
             Stacks Opportunities
           </div>
-          <p className="mt-0.5 max-w-sm text-xs text-white">
-            Minimal, luxurious interfaces for yield. Clarity over noise.
+          <p className="text-sm text-white/70 max-w-md leading-relaxed">
+            Production-grade yield tooling on Stacks. Built with security, 
+            transparency and user control at the forefront.
           </p>
+          <div className="mt-4 flex gap-3">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs bg-white/10 text-white/80 rounded-full backdrop-blur-sm border border-white/20">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              Audited
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs bg-white/10 text-white/80 rounded-full backdrop-blur-sm border border-white/20">
+              Non-custodial
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs bg-white/10 text-white/80 rounded-full backdrop-blur-sm border border-white/20">
+              Per-tx cap
+            </span>
+          </div>
         </div>
-        <div className="text-xs text-white">
-          <div className="text-white font-medium">Navigation</div>
-          <div className="mt-0.5 flex flex-col gap-0.5">
+        
+        <div>
+          <div className="text-white font-semibold text-sm mb-3">Quick Links</div>
+          <div className="flex flex-col gap-2">
             <Link
               href="/opportunities"
-              className="text-white hover:text-orange-300"
+              className="text-sm text-white/70 hover:text-white transition-colors"
             >
-              Opportunities
+              Explore Opportunities
             </Link>
             <Link
               href="/portfolio"
-              className="text-white hover:text-orange-300"
+              className="text-sm text-white/70 hover:text-white transition-colors"
             >
-              Portfolio
+              View Portfolio
             </Link>
+            <a
+              href="#"
+              className="text-sm text-white/70 hover:text-white transition-colors"
+            >
+              Documentation
+            </a>
+            <a
+              href="#"
+              className="text-sm text-white/70 hover:text-white transition-colors"
+            >
+              Smart Contract Audit
+            </a>
           </div>
         </div>
-        <div className="text-xs text-white">
-          <div className="text-white font-medium">Status</div>
-          <p className="mt-0.5 max-w-xs">
-            Beta UI, non‑custodial routing. One‑click router coming soon.
-          </p>
+        
+        <div>
+          <div className="text-white font-semibold text-sm mb-3">Legal</div>
+          <div className="flex flex-col gap-2">
+            <a
+              href="#"
+              className="text-sm text-white/70 hover:text-white transition-colors"
+            >
+              Terms of Service
+            </a>
+            <a
+              href="#"
+              className="text-sm text-white/70 hover:text-white transition-colors"
+            >
+              Privacy Policy
+            </a>
+            <a
+              href="#"
+              className="text-sm text-white/70 hover:text-white transition-colors"
+            >
+              Security Disclosures
+            </a>
+            <a
+              href="#"
+              className="text-sm text-white/70 hover:text-white transition-colors"
+            >
+              Report an Issue
+            </a>
+          </div>
         </div>
       </div>
-      <div className="mt-4 pt-2 text-xs text-white">
-        © {new Date().getFullYear()} Stacks Opportunities
+      
+      <div className="mt-8 pt-6 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="text-xs text-white/50">
+          © {new Date().getFullYear()} Stacks Opportunities. Built on Stacks. All rights reserved.
+        </div>
+        <div className="flex gap-6 text-xs text-white/50">
+          <span>Non-custodial</span>
+          <span>•</span>
+          <span>0.3% protocol fee + gas</span>
+          <span>•</span>
+          <span>No hidden charges</span>
+        </div>
       </div>
     </div>
   </footer>

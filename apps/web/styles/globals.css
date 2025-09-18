@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import typography system */
+@import './typography.css';
+
 /* Fonts */
 /* Note: ClashDisplay-Variable.woff2 not found - using system font fallback */
 /*
@@ -34,6 +37,34 @@
   --brand-orange: #FF6A00;
   --brand-orange-700: #E85F00;
   --badge-lilac: #E6DBFF;
+
+  /* FE_examples tokens */
+  --burnt-orange: #C6561A;
+  --bronze: #8C5A3A;
+  --coffee: #3A2A21;
+  --near-black: #0E0C0A;
+  --warm-gold: #E2C872;
+
+  /* Gradient variables */
+  --grad-hero: linear-gradient(
+    135deg,
+    var(--brand-orange) 0%,
+    var(--burnt-orange) 35%,
+    var(--bronze) 70%,
+    var(--near-black) 100%
+  );
+  --grad-why: linear-gradient(
+    120deg,
+    var(--warm-gold) 0%,
+    var(--bronze) 45%,
+    var(--near-black) 100%
+  );
+  --grad-market: linear-gradient(
+    120deg,
+    #B8926A 0%,
+    #5C4335 55%,
+    var(--near-black) 100%
+  );
 }
 
 /* Chart lines background utility */
@@ -307,10 +338,17 @@ h3,
   }
 }
 .animate-marquee {
-  animation: marquee 28s linear infinite;
+  animation: marquee 28s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  will-change: transform;
 }
 .animate-marquee-rev {
-  animation: marquee-rev 32s linear infinite;
+  animation: marquee-rev 32s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  will-change: transform;
+}
+/* Pause marquee when parent hovered */
+.marquee-group:hover .animate-marquee,
+.marquee-group:hover .animate-marquee-rev {
+  animation-play-state: paused;
 }
 
 /* Tabular numbers utility */
@@ -333,4 +371,40 @@ h3,
   background: var(--badge-lilac);
   transform: translate(-8px, -8px);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+}
+
+/* Noise overlay (subtle, ~4-6% opacity) */
+.noise-overlay {
+  position: relative;
+}
+.noise-overlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 3px 3px;
+  opacity: 1;
+}
+
+/* Gradient breathing (rotating hero gradient) */
+.grad-breathe {
+  position: relative;
+  overflow: hidden;
+}
+.grad-breathe::before {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  background: var(--grad-hero);
+  filter: saturate(1.05) contrast(1.02);
+  transform-origin: 50% 50%;
+  animation: breathe-rotate 12s linear infinite;
+}
+@keyframes breathe-rotate {
+  from { transform: rotate(0deg) scale(1.05); opacity: 0.95; }
+  to { transform: rotate(360deg) scale(1.05); opacity: 0.95; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .grad-breathe::before { animation: none; }
 }

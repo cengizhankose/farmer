@@ -25,11 +25,11 @@ export default function OpportunityDetailPage() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center"
         >
-          <h2 className="text-2xl font-semibold text-zinc-900">Opportunity not found</h2>
-          <p className="mt-2 text-zinc-600">We couldn't locate this opportunity.</p>
+          <h2 className="typo-404-h">Opportunity not found</h2>
+          <p className="typo-404-p">We couldn't locate this opportunity.</p>
           <Link 
             href="/opportunities" 
-            className="mt-4 inline-flex items-center gap-2 text-emerald-700 hover:text-emerald-800 transition-colors"
+            className="typo-link-emerald mt-4 inline-flex items-center gap-2"
           >
             <ArrowLeft size={16} />
             Back to opportunities
@@ -57,7 +57,7 @@ export default function OpportunityDetailPage() {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleCompare}
-            className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-medium text-zinc-700 ring-1 ring-zinc-200 hover:bg-zinc-50 transition-colors"
+            className="typo-btn-sm-muted inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 ring-1 ring-zinc-200 hover:bg-zinc-50 transition-all hover:shadow-sm"
           >
             <GitCompare size={16} />
             Add to Compare

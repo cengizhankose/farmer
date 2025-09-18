@@ -3,7 +3,6 @@ import React from "react";
 // import { useRouter } from "next/router";
 import { opportunities, CHAINS, type ChainId } from "@/lib/mock";
 import { Info } from "lucide-react";
-import { colors } from "../../lib/colors";
 import { OpportunityCard } from "@/components/opportunities/OpportunityCard";
 import {
   type RiskFilter,
@@ -116,10 +115,8 @@ export default function OpportunitiesPage() {
       <section className="mx-auto max-w-6xl px-4 py-8 sm:py-10">
 
         {!chainObj?.enabled && (
-          <div
-            className={`mb-6 rounded-md border border-[${colors.zinc[200]}] bg-[${colors.zinc[50]}] p-3 text-sm text-[${colors.zinc[700]}]`}
-          >
-            <span className="font-medium">Preview:</span> {chainObj?.label}{" "}
+          <div className="typo-note mb-6">
+            <span className="font-semibold">Preview:</span> {chainObj?.label}{" "}
             support is coming soon. Cards are disabled.
           </div>
         )}
@@ -149,8 +146,8 @@ export default function OpportunitiesPage() {
           </div>
         )}
 
-        <div className="mt-10 flex items-start gap-2 text-xs text-zinc-600">
-          <Info size={14} />
+        <div className="typo-subtle-note mt-10">
+          <Info size={14} className="text-zinc-400" />
           <p>
             NFA. Data is mocked for demo. Actual adapter-backed data and router
             (B) integration coming next.
