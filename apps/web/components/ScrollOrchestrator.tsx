@@ -71,6 +71,18 @@ export function ScrollOrchestrator({
     };
   }, [progress, scenes]);
 
+  // Determine the active scene index (single interactive scene)
+  const activeIndex = React.useMemo(() => {
+    const idx = scenes.findIndex((s) => progress >= s.start && progress < s.end);
+    if (idx !== -1) return idx;
+    // fallback to the last scene whose start <= progress
+    let last = 0;
+    for (let i = 0; i < scenes.length; i++) {
+      if (progress >= scenes[i].start) last = i;
+    }
+    return last;
+  }, [progress, scenes]);
+
   return (
     <div className="relative">
       {/* Phantom spacer to drive scroll; stage remains fixed */}
@@ -78,7 +90,7 @@ export function ScrollOrchestrator({
         style={{ height: `${scenes.length * heightPerSceneVh + tailVh}vh` }}
       />
       <div className="scroll-stage fixed inset-0 pointer-events-none">
-        {scenes.map((s) => {
+        {scenes.map((s, i) => {
           const span = Math.max(0.0001, s.end - s.start);
           const local = (progress - s.start) / span;
           const clamped = Math.min(1, Math.max(0, local));
@@ -95,8 +107,8 @@ export function ScrollOrchestrator({
             opacity = 1;
           }
           
-          // Only allow pointer events when the scene is sufficiently visible
-          const isInteractive = opacity > 0.5;
+          // Only allow pointer events for the active scene
+          const isInteractive = i === activeIndex;
           
           const style: React.CSSProperties = {
             opacity,

@@ -41,6 +41,8 @@ export function WhoWhy({ progress = 0 }: { progress?: number }) {
             </div>
           )}
         />
+
+        {null}
       </div>
     </section>
   );
