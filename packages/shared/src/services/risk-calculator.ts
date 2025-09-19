@@ -35,6 +35,10 @@ export class RiskCalculator {
         PART_REF_LOW: 50,            // <50 participants = concentration risk
         APR_REF_HIGH: 0.50,          // 50%+ APR considered potentially unsustainable
         SLOPE_REF: 0.01,             // 1% TVL change per day reference
+        VOLATILITY_REF_LOW: 0.05,    // 5% daily volatility considered low
+        VOLATILITY_REF_HIGH: 0.30,  // 30%+ daily volatility considered high
+        DRAWDOWN_REF_SEVERE: 0.40,  // 40%+ drawdown considered severe
+        CORR_REF_HIGH: 0.8,   // 0.8+ correlation considered high
       },
       protocols: {
         'defillama': { participantMultiplier: 1.0, riskAdjustment: 0.0, minTvlThreshold: 100_000 },

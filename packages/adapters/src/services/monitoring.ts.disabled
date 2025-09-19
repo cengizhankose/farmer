@@ -1,0 +1,557 @@
+import { errorHandler, ServiceError } from './error-handling';
+
+export interface MonitoringMetrics {
+  serviceHealth: Map<string, ServiceHealth>;
+  dataQuality: Map<string, DataQuality>;
+  performanceMetrics: Map<string, PerformanceMetrics>;
+  systemMetrics: SystemMetrics;
+  alerts: Alert[];
+}
+
+export interface ServiceHealth {
+  status: 'healthy' | 'degraded' | 'unhealthy';
+  uptime: number;
+  responseTime: number;
+  errorRate: number;
+  lastCheck: number;
+  consecutiveFailures: number;
+}
+
+export interface DataQuality {
+  completeness: number; // 0-1
+  accuracy: number; // 0-1
+  timeliness: number; // 0-1
+  consistency: number; // 0-1
+  lastValidation: number;
+  validationScore: number; // 0-1
+}
+
+export interface PerformanceMetrics {
+  averageResponseTime: number;
+  p95ResponseTime: number;
+  p99ResponseTime: number;
+  requestCount: number;
+  cacheHitRate: number;
+  memoryUsage: number;
+  cpuUsage: number;
+}
+
+export interface SystemMetrics {
+  totalMemory: number;
+  usedMemory: number;
+  freeMemory: number;
+  uptime: number;
+  activeConnections: number;
+  queueLength: number;
+}
+
+export interface Alert {
+  id: string;
+  type: 'health' | 'quality' | 'performance' | 'security';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  message: string;
+  timestamp: number;
+  resolved: boolean;
+  resolvedAt?: number;
+  metadata?: Record<string, any>;
+}
+
+export interface MonitoringConfig {
+  healthCheckInterval: number;
+  dataQualityInterval: number;
+  performanceInterval: number;
+  alertThresholds: {
+    errorRate: number;
+    responseTime: number;
+    dataQuality: number;
+    memoryUsage: number;
+  };
+  retentionPeriod: number;
+}
+
+export class MonitoringService {
+  private config: Required<MonitoringConfig>;
+  private metrics: MonitoringMetrics;
+  private healthCheckIntervals: Map<string, NodeJS.Timeout> = new Map();
+  private isRunning = false;
+
+  constructor(config: MonitoringConfig = {}) {
+    this.config = {
+      healthCheckInterval: config.healthCheckInterval || 30000, // 30 seconds
+      dataQualityInterval: config.dataQualityInterval || 300000, // 5 minutes
+      performanceInterval: config.performanceInterval || 60000, // 1 minute
+      alertThresholds: {
+        errorRate: config.alertThresholds?.errorRate || 0.1,
+        responseTime: config.alertThresholds?.responseTime || 5000,
+        dataQuality: config.alertThresholds?.dataQuality || 0.8,
+        memoryUsage: config.alertThresholds?.memoryUsage || 0.9,
+      },
+      retentionPeriod: config.retentionPeriod || 24 * 60 * 60 * 1000, // 24 hours
+    };
+
+    this.metrics = this.initializeMetrics();
+  }
+
+  private initializeMetrics(): MonitoringMetrics {
+    return {
+      serviceHealth: new Map(),
+      dataQuality: new Map(),
+      performanceMetrics: new Map(),
+      systemMetrics: {
+        totalMemory: 0,
+        usedMemory: 0,
+        freeMemory: 0,
+        uptime: Date.now(),
+        activeConnections: 0,
+        queueLength: 0,
+      },
+      alerts: [],
+    };
+  }
+
+  async start(): Promise<void> {
+    if (this.isRunning) {
+      return;
+    }
+
+    this.isRunning = true;
+    console.log('Starting monitoring service...');
+
+    // Start system metrics collection
+    this.startSystemMetricsCollection();
+
+    // Start periodic health checks
+    this.startPeriodicHealthChecks();
+
+    // Start data quality validation
+    this.startDataQualityValidation();
+
+    // Start performance metrics collection
+    this.startPerformanceMetricsCollection();
+
+    // Start alert processing
+    this.startAlertProcessing();
+
+    console.log('Monitoring service started successfully');
+  }
+
+  async stop(): Promise<void> {
+    if (!this.isRunning) {
+      return;
+    }
+
+    this.isRunning = false;
+    console.log('Stopping monitoring service...');
+
+    // Clear all intervals
+    this.healthCheckIntervals.forEach(interval => clearInterval(interval));
+    this.healthCheckIntervals.clear();
+
+    console.log('Monitoring service stopped');
+  }
+
+  // Service health monitoring
+  registerService(serviceName: string, healthCheckFn: () => Promise<boolean>): void {
+    if (this.healthCheckIntervals.has(serviceName)) {
+      console.warn(`Service ${serviceName} is already registered`);
+      return;
+    }
+
+    const interval = setInterval(async () => {
+      await this.checkServiceHealth(serviceName, healthCheckFn);
+    }, this.config.healthCheckInterval);
+
+    this.healthCheckIntervals.set(serviceName, interval);
+
+    // Initial health check
+    this.checkServiceHealth(serviceName, healthCheckFn);
+  }
+
+  private async checkServiceHealth(
+    serviceName: string,
+    healthCheckFn: () => Promise<boolean>
+  ): Promise<void> {
+    const startTime = Date.now();
+    let isHealthy = false;
+
+    try {
+      isHealthy = await healthCheckFn();
+      const responseTime = Date.now() - startTime;
+
+      const currentHealth = this.metrics.serviceHealth.get(serviceName) || {
+        status: 'healthy',
+        uptime: 0,
+        responseTime: 0,
+        errorRate: 0,
+        lastCheck: 0,
+        consecutiveFailures: 0,
+      };
+
+      const newHealth: ServiceHealth = {
+        status: isHealthy ? 'healthy' : 'unhealthy',
+        uptime: isHealthy ? (currentHealth.uptime || 0) + this.config.healthCheckInterval : 0,
+        responseTime,
+        errorRate: isHealthy ? Math.max(0, currentHealth.errorRate - 0.01) : Math.min(1, currentHealth.errorRate + 0.05),
+        lastCheck: Date.now(),
+        consecutiveFailures: isHealthy ? 0 : currentHealth.consecutiveFailures + 1,
+      };
+
+      // Check for degraded status
+      if (!isHealthy && newHealth.consecutiveFailures < 3) {
+        newHealth.status = 'degraded';
+      }
+
+      this.metrics.serviceHealth.set(serviceName, newHealth);
+
+      // Create alerts for unhealthy services
+      if (!isHealthy && newHealth.consecutiveFailures >= 3) {
+        this.createAlert({
+          type: 'health',
+          severity: 'high',
+          message: `Service ${serviceName} is unhealthy (${newHealth.consecutiveFailures} consecutive failures)`,
+          metadata: { serviceName, responseTime, errorRate: newHealth.errorRate },
+        });
+      }
+
+    } catch (error) {
+      console.error(`Health check failed for service ${serviceName}:`, error);
+
+      const currentHealth = this.metrics.serviceHealth.get(serviceName) || {
+        status: 'healthy',
+        uptime: 0,
+        responseTime: 0,
+        errorRate: 0,
+        lastCheck: 0,
+        consecutiveFailures: 0,
+      };
+
+      const newHealth: ServiceHealth = {
+        status: 'unhealthy',
+        uptime: currentHealth.uptime,
+        responseTime: Date.now() - startTime,
+        errorRate: Math.min(1, currentHealth.errorRate + 0.1),
+        lastCheck: Date.now(),
+        consecutiveFailures: currentHealth.consecutiveFailures + 1,
+      };
+
+      this.metrics.serviceHealth.set(serviceName, newHealth);
+
+      this.createAlert({
+        type: 'health',
+        severity: 'critical',
+        message: `Health check exception for service ${serviceName}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        metadata: { serviceName, error: error instanceof Error ? error.stack : undefined },
+      });
+    }
+  }
+
+  // Data quality monitoring
+  async validateDataQuality(dataSource: string, data: any): Promise<DataQuality> {
+    const startTime = Date.now();
+
+    try {
+      // Completeness check
+      const completeness = this.checkCompleteness(data);
+
+      // Accuracy check
+      const accuracy = this.checkAccuracy(data);
+
+      // Timeliness check
+      const timeliness = this.checkTimeliness(data);
+
+      // Consistency check
+      const consistency = this.checkConsistency(data);
+
+      const quality: DataQuality = {
+        completeness,
+        accuracy,
+        timeliness,
+        consistency,
+        lastValidation: Date.now(),
+        validationScore: (completeness + accuracy + timeliness + consistency) / 4,
+      };
+
+      this.metrics.dataQuality.set(dataSource, quality);
+
+      // Create alerts for poor data quality
+      if (quality.validationScore < this.config.alertThresholds.dataQuality) {
+        this.createAlert({
+          type: 'quality',
+          severity: 'medium',
+          message: `Poor data quality for ${dataSource}: ${Math.round(quality.validationScore * 100)}% score`,
+          metadata: { dataSource, quality },
+        });
+      }
+
+      return quality;
+
+    } catch (error) {
+      console.error(`Data quality validation failed for ${dataSource}:`, error);
+
+      const fallbackQuality: DataQuality = {
+        completeness: 0,
+        accuracy: 0,
+        timeliness: 0,
+        consistency: 0,
+        lastValidation: Date.now(),
+        validationScore: 0,
+      };
+
+      this.metrics.dataQuality.set(dataSource, fallbackQuality);
+
+      this.createAlert({
+        type: 'quality',
+        severity: 'high',
+        message: `Data quality validation exception for ${dataSource}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        metadata: { dataSource, error: error instanceof Error ? error.stack : undefined },
+      });
+
+      return fallbackQuality;
+    }
+  }
+
+  private checkCompleteness(data: any): number {
+    if (!data || typeof data !== 'object') return 0;
+
+    const requiredFields = ['id', 'tvlUsd', 'apr', 'apy'];
+    const presentFields = requiredFields.filter(field => field in data && data[field] !== null && data[field] !== undefined);
+
+    return presentFields.length / requiredFields.length;
+  }
+
+  private checkAccuracy(data: any): number {
+    let score = 1.0;
+
+    // Check for reasonable values
+    if (data.tvlUsd < 0 || data.tvlUsd > 1e12) score *= 0.5; // Unreasonable TVL
+    if (data.apr < 0 || data.apr > 10) score *= 0.5; // Unreasonable APR
+    if (data.apy < 0 || data.apy > 20) score *= 0.5; // Unreasonable APY
+
+    return Math.max(0, score);
+  }
+
+  private checkTimeliness(data: any): number {
+    // Check if data is recent (within 24 hours)
+    const timestamp = data.timestamp || data.lastUpdated;
+    if (!timestamp) return 0.5;
+
+    const age = Date.now() - new Date(timestamp).getTime();
+    const maxAge = 24 * 60 * 60 * 1000; // 24 hours
+
+    return Math.max(0, 1 - age / maxAge);
+  }
+
+  private checkConsistency(data: any): number {
+    let score = 1.0;
+
+    // Check APY >= APR
+    if (data.apy < data.apr) score *= 0.7;
+
+    // Check if reward tokens are consistent with protocol
+    if (data.rewardTokens && Array.isArray(data.rewardTokens)) {
+      const validRewardTokens = ['STX', 'XBTC', 'ALEX', 'DIKO'];
+      const invalidTokens = data.rewardTokens.filter((token: string) => !validRewardTokens.includes(token));
+      if (invalidTokens.length > 0) score *= 0.8;
+    }
+
+    return Math.max(0, score);
+  }
+
+  // Performance metrics
+  recordPerformance(serviceName: string, responseTime: number, cached: boolean = false): void {
+    const current = this.metrics.performanceMetrics.get(serviceName) || {
+      averageResponseTime: 0,
+      p95ResponseTime: 0,
+      p99ResponseTime: 0,
+      requestCount: 0,
+      cacheHitRate: 0,
+      memoryUsage: 0,
+      cpuUsage: 0,
+    };
+
+    const newMetrics: PerformanceMetrics = {
+      averageResponseTime: (current.averageResponseTime * current.requestCount + responseTime) / (current.requestCount + 1),
+      p95ResponseTime: Math.max(current.p95ResponseTime * 0.95, responseTime * 0.05),
+      p99ResponseTime: Math.max(current.p99ResponseTime * 0.99, responseTime * 0.01),
+      requestCount: current.requestCount + 1,
+      cacheHitRate: cached ? current.cacheHitRate + 1 : current.cacheHitRate,
+      memoryUsage: process.memoryUsage ? process.memoryUsage().heapUsed / process.memoryUsage().heapTotal : 0,
+      cpuUsage: 0, // Would need system-specific implementation
+    };
+
+    this.metrics.performanceMetrics.set(serviceName, newMetrics);
+
+    // Create alerts for poor performance
+    if (responseTime > this.config.alertThresholds.responseTime) {
+      this.createAlert({
+        type: 'performance',
+        severity: 'medium',
+        message: `High response time for ${serviceName}: ${responseTime}ms`,
+        metadata: { serviceName, responseTime, threshold: this.config.alertThresholds.responseTime },
+      });
+    }
+  }
+
+  // Alert management
+  private createAlert(alert: Omit<Alert, 'id' | 'timestamp' | 'resolved'>): void {
+    const fullAlert: Alert = {
+      ...alert,
+      id: `alert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      timestamp: Date.now(),
+      resolved: false,
+    };
+
+    this.metrics.alerts.push(fullAlert);
+
+    // Keep only recent alerts
+    const cutoff = Date.now() - this.config.retentionPeriod;
+    this.metrics.alerts = this.metrics.alerts.filter(a => a.timestamp > cutoff);
+
+    console.log(`[${alert.severity.toUpperCase()} ALERT] ${alert.message}`);
+  }
+
+  resolveAlert(alertId: string): void {
+    const alert = this.metrics.alerts.find(a => a.id === alertId);
+    if (alert && !alert.resolved) {
+      alert.resolved = true;
+      alert.resolvedAt = Date.now();
+      console.log(`Alert resolved: ${alert.message}`);
+    }
+  }
+
+  // Periodic tasks
+  private startSystemMetricsCollection(): void {
+    setInterval(() => {
+      this.updateSystemMetrics();
+    }, this.config.performanceInterval);
+  }
+
+  private updateSystemMetrics(): void {
+    if (process.memoryUsage) {
+      const memUsage = process.memoryUsage();
+      this.metrics.systemMetrics = {
+        ...this.metrics.systemMetrics,
+        totalMemory: memUsage.heapTotal,
+        usedMemory: memUsage.heapUsed,
+        freeMemory: memUsage.heapTotal - memUsage.heapUsed,
+      };
+    }
+
+    // Create alerts for high memory usage
+    const memoryUsageRatio = this.metrics.systemMetrics.usedMemory / this.metrics.systemMetrics.totalMemory;
+    if (memoryUsageRatio > this.config.alertThresholds.memoryUsage) {
+      this.createAlert({
+        type: 'performance',
+        severity: 'high',
+        message: `High memory usage: ${Math.round(memoryUsageRatio * 100)}%`,
+        metadata: { memoryUsage: memoryUsageRatio },
+      });
+    }
+  }
+
+  private startPeriodicHealthChecks(): void {
+    // Individual services are registered with registerService()
+  }
+
+  private startDataQualityValidation(): void {
+    setInterval(async () => {
+      // Validate data quality for all registered services
+      const services = Array.from(this.metrics.serviceHealth.keys());
+      for (const service of services) {
+        // This would be implemented with actual data validation
+        // await this.validateServiceData(service);
+      }
+    }, this.config.dataQualityInterval);
+  }
+
+  private startPerformanceMetricsCollection(): void {
+    // Performance metrics are recorded with recordPerformance()
+  }
+
+  private startAlertProcessing(): void {
+    setInterval(() => {
+      this.processAlerts();
+    }, 60000); // Process alerts every minute
+  }
+
+  private processAlerts(): void {
+    const now = Date.now();
+    const unresolvedAlerts = this.metrics.alerts.filter(a => !a.resolved);
+
+    // Auto-resolve old alerts
+    unresolvedAlerts.forEach(alert => {
+      if (now - alert.timestamp > this.config.retentionPeriod / 2) {
+        this.resolveAlert(alert.id);
+      }
+    });
+  }
+
+  // Public API for getting metrics
+  getMetrics(): MonitoringMetrics {
+    return { ...this.metrics };
+  }
+
+  getServiceHealth(serviceName: string): ServiceHealth | null {
+    return this.metrics.serviceHealth.get(serviceName) || null;
+  }
+
+  getDataQuality(dataSource: string): DataQuality | null {
+    return this.metrics.dataQuality.get(dataSource) || null;
+  }
+
+  getAlerts(filters?: {
+    type?: Alert['type'];
+    severity?: Alert['severity'];
+    resolved?: boolean;
+  }): Alert[] {
+    let filtered = this.metrics.alerts;
+
+    if (filters) {
+      if (filters.type) {
+        filtered = filtered.filter(a => a.type === filters.type);
+      }
+      if (filters.severity) {
+        filtered = filtered.filter(a => a.severity === filters.severity);
+      }
+      if (filters.resolved !== undefined) {
+        filtered = filtered.filter(a => a.resolved === filters.resolved);
+      }
+    }
+
+    return filtered.sort((a, b) => b.timestamp - a.timestamp);
+  }
+
+  async generateHealthReport(): Promise<string> {
+    const services = Array.from(this.metrics.serviceHealth.entries());
+    const healthyServices = services.filter(([_, health]) => health.status === 'healthy').length;
+    const totalServices = services.length;
+
+    const alerts = this.getAlerts({ resolved: false });
+    const criticalAlerts = alerts.filter(a => a.severity === 'critical').length;
+
+    const memoryUsage = this.metrics.systemMetrics.usedMemory / this.metrics.systemMetrics.totalMemory;
+
+    return `
+Health Report - ${new Date().toISOString()}
+
+Service Health:
+- Healthy Services: ${healthyServices}/${totalServices} (${Math.round(healthyServices / totalServices * 100)}%)
+- Unhealthy Services: ${services.filter(([_, health]) => health.status === 'unhealthy').length}
+- Degraded Services: ${services.filter(([_, health]) => health.status === 'degraded').length}
+
+Alerts:
+- Total Active Alerts: ${alerts.length}
+- Critical Alerts: ${criticalAlerts}
+- High Severity Alerts: ${alerts.filter(a => a.severity === 'high').length}
+
+System:
+- Memory Usage: ${Math.round(memoryUsage * 100)}%
+- Uptime: ${Math.round((Date.now() - this.metrics.systemMetrics.uptime) / 1000)}s
+
+Recent Errors: ${errorHandler.getErrorStats().totalErrors}
+    `.trim();
+  }
+}
+
+// Export singleton instance
+export const monitoringService = new MonitoringService();

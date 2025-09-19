@@ -145,3 +145,4 @@ interface Adapter {
 **Current Phase**: MVP with Stacks-only mock data and functional router contract.
 **Next Phase**: Connect real ALEX/Arkadiko APIs and implement actual deposit flow.
 **Future**: Multi-chain expansion and vault strategies.
+- always add new generated md documents into @docs/ folder

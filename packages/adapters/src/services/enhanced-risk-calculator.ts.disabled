@@ -1,0 +1,484 @@
+import {
+  RiskScore,
+  ComponentScore,
+  RiskFactor,
+  ReferenceValues,
+  RiskCalculationConfig,
+} from '@shared/core';
+// Temporarily commenting out circular dependency
+// import {
+//   EnhancedLiquidityData,
+//   EnhancedStabilityData,
+//   EnhancedYieldData,
+//   EnhancedParticipantData,
+// } from '@adapters/core';
+
+// Temporary type definitions to avoid circular dependency
+export interface EnhancedLiquidityData {
+  currentTvl: number;
+  volume24h: number;
+  uniqueParticipants24h: number;
+  whaleTransactionCount: number;
+  orderBookDepth?: number;
+  slippage1Percent?: number;
+}
+
+export interface EnhancedStabilityData {
+  tvlVolatility30d: number;
+  maxDrawdown30d: number;
+  tvlTrend7d: number;
+  priceVolatility30d: number;
+  currentTvl?: number;
+  currentApr?: number;
+  priceReturn24h?: number;
+}
+
+export interface EnhancedYieldData {
+  apr: number;
+  apy: number;
+  tradingFeeApr: number;
+  rewardTokenApr: number;
+  rewardTokenPrice: number;
+  rewardTokenVolatility30d: number;
+  aprVolatility30d: number;
+  yieldVolatility30d: number;
+}
+
+export interface EnhancedParticipantData {
+  uniqueParticipants: number;
+  transactionCount: number;
+  totalVolume: number;
+  averageTransactionSize: number;
+  whaleTransactionCount: number;
+  activeUsers24h: number;
+  giniCoefficient: number;
+  concentrationRisk: number;
+}
+import { mean, std, max, min } from 'mathjs';
+
+export interface EnhancedRiskInput {
+  // Base opportunity data
+  tvlUsd: number;
+  apr: number;
+  apy: number;
+  protocol: string;
+  chain: string;
+  tokens: string[];
+
+  // Enhanced data inputs
+  liquidityData: EnhancedLiquidityData;
+  stabilityData: EnhancedStabilityData;
+  yieldData: EnhancedYieldData;
+  participantData: EnhancedParticipantData;
+}
+
+export class EnhancedRiskCalculator {
+  private config: RiskCalculationConfig;
+
+  constructor(config?: Partial<RiskCalculationConfig>) {
+    this.config = {
+      weights: {
+        liquidity: 0.30,
+        stability: 0.25,
+        yield: 0.20,
+        concentration: 0.15,
+        momentum: 0.10,
+      },
+      references: {
+        TVL_REF_HIGH: 10_000_000,
+        TVL_REF_FLOOR: 10_000,
+        TURN_REF: 0.20,
+        WHALE_REF_USD: 10_000,
+        PART_REF_HIGH: 1000,
+        PART_REF_LOW: 50,
+        APR_REF_HIGH: 0.50,
+        SLOPE_REF: 0.01,
+      },
+      protocols: {
+        'defillama': { participantMultiplier: 1.0, riskAdjustment: 0.0, minTvlThreshold: 100_000 },
+        'arkadiko': { participantMultiplier: 0.8, riskAdjustment: 0.05, minTvlThreshold: 50_000 },
+        'alex': { participantMultiplier: 0.9, riskAdjustment: 0.03, minTvlThreshold: 75_000 },
+        'default': { participantMultiplier: 0.7, riskAdjustment: 0.10, minTvlThreshold: 25_000 },
+      },
+      ...config,
+    };
+  }
+
+  calculateEnhancedRiskScore(data: EnhancedRiskInput): RiskScore {
+    // Calculate individual component scores with enhanced data
+    const liquidityScore = this.calculateEnhancedLiquidityRisk(data.liquidityData);
+    const stabilityScore = this.calculateEnhancedStabilityRisk(data.stabilityData);
+    const yieldScore = this.calculateEnhancedYieldRisk(data.yieldData);
+    const concentrationScore = this.calculateEnhancedConcentrationRisk(data.participantData);
+    const momentumScore = this.calculateEnhancedMomentumRisk(data.liquidityData, data.stabilityData);
+
+    // Calculate weighted total score
+    const totalScore = Math.round(
+      liquidityScore.score * this.config.weights.liquidity +
+      stabilityScore.score * this.config.weights.stability +
+      yieldScore.score * this.config.weights.yield +
+      concentrationScore.score * this.config.weights.concentration +
+      momentumScore.score * this.config.weights.momentum
+    );
+
+    // Determine risk label
+    const label = this.getRiskLabel(totalScore);
+
+    // Collect all risk factors and find top drivers
+    const allFactors = [
+      ...liquidityScore.factors,
+      ...stabilityScore.factors,
+      ...yieldScore.factors,
+      ...concentrationScore.factors,
+      ...momentumScore.factors,
+    ];
+
+    const drivers = this.getTopRiskDrivers(allFactors);
+
+    // Calculate overall confidence
+    const confidence = this.calculateConfidence([
+      liquidityScore.confidence,
+      stabilityScore.confidence,
+      yieldScore.confidence,
+      concentrationScore.confidence,
+      momentumScore.confidence,
+    ]);
+
+    return {
+      total: Math.min(100, Math.max(0, totalScore)),
+      label,
+      components: {
+        liquidity: Math.round(liquidityScore.score),
+        stability: Math.round(stabilityScore.score),
+        yield: Math.round(yieldScore.score),
+        concentration: Math.round(concentrationScore.score),
+        momentum: Math.round(momentumScore.score),
+      },
+      drivers,
+      confidence,
+    };
+  }
+
+  // Enhanced Liquidity Risk Calculation (30% weight)
+  private calculateEnhancedLiquidityRisk(data: EnhancedLiquidityData): ComponentScore {
+    const factors: RiskFactor[] = [];
+    let totalScore = 0;
+    let confidence = 1.0;
+
+    // 1. TVL Depth (40% of liquidity score) - using currentTvl
+    const depthScore = this.calculateTvlDepthScore(data.currentTvl);
+    totalScore += depthScore * 0.4;
+    factors.push({
+      name: 'TVL Depth',
+      value: data.currentTvl,
+      impact: data.currentTvl > this.config.references.TVL_REF_HIGH ? 'positive' : 'negative',
+      description: `Pool has $${(data.currentTvl / 1e6).toFixed(1)}M TVL`,
+      severity: depthScore > 60 ? 'high' : depthScore > 30 ? 'medium' : 'low',
+    });
+
+    // 2. Volume Consistency (35% of liquidity score) - using volume24h
+    const volumeScore = data.volume24h > 0 ? 20 : 80; // Simple fallback score
+    totalScore += volumeScore * 0.35;
+    factors.push({
+      name: 'Volume Consistency',
+      value: data.volume24h,
+      impact: data.volume24h > 0 ? 'positive' : 'negative',
+      description: `24h volume: $${(data.volume24h / 1e3).toFixed(0)}K`,
+      severity: volumeScore > 60 ? 'high' : volumeScore > 30 ? 'medium' : 'low',
+    });
+
+    // 3. Participation Level (25% of liquidity score) - using uniqueParticipants24h
+    const participationScore = this.calculateParticipationScore(data.uniqueParticipants24h);
+    totalScore += participationScore * 0.25;
+    factors.push({
+      name: 'Participation',
+      value: data.uniqueParticipants24h,
+      impact: data.uniqueParticipants24h > this.config.references.PART_REF_LOW ? 'positive' : 'negative',
+      description: `Est. ${data.uniqueParticipants24h} participants`,
+      severity: participationScore > 60 ? 'high' : participationScore > 30 ? 'medium' : 'low',
+    });
+
+    // Adjust confidence based on data quality
+    if (data.uniqueParticipants24h === 0) confidence *= 0.5;
+    if (data.volume24h === 0) confidence *= 0.7;
+
+    return {
+      score: Math.min(100, Math.max(0, totalScore)),
+      factors,
+      confidence,
+    };
+  }
+
+  // Enhanced Stability Risk Calculation (25% weight)
+  private calculateEnhancedStabilityRisk(data: EnhancedStabilityData): ComponentScore {
+    const factors: RiskFactor[] = [];
+    let totalScore = 0;
+    let confidence = 1.0;
+
+    // 1. TVL Volatility (40% of stability score)
+    const tvlVolScore = this.calculateTvlVolatilityScore(data.tvlVolatility30d);
+    totalScore += tvlVolScore * 0.4;
+    factors.push({
+      name: 'TVL Volatility',
+      value: data.tvlVolatility30d,
+      impact: data.tvlVolatility30d < 0.1 ? 'positive' : 'negative',
+      description: `30-day TVL volatility: ${(data.tvlVolatility30d * 100).toFixed(1)}%`,
+      severity: tvlVolScore > 60 ? 'high' : tvlVolScore > 30 ? 'medium' : 'low',
+    });
+
+    // 2. Maximum Drawdown (35% of stability score)
+    const drawdownScore = this.calculateDrawdownScore(data.maxDrawdown30d);
+    totalScore += drawdownScore * 0.35;
+    factors.push({
+      name: 'Max Drawdown',
+      value: data.maxDrawdown30d,
+      impact: data.maxDrawdown30d < 0.2 ? 'positive' : 'negative',
+      description: `30-day max drawdown: ${(data.maxDrawdown30d * 100).toFixed(1)}%`,
+      severity: drawdownScore > 60 ? 'high' : drawdownScore > 30 ? 'medium' : 'low',
+    });
+
+    // 3. Trend Analysis (25% of stability score)
+    const trendScore = this.calculateTrendScore(data.tvlTrend7d);
+    totalScore += trendScore * 0.25;
+    factors.push({
+      name: 'TVL Trend',
+      value: data.tvlTrend7d,
+      impact: data.tvlTrend7d > -0.01 ? 'positive' : 'negative',
+      description: `7-day trend: ${(data.tvlTrend7d * 100).toFixed(2)}%/day`,
+      severity: trendScore > 60 ? 'high' : trendScore > 30 ? 'medium' : 'low',
+    });
+
+    // Adjust confidence based on data availability
+    if (data.tvlVolatility30d === 0) confidence *= 0.6;
+
+    return {
+      score: Math.min(100, Math.max(0, totalScore)),
+      factors,
+      confidence,
+    };
+  }
+
+  // Enhanced Yield Sustainability Risk Calculation (20% weight)
+  private calculateEnhancedYieldRisk(data: EnhancedYieldData): ComponentScore {
+    const factors: RiskFactor[] = [];
+    let totalScore = 0;
+    let confidence = 1.0;
+
+    // 1. APR Level Risk (50% of yield score)
+    const aprLevelScore = this.calculateAprLevelScore(data.apr);
+    totalScore += aprLevelScore * 0.5;
+    factors.push({
+      name: 'APR Level',
+      value: data.apr,
+      impact: data.apr < 0.25 ? 'positive' : 'negative',
+      description: `Current APR: ${(data.apr * 100).toFixed(1)}%`,
+      severity: aprLevelScore > 60 ? 'high' : aprLevelScore > 30 ? 'medium' : 'low',
+    });
+
+    // 2. Yield Volatility (30% of yield score)
+    const volatilityScore = this.calculateYieldVolatilityScore(data.aprVolatility30d);
+    totalScore += volatilityScore * 0.3;
+    factors.push({
+      name: 'Yield Volatility',
+      value: data.aprVolatility30d,
+      impact: data.aprVolatility30d < 0.15 ? 'positive' : 'negative',
+      description: `APR volatility: ${(data.aprVolatility30d * 100).toFixed(1)}%`,
+      severity: volatilityScore > 60 ? 'high' : volatilityScore > 30 ? 'medium' : 'low',
+    });
+
+    // 3. Reward Token Risk (20% of yield score)
+    const rewardScore = this.calculateRewardTokenRisk(data.rewardTokenApr, data.apr);
+    totalScore += rewardScore * 0.2;
+    factors.push({
+      name: 'Reward Dependency',
+      value: data.rewardTokenApr / data.apr,
+      impact: data.rewardTokenApr / data.apr < 0.7 ? 'positive' : 'negative',
+      description: `Reward ratio: ${((data.rewardTokenApr / data.apr) * 100).toFixed(0)}%`,
+      severity: rewardScore > 60 ? 'high' : rewardScore > 30 ? 'medium' : 'low',
+    });
+
+    // Adjust confidence based on data availability
+    if (data.aprVolatility30d === 0) confidence *= 0.7;
+
+    return {
+      score: Math.min(100, Math.max(0, totalScore)),
+      factors,
+      confidence,
+    };
+  }
+
+  // Enhanced Concentration Risk Calculation (15% weight)
+  private calculateEnhancedConcentrationRisk(data: EnhancedParticipantData): ComponentScore {
+    const factors: RiskFactor[] = [];
+    let totalScore = 0;
+    let confidence = 0.8; // Lower confidence due to estimation complexity
+
+    // 1. Holder Concentration (50% of concentration score)
+    const holderScore = this.calculateHolderConcentrationScore(data.giniCoefficient);
+    totalScore += holderScore * 0.5;
+    factors.push({
+      name: 'Holder Concentration',
+      value: data.giniCoefficient,
+      impact: data.giniCoefficient < 0.6 ? 'positive' : 'negative',
+      description: `Gini coefficient: ${data.giniCoefficient.toFixed(2)}`,
+      severity: holderScore > 60 ? 'high' : holderScore > 30 ? 'medium' : 'low',
+    });
+
+    // 2. User Concentration (50% of concentration score)
+    const userScore = this.calculateUserConcentrationScore(data.uniqueParticipants);
+    totalScore += userScore * 0.5;
+    factors.push({
+      name: 'User Concentration',
+      value: data.uniqueParticipants,
+      impact: data.uniqueParticipants > this.config.references.PART_REF_LOW ? 'positive' : 'negative',
+      description: `Est. ${data.uniqueParticipants} participants`,
+      severity: userScore > 60 ? 'high' : userScore > 30 ? 'medium' : 'low',
+    });
+
+    // Adjust confidence based on data quality
+    if (data.uniqueParticipants === 0) confidence *= 0.5;
+
+    return {
+      score: Math.min(100, Math.max(0, totalScore)),
+      factors,
+      confidence,
+    };
+  }
+
+  // Enhanced Momentum Risk Calculation (10% weight)
+  private calculateEnhancedMomentumRisk(
+    liquidityData: EnhancedLiquidityData,
+    stabilityData: EnhancedStabilityData
+  ): ComponentScore {
+    const factors: RiskFactor[] = [];
+    let totalScore = 0;
+    let confidence = 1.0;
+
+    // 1. TVL Growth Rate (60% of momentum score)
+    const growthScore = this.calculateTvlGrowthScore(stabilityData.tvlTrend7d);
+    totalScore += growthScore * 0.6;
+    factors.push({
+      name: 'TVL Growth',
+      value: stabilityData.tvlTrend7d,
+      impact: stabilityData.tvlTrend7d > 0 ? 'positive' : 'negative',
+      description: `TVL growth: ${(stabilityData.tvlTrend7d * 100).toFixed(2)}%/day`,
+      severity: growthScore > 60 ? 'high' : growthScore > 30 ? 'medium' : 'low',
+    });
+
+    // 2. Volume Momentum (40% of momentum score) - using volume24h as indicator
+    const volumeScore = this.calculateVolumeMomentumScore(liquidityData.volume24h);
+    totalScore += volumeScore * 0.4;
+    factors.push({
+      name: 'Volume Momentum',
+      value: liquidityData.volume24h,
+      impact: liquidityData.volume24h > 0 ? 'positive' : 'negative',
+      description: `24h volume: $${(liquidityData.volume24h / 1e3).toFixed(0)}K`,
+      severity: volumeScore > 60 ? 'high' : volumeScore > 30 ? 'medium' : 'low',
+    });
+
+    return {
+      score: Math.min(100, Math.max(0, totalScore)),
+      factors,
+      confidence,
+    };
+  }
+
+  // Helper methods for score calculations
+  private calculateTvlDepthScore(tvlUsd: number): number {
+    if (tvlUsd < this.config.references.TVL_REF_FLOOR) return 100;
+    if (tvlUsd > this.config.references.TVL_REF_HIGH) return 0;
+    const ratio = tvlUsd / this.config.references.TVL_REF_HIGH;
+    return (1 - ratio) * 100;
+  }
+
+  
+  private calculateTvlVolatilityScore(volatility: number): number {
+    return Math.min(100, volatility * 500); // Scale to 0-100
+  }
+
+  private calculateDrawdownScore(drawdown: number): number {
+    return Math.min(100, drawdown * 200);
+  }
+
+  private calculateTrendScore(trend: number): number {
+    // Negative trend = higher risk
+    return Math.max(0, Math.min(100, -trend * 5000));
+  }
+
+  private calculateAprLevelScore(apr: number): number {
+    if (apr > this.config.references.APR_REF_HIGH) return 100;
+    return Math.min(100, (apr / this.config.references.APR_REF_HIGH) * 80);
+  }
+
+  private calculateYieldVolatilityScore(volatility: number): number {
+    return Math.min(100, volatility * 300);
+  }
+
+  
+  private calculateHolderConcentrationScore(giniCoefficient: number): number {
+    // Gini coefficient: 0 = perfect equality, 1 = perfect inequality
+    return Math.min(100, giniCoefficient * 100);
+  }
+
+  
+  
+  private calculateTvlGrowthScore(trend: number): number {
+    return Math.max(0, Math.min(100, -trend * 2000));
+  }
+
+  private calculateUserGrowthScore(participants24h: number, participants7d: number): number {
+    if (participants7d === 0) return 50;
+    const growthRatio = participants24h / participants7d;
+    if (growthRatio > 0.9) return 0; // Healthy retention
+    if (growthRatio > 0.7) return 30;
+    if (growthRatio > 0.5) return 60;
+    return 90; // Poor retention
+  }
+
+  // New helper methods for enhanced calculator
+  private calculateParticipationScore(participants: number): number {
+    if (participants < this.config.references.PART_REF_LOW) return 100;
+    if (participants > this.config.references.PART_REF_HIGH) return 0;
+    const ratio = participants / this.config.references.PART_REF_HIGH;
+    return (1 - ratio) * 100;
+  }
+
+  private calculateRewardTokenRisk(rewardApr: number, totalApr: number): number {
+    if (totalApr === 0) return 50;
+    const rewardRatio = rewardApr / totalApr;
+    return Math.min(100, rewardRatio * 100);
+  }
+
+  private calculateUserConcentrationScore(participants: number): number {
+    return this.calculateParticipationScore(participants);
+  }
+
+  private calculateVolumeMomentumScore(volume24h: number): number {
+    // Simple volume-based momentum score
+    return volume24h > 10000 ? 20 : volume24h > 1000 ? 40 : 60;
+  }
+
+  private getRiskLabel(score: number): 'low' | 'medium' | 'high' {
+    if (score <= 30) return 'low';
+    if (score <= 60) return 'medium';
+    return 'high';
+  }
+
+  private getTopRiskDrivers(factors: RiskFactor[]): string[] {
+    const negativeFactors = factors
+      .filter(f => f.impact === 'negative' && f.severity !== 'low')
+      .sort((a, b) => {
+        const severityWeight = { high: 3, medium: 2, low: 1 };
+        return severityWeight[b.severity] - severityWeight[a.severity];
+      });
+
+    return negativeFactors.slice(0, 2).map(f => f.name);
+  }
+
+  private calculateConfidence(confidences: number[]): 'high' | 'medium' | 'low' {
+    const avgConfidence = confidences.reduce((sum, conf) => sum + conf, 0) / confidences.length;
+    if (avgConfidence >= 0.8) return 'high';
+    if (avgConfidence >= 0.6) return 'medium';
+    return 'low';
+  }
+}

@@ -1,0 +1,576 @@
+import {
+  Opportunity,
+  HistoricalData,
+  EnrichedOpportunity,
+  RiskScore
+} from '@shared/core';
+import { HistoricalDataService } from './historical-data';
+import { EnhancedDataService } from './enhanced-data-service';
+import { RiskCalculator } from '@shared/core';
+
+export interface ProjectionTimeframe {
+  '1D': number;
+  '3D': number;
+  '7D': number;
+  '15D': number;
+  '30D': number;
+  '90D': number;
+}
+
+export interface ValueProjection {
+  timeframe: keyof ProjectionTimeframe;
+  projectedValue: number;
+  confidence: number;
+  methodology: string;
+  factors: {
+    tvlGrowth: number;
+    yieldAccrual: number;
+    priceAppreciation: number;
+    riskAdjustment: number;
+  };
+  scenarios: {
+    optimistic: number;
+    realistic: number;
+    pessimistic: number;
+  };
+  probabilityDistribution: {
+    mean: number;
+    median: number;
+    standardDeviation: number;
+    percentile10: number;
+    percentile25: number;
+    percentile75: number;
+    percentile90: number;
+  };
+}
+
+export interface ProjectionConfig {
+  simulations?: number;
+  confidenceIntervals?: number[];
+  volatilityWindow?: number;
+  riskFreeRate?: number;
+}
+
+export interface MonteCarloResult {
+  mean: number;
+  median: number;
+  standardDeviation: number;
+  percentile10: number;
+  percentile25: number;
+  percentile75: number;
+  percentile90: number;
+  confidence: number;
+}
+
+export class ValueProjectionService {
+  private historicalDataService: HistoricalDataService;
+  private enhancedDataService: EnhancedDataService;
+  private riskCalculator: RiskCalculator;
+  private config: Required<ProjectionConfig>;
+
+  constructor(config: ProjectionConfig = {}) {
+    this.historicalDataService = new HistoricalDataService();
+    this.enhancedDataService = new EnhancedDataService();
+    this.riskCalculator = new RiskCalculator();
+
+    this.config = {
+      simulations: config.simulations || 1000,
+      confidenceIntervals: config.confidenceIntervals || [0.1, 0.25, 0.75, 0.9],
+      volatilityWindow: config.volatilityWindow || 30,
+      riskFreeRate: config.riskFreeRate || 0.02, // 2% risk-free rate
+    };
+  }
+
+  async calculateProjections(
+    opportunity: Opportunity | EnrichedOpportunity,
+    initialInvestment: number,
+    timeframes: (keyof ProjectionTimeframe)[] = ['1D', '3D', '7D', '15D', '30D', '90D']
+  ): Promise<{ [timeframe: string]: ValueProjection }> {
+    const projections: { [timeframe: string]: ValueProjection } = {};
+
+    // Get historical data and enhanced metrics
+    const [historicalData, enhancedData] = await Promise.all([
+      this.historicalDataService.getHistoricalData(opportunity, 90),
+      this.enhancedDataService.getEnhancedStabilityData(opportunity)
+    ]);
+
+    // Calculate base metrics for projections
+    const baseMetrics = await this.calculateBaseMetrics(opportunity, historicalData, enhancedData);
+
+    // Calculate projections for each timeframe
+    for (const timeframe of timeframes) {
+      projections[timeframe] = await this.calculateTimeframeProjection(
+        opportunity,
+        initialInvestment,
+        timeframe,
+        baseMetrics,
+        historicalData
+      );
+    }
+
+    return projections;
+  }
+
+  private async calculateTimeframeProjection(
+    opportunity: Opportunity,
+    investment: number,
+    timeframe: keyof ProjectionTimeframe,
+    baseMetrics: BaseMetrics,
+    historicalData: HistoricalData
+  ): Promise<ValueProjection> {
+    const days = this.timeframeToDays(timeframe);
+
+    // Run Monte Carlo simulation
+    const simulationResult = await this.runMonteCarloSimulation(
+      opportunity,
+      baseMetrics,
+      investment,
+      days
+    );
+
+    // Calculate projection factors
+    const factors = this.calculateProjectionFactors(opportunity, baseMetrics, days);
+
+    return {
+      timeframe,
+      projectedValue: simulationResult.median,
+      confidence: simulationResult.confidence,
+      methodology: 'Monte Carlo simulation with risk-adjusted returns',
+      factors,
+      scenarios: {
+        optimistic: simulationResult.percentile90,
+        realistic: simulationResult.median,
+        pessimistic: simulationResult.percentile10,
+      },
+      probabilityDistribution: {
+        mean: simulationResult.mean,
+        median: simulationResult.median,
+        standardDeviation: simulationResult.standardDeviation,
+        percentile10: simulationResult.percentile10,
+        percentile25: simulationResult.percentile25,
+        percentile75: simulationResult.percentile75,
+        percentile90: simulationResult.percentile90,
+      },
+    };
+  }
+
+  private async runMonteCarloSimulation(
+    opportunity: Opportunity,
+    baseMetrics: BaseMetrics,
+    investment: number,
+    days: number
+  ): Promise<MonteCarloResult> {
+    const simulations: number[] = [];
+
+    for (let i = 0; i < this.config.simulations; i++) {
+      const finalValue = this.runSingleSimulation(
+        opportunity,
+        baseMetrics,
+        investment,
+        days
+      );
+      simulations.push(finalValue);
+    }
+
+    // Calculate statistics
+    simulations.sort((a, b) => a - b);
+
+    const mean = simulations.reduce((sum, val) => sum + val, 0) / simulations.length;
+    const median = simulations[Math.floor(simulations.length / 2)];
+    const variance = simulations.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / simulations.length;
+    const standardDeviation = Math.sqrt(variance);
+
+    const getPercentile = (p: number) => simulations[Math.floor(simulations.length * p)];
+
+    return {
+      mean,
+      median,
+      standardDeviation,
+      percentile10: getPercentile(0.1),
+      percentile25: getPercentile(0.25),
+      percentile75: getPercentile(0.75),
+      percentile90: getPercentile(0.9),
+      confidence: this.calculateConfidence(standardDeviation / mean),
+    };
+  }
+
+  private runSingleSimulation(
+    opportunity: Opportunity,
+    baseMetrics: BaseMetrics,
+    investment: number,
+    days: number
+  ): number {
+    let currentValue = investment;
+    let currentTvl = opportunity.tvlUsd;
+    let currentApr = opportunity.apr;
+
+    // Daily simulation
+    for (let day = 0; day < days; day++) {
+      // TVL growth simulation
+      const tvlGrowthRate = this.randomNormal(baseMetrics.tvlGrowthRate, baseMetrics.tvlVolatility);
+      currentTvl *= (1 + tvlGrowthRate / 365);
+
+      // APR simulation
+      const aprChange = this.randomNormal(baseMetrics.aprDrift, baseMetrics.aprVolatility);
+      currentApr = Math.max(0.001, currentApr * (1 + aprChange));
+
+      // Yield accrual
+      const dailyYield = currentValue * currentApr / 365;
+
+      // Price appreciation (for non-stablecoin pools)
+      let priceEffect = 1;
+      if (!opportunity.stablecoin) {
+        const priceReturn = this.randomNormal(baseMetrics.priceReturn, baseMetrics.priceVolatility);
+        priceEffect = 1 + priceReturn / 365;
+      }
+
+      // Risk adjustment (impermanent loss, slippage, etc.)
+      const riskFactor = this.calculateRiskAdjustment(baseMetrics.riskScore, day, days);
+
+      // Update value
+      currentValue = (currentValue + dailyYield) * priceEffect * riskFactor;
+    }
+
+    return currentValue;
+  }
+
+  private async calculateBaseMetrics(
+    opportunity: Opportunity,
+    historicalData: HistoricalData,
+    enhancedData: any
+  ): Promise<BaseMetrics> {
+    // Extract historical data
+    const tvlData = historicalData.tvl_90 || [];
+    const aprData = historicalData.apr_90 || [];
+
+    // Calculate TVL metrics
+    const tvlGrowthRate = this.calculateGrowthRate(tvlData);
+    const tvlVolatility = this.calculateVolatility(tvlData);
+
+    // Calculate APR metrics
+    const aprDrift = this.calculateDrift(aprData);
+    const aprVolatility = this.calculateVolatility(aprData);
+
+    // Calculate price metrics
+    const priceReturn = enhancedData.priceReturn24h || 0;
+    const priceVolatility = enhancedData.priceVolatility30d || 0.2;
+
+    // Risk score
+    const riskScore = opportunity.risk || 50;
+
+    return {
+      tvlGrowthRate,
+      tvlVolatility,
+      aprDrift,
+      aprVolatility,
+      priceReturn,
+      priceVolatility,
+      riskScore,
+    };
+  }
+
+  private calculateProjectionFactors(
+    opportunity: Opportunity,
+    baseMetrics: BaseMetrics,
+    days: number
+  ): ValueProjection['factors'] {
+    // TVL growth factor (positive growth good for yields)
+    const tvlGrowth = Math.max(0, baseMetrics.tvlGrowthRate * days / 365);
+
+    // Yield accrual factor (base APY)
+    const yieldAccrual = Math.pow(1 + opportunity.apy, days / 365) - 1;
+
+    // Price appreciation factor
+    const priceAppreciation = opportunity.stablecoin ? 0 : baseMetrics.priceReturn * days / 365;
+
+    // Risk adjustment factor (higher risk = lower projected returns)
+    const riskAdjustment = 1 - (baseMetrics.riskScore / 100) * 0.3;
+
+    return {
+      tvlGrowth,
+      yieldAccrual,
+      priceAppreciation,
+      riskAdjustment,
+    };
+  }
+
+  private calculateRiskAdjustment(riskScore: number, currentDay: number, totalDays: number): number {
+    // Risk increases over time due to uncertainty
+    const timeRisk = (currentDay / totalDays) * 0.1;
+    const baseRisk = (riskScore / 100) * 0.05;
+
+    return Math.max(0.7, 1 - baseRisk - timeRisk);
+  }
+
+  private calculateConfidence(coefficientOfVariation: number): number {
+    // Higher CV = lower confidence
+    if (coefficientOfVariation < 0.1) return 0.95;
+    if (coefficientOfVariation < 0.2) return 0.85;
+    if (coefficientOfVariation < 0.3) return 0.75;
+    if (coefficientOfVariation < 0.5) return 0.60;
+    return 0.40;
+  }
+
+  // Statistical helper methods
+  private calculateGrowthRate(data: number[]): number {
+    if (data.length < 2) return 0;
+
+    const first = data[0];
+    const last = data[data.length - 1];
+    const periods = data.length - 1;
+
+    return Math.pow(last / first, 1 / periods) - 1;
+  }
+
+  private calculateDrift(data: number[]): number {
+    if (data.length < 2) return 0;
+
+    const changes = [];
+    for (let i = 1; i < data.length; i++) {
+      changes.push((data[i] - data[i - 1]) / data[i - 1]);
+    }
+
+    return changes.reduce((sum, change) => sum + change, 0) / changes.length;
+  }
+
+  private calculateVolatility(data: number[]): number {
+    if (data.length < 2) return 0.1;
+
+    const changes = [];
+    for (let i = 1; i < data.length; i++) {
+      changes.push(Math.log(data[i] / data[i - 1]));
+    }
+
+    const mean = changes.reduce((sum, change) => sum + change, 0) / changes.length;
+    const variance = changes.reduce((sum, change) => sum + Math.pow(change - mean, 2), 0) / changes.length;
+
+    return Math.sqrt(variance * 365); // Annualized volatility
+  }
+
+  private randomNormal(mean: number, stdDev: number): number {
+    // Box-Muller transform for normal distribution
+    const u1 = Math.random();
+    const u2 = Math.random();
+    const z0 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+
+    return z0 * stdDev + mean;
+  }
+
+  private timeframeToDays(timeframe: keyof ProjectionTimeframe): number {
+    const timeframeMap: ProjectionTimeframe = {
+      '1D': 1,
+      '3D': 3,
+      '7D': 7,
+      '15D': 15,
+      '30D': 30,
+      '90D': 90,
+    };
+
+    return timeframeMap[timeframe];
+  }
+
+  // Advanced projection methods
+  async calculateConditionalProjections(
+    opportunity: Opportunity,
+    initialInvestment: number,
+    scenarios: {
+      optimistic?: { tvlGrowth: number; aprMultiplier: number };
+      realistic?: { tvlGrowth: number; aprMultiplier: number };
+      pessimistic?: { tvlGrowth: number; aprMultiplier: number };
+    }
+  ): Promise<{ [scenario: string]: { [timeframe: string]: ValueProjection } }> {
+    const results: { [scenario: string]: { [timeframe: string]: ValueProjection } } = {};
+
+    const defaultScenarios = {
+      optimistic: { tvlGrowth: 0.5, aprMultiplier: 1.5 },
+      realistic: { tvlGrowth: 0.2, aprMultiplier: 1.0 },
+      pessimistic: { tvlGrowth: -0.1, aprMultiplier: 0.7 },
+    };
+
+    const mergedScenarios = { ...defaultScenarios, ...scenarios };
+
+    for (const [scenarioName, scenarioParams] of Object.entries(mergedScenarios)) {
+      // Create modified opportunity for scenario
+      const modifiedOpportunity = {
+        ...opportunity,
+        tvlUsd: opportunity.tvlUsd * (1 + scenarioParams.tvlGrowth),
+        apr: opportunity.apr * scenarioParams.aprMultiplier,
+        apy: this.aprToApy(opportunity.apr * scenarioParams.aprMultiplier),
+      };
+
+      results[scenarioName] = await this.calculateProjections(
+        modifiedOpportunity,
+        initialInvestment
+      );
+    }
+
+    return results;
+  }
+
+  async calculateCorrelationAnalysis(
+    opportunities: Opportunity[],
+    initialInvestment: number
+  ): Promise<{
+    correlationMatrix: number[][];
+    optimalPortfolio: { opportunityId: string; allocation: number }[];
+    portfolioProjections: { [timeframe: string]: ValueProjection };
+  }> {
+    // Calculate correlation matrix between opportunities
+    const correlationMatrix = await this.calculateCorrelationMatrix(opportunities);
+
+    // Find optimal portfolio allocation (simplified Markowitz)
+    const optimalPortfolio = this.findOptimalPortfolio(opportunities, correlationMatrix);
+
+    // Calculate portfolio projections
+    const portfolioProjections = await this.calculatePortfolioProjections(
+      opportunities,
+      optimalPortfolio,
+      initialInvestment
+    );
+
+    return {
+      correlationMatrix,
+      optimalPortfolio,
+      portfolioProjections,
+    };
+  }
+
+  private async calculateCorrelationMatrix(opportunities: Opportunity[]): Promise<number[][]> {
+    const matrix: number[][] = [];
+    const historicalDataList = await Promise.all(
+      opportunities.map(opp => this.historicalDataService.getHistoricalData(opp, 90))
+    );
+
+    for (let i = 0; i < opportunities.length; i++) {
+      matrix[i] = [];
+      for (let j = 0; j < opportunities.length; j++) {
+        if (i === j) {
+          matrix[i][j] = 1;
+        } else {
+          const correlation = this.calculateCorrelation(
+            historicalDataList[i].tvl_90 || [],
+            historicalDataList[j].tvl_90 || []
+          );
+          matrix[i][j] = correlation;
+        }
+      }
+    }
+
+    return matrix;
+  }
+
+  private calculateCorrelation(x: number[], y: number[]): number {
+    if (x.length !== y.length || x.length === 0) return 0;
+
+    const n = x.length;
+    const sumX = x.reduce((a, b) => a + b, 0);
+    const sumY = y.reduce((a, b) => a + b, 0);
+    const sumXY = x.reduce((sum, xi, i) => sum + xi * y[i], 0);
+    const sumX2 = x.reduce((sum, xi) => sum + xi * xi, 0);
+    const sumY2 = y.reduce((sum, yi) => sum + yi * yi, 0);
+
+    const numerator = n * sumXY - sumX * sumY;
+    const denominator = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
+
+    return denominator === 0 ? 0 : numerator / denominator;
+  }
+
+  private findOptimalPortfolio(
+    opportunities: Opportunity[],
+    correlationMatrix: number[][]
+  ): { opportunityId: string; allocation: number }[] {
+    // Simplified equal-weight allocation with risk adjustment
+    const totalRisk = opportunities.reduce((sum, opp) => sum + (opp.risk || 50), 0);
+    const inverseRiskSum = opportunities.reduce((sum, opp) => sum + 1 / (opp.risk || 50), 0);
+
+    return opportunities.map(opp => ({
+      opportunityId: opp.id,
+      allocation: (1 / (opp.risk || 50)) / inverseRiskSum,
+    }));
+  }
+
+  private async calculatePortfolioProjections(
+    opportunities: Opportunity[],
+    portfolio: { opportunityId: string; allocation: number }[],
+    initialInvestment: number
+  ): Promise<{ [timeframe: string]: ValueProjection }> {
+    // Calculate weighted average of individual projections
+    const individualProjections = await Promise.all(
+      portfolio.map(item => {
+        const opportunity = opportunities.find(opp => opp.id === item.opportunityId);
+        return opportunity
+          ? this.calculateProjections(opportunity, initialInvestment * item.allocation)
+          : Promise.resolve({});
+      })
+    );
+
+    // Combine projections
+    const combined: { [timeframe: string]: ValueProjection } = {};
+    const timeframes: (keyof ProjectionTimeframe)[] = ['1D', '3D', '7D', '15D', '30D', '90D'];
+
+    timeframes.forEach(timeframe => {
+      const validProjections = individualProjections
+        .map(proj => proj[timeframe])
+        .filter(proj => proj !== undefined);
+
+      if (validProjections.length > 0) {
+        combined[timeframe] = this.combineProjections(validProjections);
+      }
+    });
+
+    return combined;
+  }
+
+  private combineProjections(projections: ValueProjection[]): ValueProjection {
+    const totalWeight = projections.length;
+
+    // Weighted average of all components
+    const avgProjectedValue = projections.reduce((sum, p) => sum + p.projectedValue, 0) / totalWeight;
+    const avgConfidence = projections.reduce((sum, p) => sum + p.confidence, 0) / totalWeight;
+
+    const factors = {
+      tvlGrowth: projections.reduce((sum, p) => sum + p.factors.tvlGrowth, 0) / totalWeight,
+      yieldAccrual: projections.reduce((sum, p) => sum + p.factors.yieldAccrual, 0) / totalWeight,
+      priceAppreciation: projections.reduce((sum, p) => sum + p.factors.priceAppreciation, 0) / totalWeight,
+      riskAdjustment: projections.reduce((sum, p) => sum + p.factors.riskAdjustment, 0) / totalWeight,
+    };
+
+    const scenarios = {
+      optimistic: projections.reduce((sum, p) => sum + p.scenarios.optimistic, 0) / totalWeight,
+      realistic: projections.reduce((sum, p) => sum + p.scenarios.realistic, 0) / totalWeight,
+      pessimistic: projections.reduce((sum, p) => sum + p.scenarios.pessimistic, 0) / totalWeight,
+    };
+
+    return {
+      timeframe: projections[0].timeframe,
+      projectedValue: avgProjectedValue,
+      confidence: avgConfidence,
+      methodology: 'Portfolio-weighted combination of Monte Carlo simulations',
+      factors,
+      scenarios,
+      probabilityDistribution: {
+        mean: avgProjectedValue,
+        median: avgProjectedValue,
+        standardDeviation: Math.max(0.01, avgProjectedValue * (1 - avgConfidence)),
+        percentile10: scenarios.pessimistic,
+        percentile25: scenarios.pessimistic + (scenarios.realistic - scenarios.pessimistic) * 0.25,
+        percentile75: scenarios.realistic + (scenarios.optimistic - scenarios.realistic) * 0.75,
+        percentile90: scenarios.optimistic,
+      },
+    };
+  }
+
+  private aprToApy(apr: number): number {
+    return Math.pow(1 + apr / 365, 365) - 1;
+  }
+}
+
+interface BaseMetrics {
+  tvlGrowthRate: number;
+  tvlVolatility: number;
+  aprDrift: number;
+  aprVolatility: number;
+  priceReturn: number;
+  priceVolatility: number;
+  riskScore: number;
+}

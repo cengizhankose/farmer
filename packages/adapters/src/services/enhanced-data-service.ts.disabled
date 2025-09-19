@@ -1,0 +1,663 @@
+import {
+  Opportunity,
+  HistoricalData,
+  RiskFactor,
+} from '@shared/core';
+import { StacksApiService, StacksTransaction } from './stacks-api';
+import { HistoricalDataService } from './historical-data';
+
+// Enhanced data interfaces
+export interface EnhancedParticipantData {
+  uniqueParticipants24h: number;
+  uniqueParticipants7d: number;
+  uniqueParticipants30d: number;
+  transactionCount24h: number;
+  whaleTransactionCount: number;
+  averageTransactionSize: number;
+  giniCoefficient: number;
+  top10HolderPercentage: number;
+}
+
+export interface EnhancedVolumeData {
+  volume24h: number;
+  volume7d: number[];
+  volume30d: number[];
+  volumeTrend: 'increasing' | 'stable' | 'decreasing';
+  volumeVolatility30d: number;
+}
+
+export interface EnhancedLiquidityData {
+  tvlUsd: number;
+  volume24h: number;
+  fees24h: number;
+  uniqueParticipants24h: number;
+  uniqueParticipants7d: number;
+  whaleTransactionCount: number;
+  orderBookDepth?: number;
+  slippage1Percent?: number;
+  slippage5Percent?: number;
+  avgVolume7d: number;
+  volumeTrend: 'increasing' | 'stable' | 'decreasing';
+}
+
+export interface EnhancedStabilityData {
+  tvlHistory90d: number[];
+  tvlVolatility30d: number;
+  maxDrawdown30d: number;
+  tvlTrend7d: number;
+  tokenPrices: {
+    [token: string]: {
+      price24h: number;
+      volatility7d: number;
+      volatility30d: number;
+      correlationWithBTC: number;
+    };
+  };
+  contractUpgrades90d: number;
+  securityIncidents: number;
+  auditScore: number;
+}
+
+export interface EnhancedYieldData {
+  apr: number;
+  apy: number;
+  apyBase: number;
+  apyReward: number;
+  tradingFeeApr: number;
+  rewardTokenApr: number;
+  rewardTokenPrice: number;
+  rewardTokenVolatility30d: number;
+  aprHistory30d: number[];
+  aprHistory90d: number[];
+  yieldVolatility30d: number;
+  rewardEmissionSchedule: {
+    dailyEmission: number;
+    remainingDays: number;
+    emissionDecayRate: number;
+  };
+}
+
+export class EnhancedDataService {
+  private stacksApi: StacksApiService;
+  private historicalDataService: HistoricalDataService;
+  private cache = new Map<string, { data: any; expiry: number }>();
+  private readonly cacheTimeout = 10 * 60 * 1000; // 10 minutes
+
+  constructor(apiKey?: string) {
+    this.stacksApi = new StacksApiService(apiKey);
+    this.historicalDataService = new HistoricalDataService();
+  }
+
+  // Enhanced participant data with blockchain-level analysis
+  async getEnhancedParticipantData(
+    opportunity: Opportunity
+  ): Promise<EnhancedParticipantData> {
+    const cacheKey = `enhanced-participants-${opportunity.id}`;
+    const cached = this.cache.get(cacheKey);
+
+    if (cached && cached.expiry > Date.now()) {
+      return cached.data;
+    }
+
+    try {
+      // Get contract ID from opportunity
+      const contractId = this.getContractId(opportunity);
+      if (!contractId) {
+        return this.getFallbackParticipantData(opportunity);
+      }
+
+      // Fetch data for different time periods
+      const [metrics24h, metrics7d, metrics30d, tokenHolders] = await Promise.all([
+        this.stacksApi.calculateParticipantMetrics(contractId, 1),
+        this.stacksApi.calculateParticipantMetrics(contractId, 7),
+        this.stacksApi.calculateParticipantMetrics(contractId, 30),
+        this.getTokenHolders(contractId)
+      ]);
+
+      // Calculate Gini coefficient for holder concentration
+      const giniCoefficient = this.calculateGiniCoefficient(
+        tokenHolders.map(h => h.balance)
+      );
+
+      // Calculate top 10 holder percentage
+      const totalBalance = tokenHolders.reduce((sum, h) => sum + h.balance, 0);
+      const top10Balance = tokenHolders
+        .slice(0, 10)
+        .reduce((sum, h) => sum + h.balance, 0);
+      const top10HolderPercentage = totalBalance > 0 ? (top10Balance / totalBalance) * 100 : 0;
+
+      const enhancedData: EnhancedParticipantData = {
+        uniqueParticipants24h: metrics24h.uniqueParticipants,
+        uniqueParticipants7d: metrics7d.uniqueParticipants,
+        uniqueParticipants30d: metrics30h.uniqueParticipants,
+        transactionCount24h: metrics24h.transactionCount,
+        whaleTransactionCount: metrics24h.whaleTransactionCount,
+        averageTransactionSize: metrics24h.averageTransactionSize,
+        giniCoefficient,
+        top10HolderPercentage,
+      };
+
+      // Cache result
+      this.cache.set(cacheKey, {
+        data: enhancedData,
+        expiry: Date.now() + this.cacheTimeout,
+      });
+
+      return enhancedData;
+    } catch (error) {
+      console.warn(`Failed to get enhanced participant data for ${opportunity.id}:`, error);
+      return this.getFallbackParticipantData(opportunity);
+    }
+  }
+
+  // Enhanced volume data with trend analysis
+  async getEnhancedVolumeData(
+    opportunity: Opportunity
+  ): Promise<EnhancedVolumeData> {
+    const cacheKey = `enhanced-volume-${opportunity.id}`;
+    const cached = this.cache.get(cacheKey);
+
+    if (cached && cached.expiry > Date.now()) {
+      return cached.data;
+    }
+
+    try {
+      // Get historical data from DefiLlama if available
+      let volumeData: EnhancedVolumeData;
+
+      if (opportunity.poolId) {
+        const timeSeriesData = await this.historicalDataService.getTimeSeriesData(
+          opportunity.poolId,
+          30
+        );
+
+        if (timeSeriesData.length > 0) {
+          volumeData = this.processVolumeData(timeSeriesData);
+        } else {
+          volumeData = await this.getEstimatedVolumeData(opportunity);
+        }
+      } else {
+        volumeData = await this.getEstimatedVolumeData(opportunity);
+      }
+
+      // Cache result
+      this.cache.set(cacheKey, {
+        data: volumeData,
+        expiry: Date.now() + this.cacheTimeout,
+      });
+
+      return volumeData;
+    } catch (error) {
+      console.warn(`Failed to get enhanced volume data for ${opportunity.id}:`, error);
+      return this.getFallbackVolumeData(opportunity);
+    }
+  }
+
+  // Enhanced liquidity data combining multiple sources
+  async getEnhancedLiquidityData(
+    opportunity: Opportunity
+  ): Promise<EnhancedLiquidityData> {
+    const cacheKey = `enhanced-liquidity-${opportunity.id}`;
+    const cached = this.cache.get(cacheKey);
+
+    if (cached && cached.expiry > Date.now()) {
+      return cached.data;
+    }
+
+    try {
+      const [participantData, volumeData] = await Promise.all([
+        this.getEnhancedParticipantData(opportunity),
+        this.getEnhancedVolumeData(opportunity)
+      ]);
+
+      const enhancedData: EnhancedLiquidityData = {
+        tvlUsd: opportunity.tvlUsd,
+        volume24h: opportunity.volume24h || volumeData.volume24h,
+        fees24h: opportunity.fees24h || this.estimateFees24h(opportunity),
+        uniqueParticipants24h: participantData.uniqueParticipants24h,
+        uniqueParticipants7d: participantData.uniqueParticipants7d,
+        whaleTransactionCount: participantData.whaleTransactionCount,
+        avgVolume7d: this.calculateAverageVolume(volumeData.volume7d),
+        volumeTrend: volumeData.volumeTrend,
+      };
+
+      // Cache result
+      this.cache.set(cacheKey, {
+        data: enhancedData,
+        expiry: Date.now() + this.cacheTimeout,
+      });
+
+      return enhancedData;
+    } catch (error) {
+      console.warn(`Failed to get enhanced liquidity data for ${opportunity.id}:`, error);
+      return this.getFallbackLiquidityData(opportunity);
+    }
+  }
+
+  // Enhanced stability data with price analysis
+  async getEnhancedStabilityData(
+    opportunity: Opportunity
+  ): Promise<EnhancedStabilityData> {
+    const cacheKey = `enhanced-stability-${opportunity.id}`;
+    const cached = this.cache.get(cacheKey);
+
+    if (cached && cached.expiry > Date.now()) {
+      return cached.data;
+    }
+
+    try {
+      // Get historical TVL data
+      let tvlHistory90d: number[] = [];
+      let tvlVolatility30d = 0;
+      let maxDrawdown30d = 0;
+      let tvlTrend7d = 0;
+
+      if (opportunity.poolId) {
+        const timeSeriesData = await this.historicalDataService.getTimeSeriesData(
+          opportunity.poolId,
+          90
+        );
+
+        if (timeSeriesData.length > 0) {
+          tvlHistory90d = timeSeriesData.map(d => d.tvlUsd);
+          tvlVolatility30d = this.calculateVolatility(tvlHistory90d.slice(-30));
+          maxDrawdown30d = this.calculateMaxDrawdown(tvlHistory90d.slice(-30));
+          tvlTrend7d = this.calculateTrend(tvlHistory90d.slice(-7));
+        }
+      }
+
+      // Get token prices (simplified - would integrate with CoinGecko in production)
+      const tokenPrices = await this.getTokenPrices(opportunity.tokens);
+
+      const enhancedData: EnhancedStabilityData = {
+        tvlHistory90d,
+        tvlVolatility30d,
+        maxDrawdown30d,
+        tvlTrend7d,
+        tokenPrices,
+        contractUpgrades90d: 0, // Would need external API
+        securityIncidents: 0,   // Would need external API
+        auditScore: this.getAuditScore(opportunity.protocol),
+      };
+
+      // Cache result
+      this.cache.set(cacheKey, {
+        data: enhancedData,
+        expiry: Date.now() + this.cacheTimeout,
+      });
+
+      return enhancedData;
+    } catch (error) {
+      console.warn(`Failed to get enhanced stability data for ${opportunity.id}:`, error);
+      return this.getFallbackStabilityData(opportunity);
+    }
+  }
+
+  // Enhanced yield data with sustainability analysis
+  async getEnhancedYieldData(
+    opportunity: Opportunity
+  ): Promise<EnhancedYieldData> {
+    const cacheKey = `enhanced-yield-${opportunity.id}`;
+    const cached = this.cache.get(cacheKey);
+
+    if (cached && cached.expiry > Date.now()) {
+      return cached.data;
+    }
+
+    try {
+      // Get historical APR data
+      let aprHistory30d: number[] = [];
+      let aprHistory90d: number[] = [];
+      let yieldVolatility30d = 0;
+
+      if (opportunity.poolId) {
+        const timeSeriesData = await this.historicalDataService.getTimeSeriesData(
+          opportunity.poolId,
+          90
+        );
+
+        if (timeSeriesData.length > 0) {
+          aprHistory90d = timeSeriesData.map(d => d.apyBase || 0);
+          aprHistory30d = aprHistory90d.slice(-30);
+          yieldVolatility30d = this.calculateVolatility(aprHistory30d);
+        }
+      }
+
+      // Estimate reward emission schedule
+      const rewardEmissionSchedule = this.estimateRewardEmission(opportunity);
+
+      const enhancedData: EnhancedYieldData = {
+        apr: opportunity.apr,
+        apy: opportunity.apy,
+        apyBase: opportunity.apyBase || 0,
+        apyReward: opportunity.apyReward || 0,
+        tradingFeeApr: this.estimateTradingFeeApr(opportunity),
+        rewardTokenApr: this.estimateRewardTokenApr(opportunity),
+        rewardTokenPrice: await this.getTokenPrice(opportunity.rewardToken),
+        rewardTokenVolatility30d: yieldVolatility30d,
+        aprHistory30d,
+        aprHistory90d,
+        yieldVolatility30d,
+        rewardEmissionSchedule,
+      };
+
+      // Cache result
+      this.cache.set(cacheKey, {
+        data: enhancedData,
+        expiry: Date.now() + this.cacheTimeout,
+      });
+
+      return enhancedData;
+    } catch (error) {
+      console.warn(`Failed to get enhanced yield data for ${opportunity.id}:`, error);
+      return this.getFallbackYieldData(opportunity);
+    }
+  }
+
+  // Private helper methods
+  private getContractId(opportunity: Opportunity): string | null {
+    // Extract contract ID from opportunity based on protocol
+    switch (opportunity.protocol.toLowerCase()) {
+      case 'alex':
+        return `SP2ZNGJ85ENDY6QRHQ5P2D4FXKGZWCKTB2T0Z55KS.alex-v1`;
+      case 'arkadiko':
+        return `SP1Y5YSTAHZ88XYK1VPDH24GY0HPXMEJEEKG2YD0S.arkadiko-dex`;
+      default:
+        return null;
+    }
+  }
+
+  private async getTokenHolders(contractId: string): Promise<Array<{ address: string; balance: number }>> {
+    try {
+      // Try to get LP token holders
+      const holders = await this.stacksApi.getTokenHolders(contractId, 1000);
+      return holders;
+    } catch (error) {
+      console.warn(`Failed to get token holders for ${contractId}:`, error);
+      return [];
+    }
+  }
+
+  private calculateGiniCoefficient(values: number[]): number {
+    if (values.length === 0) return 0;
+
+    const sortedValues = [...values].sort((a, b) => a - b);
+    const n = sortedValues.length;
+    const sum = sortedValues.reduce((a, b) => a + b, 0);
+
+    if (sum === 0) return 0;
+
+    let giniSum = 0;
+    for (let i = 0; i < n; i++) {
+      giniSum += (2 * (i + 1) - n - 1) * sortedValues[i];
+    }
+
+    return giniSum / (n * sum);
+  }
+
+  private processVolumeData(timeSeriesData: any[]): EnhancedVolumeData {
+    const volumes = timeSeriesData.map(d => d.volumeUsd || 0);
+    const volume7d = volumes.slice(-7);
+    const volume30d = volumes.slice(-30);
+
+    const avgVolume7d = this.calculateAverageVolume(volume7d);
+    const avgVolume30d = this.calculateAverageVolume(volume30d);
+    const volumeTrend = this.calculateVolumeTrend(volume7d);
+    const volumeVolatility30d = this.calculateVolatility(volume30d);
+
+    return {
+      volume24h: volumes[volumes.length - 1] || 0,
+      volume7d,
+      volume30d,
+      volumeTrend,
+      volumeVolatility30d,
+    };
+  }
+
+  private calculateAverageVolume(volumes: number[]): number {
+    if (volumes.length === 0) return 0;
+    const validVolumes = volumes.filter(v => v > 0);
+    if (validVolumes.length === 0) return 0;
+    return validVolumes.reduce((sum, v) => sum + v, 0) / validVolumes.length;
+  }
+
+  private calculateVolumeTrend(volume7d: number[]): 'increasing' | 'stable' | 'decreasing' {
+    if (volume7d.length < 2) return 'stable';
+
+    const recent = volume7d.slice(-3).reduce((sum, v) => sum + v, 0) / 3;
+    const earlier = volume7d.slice(0, 3).reduce((sum, v) => sum + v, 0) / 3;
+
+    const changePercent = ((recent - earlier) / earlier) * 100;
+
+    if (changePercent > 5) return 'increasing';
+    if (changePercent < -5) return 'decreasing';
+    return 'stable';
+  }
+
+  private calculateVolatility(values: number[]): number {
+    if (values.length < 2) return 0;
+
+    const returns = [];
+    for (let i = 1; i < values.length; i++) {
+      if (values[i - 1] !== 0) {
+        returns.push((values[i] - values[i - 1]) / values[i - 1]);
+      }
+    }
+
+    if (returns.length === 0) return 0;
+
+    const mean = returns.reduce((sum, r) => sum + r, 0) / returns.length;
+    const variance = returns.reduce((sum, r) => sum + Math.pow(r - mean, 2), 0) / returns.length;
+    return Math.sqrt(variance);
+  }
+
+  private calculateMaxDrawdown(values: number[]): number {
+    if (values.length === 0) return 0;
+
+    let peak = values[0];
+    let maxDrawdown = 0;
+
+    for (let i = 1; i < values.length; i++) {
+      if (values[i] > peak) {
+        peak = values[i];
+      } else {
+        const drawdown = (peak - values[i]) / peak;
+        maxDrawdown = Math.max(maxDrawdown, drawdown);
+      }
+    }
+
+    return maxDrawdown;
+  }
+
+  private calculateTrend(values: number[]): number {
+    if (values.length < 2) return 0;
+
+    const n = values.length;
+    const sumX = (n * (n - 1)) / 2;
+    const sumY = values.reduce((sum, val) => sum + val, 0);
+    const sumXY = values.reduce((sum, val, i) => sum + (i * val), 0);
+    const sumX2 = (n * (n - 1) * (2 * n - 1)) / 6;
+
+    const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+    const avgY = sumY / n;
+
+    return avgY > 0 ? slope / avgY : 0;
+  }
+
+  private async getTokenPrices(tokens: string[]): Promise<any> {
+    // Simplified token price fetching
+    // In production, this would integrate with CoinGecko or similar
+    const prices: any = {};
+
+    for (const token of tokens) {
+      prices[token] = {
+        price24h: this.getEstimatedTokenPrice(token),
+        volatility7d: 0.15, // Estimated
+        volatility30d: 0.25, // Estimated
+        correlationWithBTC: this.getEstimatedBTCCorrelation(token),
+      };
+    }
+
+    return prices;
+  }
+
+  private getEstimatedTokenPrice(token: string): number {
+    const priceMap: Record<string, number> = {
+      'STX': 1.5,
+      'USDA': 1.0,
+      'xBTC': 45000,
+      'ALEX': 0.5,
+      'DIKO': 0.3,
+    };
+
+    return priceMap[token] || 1.0;
+  }
+
+  private getEstimatedBTCCorrelation(token: string): number {
+    if (token.toLowerCase().includes('btc')) return 0.9;
+    if (token.toLowerCase().includes('stx')) return 0.7;
+    return 0.3;
+  }
+
+  private getAuditScore(protocol: string): number {
+    const auditScores: Record<string, number> = {
+      'ALEX': 0.9,
+      'Arkadiko': 0.85,
+      'defillama': 0.8,
+    };
+
+    return auditScores[protocol] || 0.7;
+  }
+
+  private estimateFees24h(opportunity: Opportunity): number {
+    // Estimate fees from volume (typical 0.3% fee)
+    return (opportunity.volume24h || 0) * 0.003;
+  }
+
+  private estimateTradingFeeApr(opportunity: Opportunity): number {
+    // Estimate trading fee APR from volume and TVL
+    if (opportunity.tvlUsd === 0) return 0;
+    const annualFees = (opportunity.volume24h || 0) * 365 * 0.003;
+    return annualFees / opportunity.tvlUsd;
+  }
+
+  private estimateRewardTokenApr(opportunity: Opportunity): number {
+    // Calculate reward token APR
+    const baseApr = opportunity.apr;
+    const tradingFeeApr = this.estimateTradingFeeApr(opportunity);
+    return Math.max(0, baseApr - tradingFeeApr);
+  }
+
+  private async getTokenPrice(token: string | string[]): Promise<number> {
+    if (Array.isArray(token)) {
+      // Return average price for multiple reward tokens
+      const prices = await Promise.all(
+        token.map(t => Promise.resolve(this.getEstimatedTokenPrice(t)))
+      );
+      return prices.reduce((sum, price) => sum + price, 0) / prices.length;
+    }
+    return this.getEstimatedTokenPrice(token);
+  }
+
+  private estimateRewardEmission(opportunity: Opportunity): {
+    dailyEmission: number;
+    remainingDays: number;
+    emissionDecayRate: number;
+  } {
+    // Simplified emission estimation
+    return {
+      dailyEmission: opportunity.tvlUsd * 0.001, // 0.1% daily emission
+      remainingDays: 365, // 1 year remaining
+      emissionDecayRate: 0.99, // 1% decay per day
+    };
+  }
+
+  // Fallback methods
+  private getFallbackParticipantData(opportunity: Opportunity): EnhancedParticipantData {
+    return {
+      uniqueParticipants24h: Math.max(1, Math.floor(opportunity.tvlUsd / 50000)),
+      uniqueParticipants7d: Math.max(1, Math.floor(opportunity.tvlUsd / 30000)),
+      uniqueParticipants30d: Math.max(1, Math.floor(opportunity.tvlUsd / 10000)),
+      transactionCount24h: Math.max(1, Math.floor(opportunity.tvlUsd / 10000)),
+      whaleTransactionCount: Math.max(0, Math.floor(opportunity.tvlUsd / 100000)),
+      averageTransactionSize: 5000,
+      giniCoefficient: 0.6,
+      top10HolderPercentage: 60,
+    };
+  }
+
+  private getFallbackVolumeData(opportunity: Opportunity): EnhancedVolumeData {
+    const baseVolume = opportunity.volume24h || opportunity.tvlUsd * 0.1;
+    return {
+      volume24h: baseVolume,
+      volume7d: Array(7).fill(baseVolume),
+      volume30d: Array(30).fill(baseVolume),
+      volumeTrend: 'stable',
+      volumeVolatility30d: 0.2,
+    };
+  }
+
+  private getFallbackLiquidityData(opportunity: Opportunity): EnhancedLiquidityData {
+    return {
+      tvlUsd: opportunity.tvlUsd,
+      volume24h: opportunity.volume24h || opportunity.tvlUsd * 0.1,
+      fees24h: (opportunity.volume24h || opportunity.tvlUsd * 0.1) * 0.003,
+      uniqueParticipants24h: Math.max(1, Math.floor(opportunity.tvlUsd / 50000)),
+      uniqueParticipants7d: Math.max(1, Math.floor(opportunity.tvlUsd / 30000)),
+      whaleTransactionCount: Math.max(0, Math.floor(opportunity.tvlUsd / 100000)),
+      avgVolume7d: opportunity.tvlUsd * 0.1,
+      volumeTrend: 'stable',
+    };
+  }
+
+  private getFallbackStabilityData(opportunity: Opportunity): EnhancedStabilityData {
+    const baseTvl = opportunity.tvlUsd;
+    return {
+      tvlHistory90d: Array(90).fill(baseTvl),
+      tvlVolatility30d: 0.15,
+      maxDrawdown30d: 0.1,
+      tvlTrend7d: 0,
+      tokenPrices: {},
+      contractUpgrades90d: 0,
+      securityIncidents: 0,
+      auditScore: 0.8,
+    };
+  }
+
+  private getFallbackYieldData(opportunity: Opportunity): EnhancedYieldData {
+    return {
+      apr: opportunity.apr,
+      apy: opportunity.apy,
+      apyBase: opportunity.apyBase || opportunity.apr,
+      apyReward: opportunity.apyReward || Math.max(0, opportunity.apy - (opportunity.apyBase || opportunity.apr)),
+      tradingFeeApr: this.estimateTradingFeeApr(opportunity),
+      rewardTokenApr: this.estimateRewardTokenApr(opportunity),
+      rewardTokenPrice: this.getEstimatedTokenPrice(opportunity.rewardToken),
+      rewardTokenVolatility30d: 0.2,
+      aprHistory30d: Array(30).fill(opportunity.apr),
+      aprHistory90d: Array(90).fill(opportunity.apr),
+      yieldVolatility30d: 0.15,
+      rewardEmissionSchedule: this.estimateRewardEmission(opportunity),
+    };
+  }
+
+  private async getEstimatedVolumeData(opportunity: Opportunity): Promise<EnhancedVolumeData> {
+    return this.getFallbackVolumeData(opportunity);
+  }
+
+  // Public utility methods
+  clearCache(): void {
+    this.cache.clear();
+    this.stacksApi.clearCache();
+  }
+
+  getCacheStats(): { enhanced: any; stacks: any } {
+    return {
+      enhanced: {
+        entries: this.cache.size,
+        keys: Array.from(this.cache.keys()),
+      },
+      stacks: this.stacksApi.getCacheStats(),
+    };
+  }
+}

@@ -33,6 +33,7 @@ export interface HistoricalData {
   apr_30: number[];   // Last 30 daily APR values
   apr_90: number[];   // Last 90 daily APR values
   vol_30?: number[];  // Last 30 daily volume values (when available)
+  apr_7?: number[];   // Last 7 daily APR values
 }
 
 export interface TimeSeriesData {
@@ -43,6 +44,23 @@ export interface TimeSeriesData {
   apyReward: number;
   volumeUsd?: number;
 }
+
+// Enhanced data types for comprehensive analysis
+export interface ChartData {
+  timestamps: string[];
+  tvlUsd: number[];
+  apy: number[];
+  volumeUsd?: number[];
+  participants?: number[];
+  apyBase?: number[];
+  apyReward?: number[];
+  priceData?: {
+    [token: string]: number[];
+  };
+  feesUsd?: number[];
+}
+
+export type Timeframe = '7D' | '30D' | '90D';
 
 export interface HistoricalArrays {
   tvl_7: number[];
@@ -73,6 +91,7 @@ export interface RiskInputData {
   ilRisk?: string;
   exposure?: string;
   rewardTokens?: string[];
+  poolId?: string;
 }
 
 export interface LiquidityInput {
@@ -163,6 +182,10 @@ export interface ReferenceValues {
 
   // Volatility references
   SLOPE_REF: number;       // 1% TVL change per day reference
+  VOLATILITY_REF_LOW: number;    // 5% daily volatility considered low
+  VOLATILITY_REF_HIGH: number;  // 30%+ daily volatility considered high
+  DRAWDOWN_REF_SEVERE: number;  // 40%+ drawdown considered severe
+  CORR_REF_HIGH: number;   // 0.8+ correlation considered high
 }
 
 // Statistical measures
@@ -204,4 +227,90 @@ export interface PartialRiskData {
   historicalData?: Partial<HistoricalData>;
   confidence: number;
   source: 'estimation' | 'api' | 'hybrid';
+}
+
+// Enhanced risk data types for comprehensive analysis
+export interface EnhancedRiskData {
+  volumeMetrics: {
+    volume7d: number[];
+    volume30d: number[];
+    volumeVolatility7d: number;
+    volumeVolatility30d: number;
+  };
+  blockchainData: {
+    realParticipants: number;
+    giniCoefficient: number;
+    whaleTransactionCount: number;
+    largeHolderRatio: number;
+  };
+  riskMetrics: {
+    maxDrawdown90d: number;
+    volatility90d: number;
+    var95: number;
+    expectedShortfall: number;
+  };
+  correlationData: {
+    tvlVolumeCorrelation: number;
+    marketCorrelation: number;
+    beta: number;
+  };
+  dataQuality: {
+    completeness: number;
+    freshness: number;
+    reliability: number;
+  };
+  rewardTokenVolatility: number;
+  largeHolderRatio: number;
+}
+
+// Enhanced input types for risk calculations
+export interface EnhancedLiquidityInput {
+  tvlUsd: number;
+  volume24h: number;
+  volume7d: number[];
+  volume30d: number[];
+  estimatedParticipants: number;
+  realParticipants?: number;
+  protocol: string;
+}
+
+export interface EnhancedStabilityInput {
+  tvl_7: number[];
+  tvl_30: number[];
+  tvl_90: number[];
+  vol_30?: number[];
+  volume_30: number[];
+  enhancedData: EnhancedRiskData;
+}
+
+export interface EnhancedYieldInput {
+  apr: number;
+  apy: number;
+  apr_7: number[];
+  apr_30: number[];
+  apr_90: number[];
+  rewardToken: string[];
+  enhancedData: EnhancedRiskData;
+}
+
+export interface EnhancedConcentrationInput {
+  estimatedParticipants: number;
+  realParticipants?: number;
+  giniCoefficient: number;
+  whaleTransactionCount: number;
+  volume24h: number;
+  tvlUsd: number;
+  protocol: string;
+  enhancedData: EnhancedRiskData;
+}
+
+export interface EnhancedMomentumInput {
+  tvl_7: number[];
+  tvl_30: number[];
+  tvl_90: number[];
+  volume_7: number[];
+  volume_30: number[];
+  currentTvl: number;
+  currentVolume: number;
+  enhancedData: EnhancedRiskData;
 }

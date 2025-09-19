@@ -1,0 +1,403 @@
+import axios from 'axios';
+
+// Stacks Blockchain API Interfaces
+export interface StacksTransaction {
+  tx_id: string;
+  sender_address: string;
+  recipient_address?: string;
+  amount: number;
+  fee_rate: number;
+  block_height: number;
+  tx_status: 'success' | 'pending' | 'failed';
+  microblock_time: string;
+  contract_call?: {
+    contract_id: string;
+    function_name: string;
+    arguments: any[];
+  };
+}
+
+export interface StacksTokenHolder {
+  address: string;
+  balance: number;
+  last_activity: string;
+}
+
+export interface StacksBlock {
+  height: number;
+  hash: string;
+  timestamp: string;
+  tx_count: number;
+}
+
+export interface StacksContractState {
+  contract_id: string;
+  balance: number;
+  call_count: number;
+  unique_callers: number;
+}
+
+export class StacksApiService {
+  private readonly baseUrl = 'https://api.hiro.so';
+  private readonly fallbackUrl = 'https://stacks-node-api.mainnet.stacks.co';
+  private apiKey?: string;
+  private cache = new Map<string, { data: any; expiry: number }>();
+  private readonly cacheTimeout = 5 * 60 * 1000; // 5 minutes
+
+  constructor(apiKey?: string) {
+    this.apiKey = apiKey;
+  }
+
+  // Get contract transactions for participant analysis
+  async getContractTransactions(
+    contractId: string,
+    days: number = 7,
+    offset: number = 0
+  ): Promise<StacksTransaction[]> {
+    const cacheKey = `contract-tx-${contractId}-${days}-${offset}`;
+    const cached = this.cache.get(cacheKey);
+
+    if (cached && cached.expiry > Date.now()) {
+      return cached.data;
+    }
+
+    try {
+      const endTime = new Date();
+      const startTime = new Date(endTime.getTime() - days * 24 * 60 * 60 * 1000);
+
+      const response = await axios.get(
+        `${this.baseUrl}/v2/contracts/${contractId}/transactions`,
+        {
+          params: {
+            limit: 1000,
+            offset,
+            order: 'desc',
+            unanchored: false,
+          },
+          headers: this.getHeaders(),
+          timeout: 10000,
+        }
+      );
+
+      const transactions: StacksTransaction[] = response.data.results || [];
+
+      // Filter by date and transform
+      const filteredTransactions = transactions
+        .filter(tx => {
+          const txDate = new Date(tx.microblock_time);
+          return txDate >= startTime && txDate <= endTime;
+        })
+        .map(tx => ({
+          tx_id: tx.tx_id,
+          sender_address: tx.sender_address,
+          recipient_address: tx.recipient_address,
+          amount: tx.amount || 0,
+          fee_rate: tx.fee_rate || 0,
+          block_height: tx.block_height,
+          tx_status: tx.tx_status,
+          microblock_time: tx.microblock_time,
+          contract_call: tx.contract_call,
+        }));
+
+      // Cache result
+      this.cache.set(cacheKey, {
+        data: filteredTransactions,
+        expiry: Date.now() + this.cacheTimeout,
+      });
+
+      return filteredTransactions;
+    } catch (error) {
+      console.warn(`Failed to fetch contract transactions for ${contractId}:`, error);
+
+      // Try fallback API
+      return this.getContractTransactionsFallback(contractId, days, offset);
+    }
+  }
+
+  // Get token holders for LP analysis
+  async getTokenHolders(tokenAddress: string, limit: number = 1000): Promise<StacksTokenHolder[]> {
+    const cacheKey = `token-holders-${tokenAddress}-${limit}`;
+    const cached = this.cache.get(cacheKey);
+
+    if (cached && cached.expiry > Date.now()) {
+      return cached.data;
+    }
+
+    try {
+      // For STX-20 tokens, use the token holders endpoint
+      const response = await axios.get(
+        `${this.baseUrl}/v2/tokens/${tokenAddress}/holders`,
+        {
+          params: { limit },
+          headers: this.getHeaders(),
+          timeout: 10000,
+        }
+      );
+
+      const holders: StacksTokenHolder[] = response.data.results || [];
+
+      // Transform and filter
+      const filteredHolders = holders
+        .filter(holder => holder.balance > 0)
+        .map(holder => ({
+          address: holder.address,
+          balance: parseFloat(holder.balance) || 0,
+          last_activity: holder.last_updated || new Date().toISOString(),
+        }));
+
+      // Cache result
+      this.cache.set(cacheKey, {
+        data: filteredHolders,
+        expiry: Date.now() + this.cacheTimeout,
+      });
+
+      return filteredHolders;
+    } catch (error) {
+      console.warn(`Failed to fetch token holders for ${tokenAddress}:`, error);
+      return [];
+    }
+  }
+
+  // Get contract state for basic metrics
+  async getContractState(contractId: string): Promise<StacksContractState> {
+    const cacheKey = `contract-state-${contractId}`;
+    const cached = this.cache.get(cacheKey);
+
+    if (cached && cached.expiry > Date.now()) {
+      return cached.data;
+    }
+
+    try {
+      const response = await axios.get(
+        `${this.baseUrl}/v2/contracts/${contractId}`,
+        {
+          headers: this.getHeaders(),
+          timeout: 10000,
+        }
+      );
+
+      const state: StacksContractState = {
+        contract_id: response.data.contract_id,
+        balance: parseFloat(response.data.balance) || 0,
+        call_count: response.data.call_count || 0,
+        unique_callers: response.data.unique_callers || 0,
+      };
+
+      // Cache result
+      this.cache.set(cacheKey, {
+        data: state,
+        expiry: Date.now() + this.cacheTimeout,
+      });
+
+      return state;
+    } catch (error) {
+      console.warn(`Failed to fetch contract state for ${contractId}:`, error);
+      return {
+        contract_id: contractId,
+        balance: 0,
+        call_count: 0,
+        unique_callers: 0,
+      };
+    }
+  }
+
+  // Get block range for historical analysis
+  async getBlocks(heightRange: { start: number; end: number }): Promise<StacksBlock[]> {
+    const cacheKey = `blocks-${heightRange.start}-${heightRange.end}`;
+    const cached = this.cache.get(cacheKey);
+
+    if (cached && cached.expiry > Date.now()) {
+      return cached.data;
+    }
+
+    try {
+      const blocks: StacksBlock[] = [];
+
+      // Fetch blocks in batches of 50
+      for (let height = heightRange.start; height <= heightRange.end; height += 50) {
+        const endHeight = Math.min(height + 49, heightRange.end);
+
+        const response = await axios.get(
+          `${this.baseUrl}/v2/blocks`,
+          {
+            params: {
+              limit: 50,
+              offset: height - 1,
+              order: 'asc',
+            },
+            headers: this.getHeaders(),
+            timeout: 10000,
+          }
+        );
+
+        const batchBlocks: StacksBlock[] = response.data.results || [];
+        blocks.push(...batchBlocks);
+
+        // Small delay to be API-friendly
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+
+      // Cache result
+      this.cache.set(cacheKey, {
+        data: blocks,
+        expiry: Date.now() + this.cacheTimeout,
+      });
+
+      return blocks;
+    } catch (error) {
+      console.warn(`Failed to fetch blocks range ${heightRange.start}-${heightRange.end}:`, error);
+      return [];
+    }
+  }
+
+  // Calculate real participant metrics from transactions
+  async calculateParticipantMetrics(
+    contractId: string,
+    days: number = 7
+  ): Promise<{
+    uniqueParticipants: number;
+    transactionCount: number;
+    totalVolume: number;
+    averageTransactionSize: number;
+    whaleTransactionCount: number;
+    activeUsers24h: number;
+  }> {
+    try {
+      const transactions = await this.getContractTransactions(contractId, days);
+
+      if (transactions.length === 0) {
+        return {
+          uniqueParticipants: 0,
+          transactionCount: 0,
+          totalVolume: 0,
+          averageTransactionSize: 0,
+          whaleTransactionCount: 0,
+          activeUsers24h: 0,
+        };
+      }
+
+      const uniqueSenders = new Set(transactions.map(tx => tx.sender_address));
+      const totalVolume = transactions.reduce((sum, tx) => sum + tx.amount, 0);
+      const averageTransactionSize = totalVolume / transactions.length;
+
+      // Define whale transactions (top 10% by size)
+      const sortedAmounts = transactions.map(tx => tx.amount).sort((a, b) => b - a);
+      const whaleThreshold = sortedAmounts[Math.floor(sortedAmounts.length * 0.1)] || 0;
+      const whaleTransactions = transactions.filter(tx => tx.amount >= whaleThreshold);
+
+      // Calculate 24h active users
+      const cutoff24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      const activeUsers24h = new Set(
+        transactions
+          .filter(tx => new Date(tx.microblock_time) >= cutoff24h)
+          .map(tx => tx.sender_address)
+      ).size;
+
+      return {
+        uniqueParticipants: uniqueSenders.size,
+        transactionCount: transactions.length,
+        totalVolume,
+        averageTransactionSize,
+        whaleTransactionCount: whaleTransactions.length,
+        activeUsers24h,
+      };
+    } catch (error) {
+      console.warn(`Failed to calculate participant metrics for ${contractId}:`, error);
+      return {
+        uniqueParticipants: 0,
+        transactionCount: 0,
+        totalVolume: 0,
+        averageTransactionSize: 0,
+        whaleTransactionCount: 0,
+        activeUsers24h: 0,
+      };
+    }
+  }
+
+  // Fallback methods for alternative API
+  private async getContractTransactionsFallback(
+    contractId: string,
+    days: number,
+    offset: number
+  ): Promise<StacksTransaction[]> {
+    try {
+      const response = await axios.get(
+        `${this.fallbackUrl}/v2/contracts/${contractId}/transactions`,
+        {
+          params: {
+            limit: 100,
+            offset,
+            order: 'desc',
+          },
+          timeout: 10000,
+        }
+      );
+
+      const transactions: StacksTransaction[] = response.data.results || [];
+
+      return transactions
+        .filter(tx => {
+          const txDate = new Date(tx.microblock_time);
+          const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+          return txDate >= cutoff;
+        })
+        .map(tx => ({
+          tx_id: tx.tx_id,
+          sender_address: tx.sender_address,
+          recipient_address: tx.recipient_address,
+          amount: tx.amount || 0,
+          fee_rate: tx.fee_rate || 0,
+          block_height: tx.block_height,
+          tx_status: tx.tx_status,
+          microblock_time: tx.microblock_time,
+          contract_call: tx.contract_call,
+        }));
+    } catch (error) {
+      console.warn(`Fallback API also failed for ${contractId}:`, error);
+      return [];
+    }
+  }
+
+  // Helper methods
+  private getHeaders(): Record<string, string> {
+    const headers: Record<string, string> = {
+      'Accept': 'application/json',
+      'User-Agent': 'Stacks-Yield-Aggregator/1.0',
+    };
+
+    if (this.apiKey) {
+      headers['X-API-Key'] = this.apiKey;
+    }
+
+    return headers;
+  }
+
+  // Clear cache
+  clearCache(): void {
+    this.cache.clear();
+  }
+
+  // Get cache stats
+  getCacheStats(): { entries: number; keys: string[] } {
+    return {
+      entries: this.cache.size,
+      keys: Array.from(this.cache.keys()),
+    };
+  }
+
+  // Health check
+  async healthCheck(): Promise<boolean> {
+    try {
+      const response = await axios.get(`${this.baseUrl}/v2/blocks`, {
+        params: { limit: 1 },
+        headers: this.getHeaders(),
+        timeout: 5000,
+      });
+
+      return response.status === 200;
+    } catch (error) {
+      console.warn('Stacks API health check failed:', error);
+      return false;
+    }
+  }
+}

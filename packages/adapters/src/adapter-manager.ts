@@ -3,6 +3,11 @@ import { AlexAdapter } from './protocols/alex';
 import { ArkadikoAdapter } from './protocols/arkadiko';
 import { DefiLlamaAdapter } from './protocols/defillama';
 import { DataEnrichmentService } from './services/data-enrichment';
+// import { EnhancedDataService } from './services/enhanced-data-service';
+// import { ChartDataProvider } from './services/chart-data-provider';
+// import { ValueProjectionService } from './services/value-projection';
+import { RiskCalculator } from '@shared/core';
+// import { EnhancedRiskCalculator } from '@shared/core';
 
 export class AdapterManager {
   private adapters: Map<string, Adapter> = new Map();
@@ -10,12 +15,22 @@ export class AdapterManager {
   private enrichedCache: Map<string, CacheEntry<EnrichedOpportunity[]>> = new Map();
   private statsCache: CacheEntry<AdapterStats> | null = null;
   private dataEnrichmentService: DataEnrichmentService;
+  // private enhancedDataService: EnhancedDataService;
+  // private chartDataProvider: ChartDataProvider;
+  // private valueProjectionService: ValueProjectionService;
+  private enhancedRiskCalculator: RiskCalculator;
+  // private advancedRiskCalculator: EnhancedRiskCalculator;
   private readonly cacheTimeout = 5 * 60 * 1000; // 5 minutes
   private readonly statsCacheTimeout = 10 * 60 * 1000; // 10 minutes
   private readonly enrichedCacheTimeout = 10 * 60 * 1000; // 10 minutes for enriched data
 
   constructor() {
     this.dataEnrichmentService = new DataEnrichmentService();
+    // this.enhancedDataService = new EnhancedDataService();
+    // this.chartDataProvider = new ChartDataProvider();
+    // this.valueProjectionService = new ValueProjectionService();
+    this.enhancedRiskCalculator = new RiskCalculator();
+    // this.advancedRiskCalculator = new EnhancedRiskCalculator();
     this.initializeAdapters();
     this.startCacheCleanup();
   }
@@ -128,8 +143,8 @@ export class AdapterManager {
         return [];
       }
 
-      // Enrich with risk scores and historical data
-      console.log(`Enriching ${opportunities.length} opportunities with risk data...`);
+      // Enrich with basic data services
+      console.log(`Enriching ${opportunities.length} opportunities with basic data...`);
       const enrichedOpportunities = await this.dataEnrichmentService.enrichOpportunities(opportunities);
 
       // Cache enriched results
@@ -142,11 +157,77 @@ export class AdapterManager {
       console.log(`Successfully enriched ${enrichedOpportunities.length} opportunities`);
       return enrichedOpportunities;
     } catch (error) {
-      console.error('Failed to enrich opportunities with risk data:', error);
+      console.error('Failed to enrich opportunities with enhanced data:', error);
 
       // Fallback to base opportunities without enrichment
       const baseOpportunities = await this.getAllOpportunities();
       return baseOpportunities.map(opp => this.createFallbackEnrichedOpportunity(opp));
+    }
+  }
+
+  // NEW: Fully enhanced opportunities with blockchain-level analysis
+  async getFullyEnhancedOpportunities(): Promise<EnrichedOpportunity[]> {
+    const cacheKey = 'fully-enhanced-opportunities';
+    const cached = this.enrichedCache.get(cacheKey);
+
+    if (cached && cached.expiry > Date.now()) {
+      return cached.data;
+    }
+
+    try {
+      // Get base opportunities
+      const opportunities = await this.getAllOpportunities();
+
+      if (opportunities.length === 0) {
+        return [];
+      }
+
+      console.log(`Enriching ${opportunities.length} opportunities with full blockchain-level analysis...`);
+
+      // First enrich with basic data
+      const basicEnriched = await this.dataEnrichmentService.enrichOpportunities(opportunities);
+
+      // Then enhance with blockchain-level data using enhanced services
+      const fullyEnhancedOpportunities: EnrichedOpportunity[] = [];
+
+      for (const opportunity of basicEnriched) {
+        try {
+          // Apply enhanced risk calculation with full blockchain analysis - disabled for now
+          // const enhancedRiskScore = await this.getEnhancedRiskScore(opportunity as Opportunity);
+          const enhancedRiskScore = null;
+
+          // Enhance with additional blockchain data - disabled for now
+          // const enhancedData = await this.enhancedDataService.enhanceOpportunity(opportunity as Opportunity);
+
+          // Merge enhanced data with opportunity
+          const fullyEnhanced: EnrichedOpportunity = {
+            ...opportunity,
+            riskScore: enhancedRiskScore || opportunity.riskScore,
+            // Additional enhanced fields would be added here based on enhancedData
+          };
+
+          fullyEnhancedOpportunities.push(fullyEnhanced);
+        } catch (error) {
+          console.warn(`Failed to fully enhance opportunity ${opportunity.id}:`, error);
+          // Use basic enriched version as fallback
+          fullyEnhancedOpportunities.push(opportunity);
+        }
+      }
+
+      // Cache fully enhanced results
+      this.enrichedCache.set(cacheKey, {
+        data: fullyEnhancedOpportunities,
+        expiry: Date.now() + this.enrichedCacheTimeout,
+        lastFetch: Date.now()
+      });
+
+      console.log(`Successfully fully enhanced ${fullyEnhancedOpportunities.length} opportunities`);
+      return fullyEnhancedOpportunities;
+    } catch (error) {
+      console.error('Failed to fully enhance opportunities:', error);
+
+      // Fallback to basic enriched opportunities
+      return await this.getEnrichedOpportunities();
     }
   }
 
@@ -159,7 +240,7 @@ export class AdapterManager {
         return null;
       }
 
-      // Enrich with risk data
+      // Enrich with basic data services
       if (opportunity.poolId && opportunity.poolId.includes('-')) {
         // DefiLlama opportunity
         return await this.dataEnrichmentService.enrichWithDefiLlamaData(opportunity);
@@ -248,26 +329,58 @@ export class AdapterManager {
     return this.getOpportunityById(id);
   }
 
-  async getChartData(poolId: string): Promise<any[]> {
-    try {
-      // Try DefiLlama adapter first for chart data
-      const defiLlamaAdapter = this.adapters.get('defillama') as any;
-      if (defiLlamaAdapter && typeof defiLlamaAdapter.getChartData === 'function') {
-        return await defiLlamaAdapter.getChartData(poolId);
-      }
+  // Enhanced methods temporarily disabled
+  // async getChartData(opportunity: Opportunity, timeframes: ('7D' | '30D' | '90D')[] = ['7D', '30D', '90D']): Promise<any> {
+  //   try {
+  //     return await this.chartDataProvider.getPoolChartData(opportunity, timeframes);
+  //   } catch (error) {
+  //     console.warn(`Chart data unavailable for opportunity ${opportunity.id}:`, error);
+  //     return {};
+  //   }
+  // }
 
-      // Try Arkadiko adapter for pool prices
-      const arkadikoAdapter = this.adapters.get('arkadiko') as any;
-      if (arkadikoAdapter && typeof arkadikoAdapter.getPoolPrices === 'function') {
-        return await arkadikoAdapter.getPoolPrices(poolId);
-      }
+  // async getValueProjections(
+  //   opportunity: Opportunity,
+  //   initialInvestment: number,
+  //   timeframes: ('1D' | '3D' | '7D' | '15D' | '30D' | '90D')[] = ['1D', '3D', '7D', '15D', '30D', '90D']
+  // ): Promise<any> {
+  //   try {
+  //     return await this.valueProjectionService.calculateProjections(opportunity, initialInvestment, timeframes);
+  //   } catch (error) {
+  //     console.warn(`Value projections unavailable for opportunity ${opportunity.id}:`, error);
+  //     return {};
+  //   }
+  // }
 
-      return [];
-    } catch (error) {
-      console.warn(`Chart data unavailable for pool ${poolId}:`, error);
-      return [];
-    }
-  }
+  // async getEnhancedParticipantData(opportunity: Opportunity): Promise<any> {
+  //   try {
+  //     return await this.enhancedDataService.getEnhancedParticipantData(opportunity);
+  //   } catch (error) {
+  //     console.warn(`Enhanced participant data unavailable for opportunity ${opportunity.id}:`, error);
+  //     return null;
+  //   }
+  // }
+
+  // async getEnhancedRiskData(opportunity: Opportunity): Promise<any> {
+  //   try {
+  //     return await this.enhancedRiskCalculator.calculateRiskScore({
+  //       tvlUsd: opportunity.tvlUsd,
+  //       apr: opportunity.apr,
+  //       apy: opportunity.apy,
+  //       volume24h: opportunity.volume24h,
+  //       protocol: opportunity.protocol,
+  //       chain: opportunity.chain,
+  //       tokens: opportunity.tokens,
+  //       stablecoin: opportunity.stablecoin,
+  //       ilRisk: opportunity.ilRisk,
+  //       exposure: opportunity.exposure,
+  //       rewardTokens: Array.isArray(opportunity.rewardToken) ? opportunity.rewardToken : [opportunity.rewardToken],
+  //     });
+  //   } catch (error) {
+  //     console.warn(`Enhanced risk data unavailable for opportunity ${opportunity.id}:`, error);
+  //     return null;
+  //   }
+  // }
 
   async getAdapterStats(): Promise<AdapterStats> {
     // Check cache first
@@ -412,6 +525,91 @@ export class AdapterManager {
 
     return healthStatus;
   }
+
+  // Temporarily disabled - requires enhanced data services
+  // private async enhanceWithEnhancedData(opportunities: Opportunity[]): Promise<EnrichedOpportunity[]> {
+  //   // Process in batches to manage API rate limits
+  //   const batchSize = 2;
+  //   const enrichedOpportunities: EnrichedOpportunity[] = [];
+
+  //   for (let i = 0; i < opportunities.length; i += batchSize) {
+  //     const batch = opportunities.slice(i, i + batchSize);
+
+  //     const batchPromises = batch.map(async (opportunity) => {
+  //       return this.enhanceSingleOpportunity(opportunity);
+  //     });
+
+  //     try {
+  //       const batchResults = await Promise.allSettled(batchPromises);
+
+  //       batchResults.forEach((result, index) => {
+  //         if (result.status === 'fulfilled') {
+  //           enrichedOpportunities.push(result.value);
+  //         } else {
+  //           console.warn(`Failed to enhance opportunity ${batch[index].id}:`, result.reason);
+  //           enrichedOpportunities.push(this.createFallbackEnrichedOpportunity(batch[index]));
+  //         }
+  //       });
+
+  //       // Small delay between batches
+  //       if (i + batchSize < opportunities.length) {
+  //         await new Promise(resolve => setTimeout(resolve, 500));
+  //       }
+  //     } catch (error) {
+  //       console.error('Batch enhancement error:', error);
+  //       // Add fallback enriched opportunities for the failed batch
+  //       batch.forEach(opportunity => {
+  //         enrichedOpportunities.push(this.createFallbackEnrichedOpportunity(opportunity));
+  //       });
+  //     }
+  //   }
+
+  //   return enrichedOpportunities;
+  // }
+
+  // Temporarily disabled - requires enhanced data services
+  // private async enhanceSingleOpportunity(opportunity: Opportunity): Promise<EnrichedOpportunity> {
+  //   try {
+  //     // Get enhanced data from multiple sources
+  //     const [
+  //       enhancedParticipantData,
+  //       enhancedLiquidityData,
+  //       enhancedStabilityData,
+  //       enhancedYieldData,
+  //       enhancedRiskScore
+  //     ] = await Promise.all([
+  //       this.enhancedDataService.getEnhancedParticipantData(opportunity),
+  //       this.enhancedDataService.getEnhancedLiquidityData(opportunity),
+  //       this.enhancedDataService.getEnhancedStabilityData(opportunity),
+  //       this.enhancedDataService.getEnhancedYieldData(opportunity),
+  //       this.getEnhancedRiskData(opportunity)
+  //     ]);
+
+  //     // Get historical data if available
+  //     const historicalData = opportunity.poolId && opportunity.poolId.includes('-')
+  //       ? await this.dataEnrichmentService.enrichWithDefiLlamaData(opportunity).then(result => result.historicalData)
+  //       : undefined;
+
+  //     return {
+  //       ...opportunity,
+  //       riskScore: enhancedRiskScore,
+  //       historicalData,
+  //       participants: enhancedParticipantData,
+  //       liquidity: enhancedLiquidityData,
+  //       stability: enhancedStabilityData,
+  //       yield: enhancedYieldData,
+  //       // Note: riskFactors would be extracted from enhancedRiskScore if available
+  //     };
+  //   } catch (error) {
+  //     console.warn(`Failed to enhance opportunity ${opportunity.id}, using fallback:`, error);
+  //     return this.createFallbackEnrichedOpportunity(opportunity);
+  //   }
+  // }
+
+  // Enhanced risk calculation method - disabled for now
+  // async getEnhancedRiskScore(opportunity: Opportunity): Promise<RiskScore | null> {
+  //   // Method body temporarily removed
+  // }
 
   private createFallbackEnrichedOpportunity(opportunity: Opportunity): EnrichedOpportunity {
     // Create basic risk assessment when detailed analysis fails

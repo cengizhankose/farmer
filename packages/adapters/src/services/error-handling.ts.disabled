@@ -1,0 +1,352 @@
+export interface ErrorContext {
+  service: string;
+  method: string;
+  opportunityId?: string;
+  timestamp: number;
+  retryCount: number;
+}
+
+export interface ErrorSeverity {
+  level: 'low' | 'medium' | 'high' | 'critical';
+  impact: 'local' | 'service' | 'system';
+  userVisible: boolean;
+}
+
+export interface ServiceError extends Error {
+  context: ErrorContext;
+  severity: ErrorSeverity;
+  retryable: boolean;
+  fallbackAvailable: boolean;
+  originalError?: Error;
+}
+
+export interface ErrorHandlerConfig {
+  maxRetries: number;
+  baseDelay: number;
+  maxDelay: number;
+  timeout: number;
+  circuitBreakerThreshold: number;
+  circuitBreakerTimeout: number;
+}
+
+export interface CircuitBreakerState {
+  isOpen: boolean;
+  failureCount: number;
+  lastFailureTime: number;
+  nextAttemptTime: number;
+}
+
+export class ErrorHandler {
+  private config: Required<ErrorHandlerConfig>;
+  private circuitBreakers: Map<string, CircuitBreakerState> = new Map();
+  private errorLog: ServiceError[] = [];
+  private metrics: Map<string, { count: number; lastError: number }> = new Map();
+
+  constructor(config: ErrorHandlerConfig = {}) {
+    this.config = {
+      maxRetries: config.maxRetries || 3,
+      baseDelay: config.baseDelay || 1000,
+      maxDelay: config.maxDelay || 30000,
+      timeout: config.timeout || 10000,
+      circuitBreakerThreshold: config.circuitBreakerThreshold || 5,
+      circuitBreakerTimeout: config.circuitBreakerTimeout || 60000,
+    };
+  }
+
+  async withErrorHandling<T>(
+    service: string,
+    method: string,
+    fn: () => Promise<T>,
+    fallbackFn?: () => Promise<T>,
+    opportunityId?: string
+  ): Promise<T> {
+    const context: ErrorContext = {
+      service,
+      method,
+      opportunityId,
+      timestamp: Date.now(),
+      retryCount: 0,
+    };
+
+    // Check circuit breaker
+    const circuitKey = `${service}:${method}`;
+    if (this.isCircuitOpen(circuitKey)) {
+      throw this.createError(
+        `Circuit breaker open for ${service}.${method}`,
+        context,
+        {
+          level: 'high',
+          impact: 'service',
+          userVisible: true,
+        },
+        false,
+        fallbackFn !== undefined
+      );
+    }
+
+    // Attempt with retries
+    let lastError: ServiceError | null = null;
+
+    for (let attempt = 1; attempt <= this.config.maxRetries; attempt++) {
+      try {
+        context.retryCount = attempt - 1;
+
+        // Add timeout
+        const result = await Promise.race([
+          fn(),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error('Operation timeout')), this.config.timeout)
+          )
+        ]);
+
+        // Success - reset circuit breaker
+        this.resetCircuitBreaker(circuitKey);
+        return result;
+
+      } catch (error) {
+        const serviceError = this.createServiceError(error, context, fallbackFn !== undefined);
+        lastError = serviceError;
+
+        this.logError(serviceError);
+        this.recordFailure(circuitKey);
+
+        // Don't retry on certain errors
+        if (!serviceError.retryable || attempt === this.config.maxRetries) {
+          break;
+        }
+
+        // Exponential backoff
+        const delay = Math.min(
+          this.config.baseDelay * Math.pow(2, attempt - 1),
+          this.config.maxDelay
+        );
+
+        await this.delay(delay);
+      }
+    }
+
+    // All attempts failed - try fallback
+    if (fallbackFn) {
+      try {
+        console.log(`Fallback activated for ${service}.${method}`);
+        return await fallbackFn();
+      } catch (fallbackError) {
+        const fallbackServiceError = this.createServiceError(
+          fallbackError,
+          { ...context, method: `${method}_fallback` },
+          false
+        );
+        this.logError(fallbackServiceError);
+      }
+    }
+
+    // No fallback or fallback failed
+    throw lastError || this.createError(
+      `Unknown error in ${service}.${method}`,
+      context,
+      { level: 'high', impact: 'service', userVisible: true },
+      false,
+      false
+    );
+  }
+
+  private createServiceError(error: any, context: ErrorContext, fallbackAvailable: boolean): ServiceError {
+    if (error instanceof ServiceError) {
+      return error;
+    }
+
+    const message = error?.message || 'Unknown error';
+
+    // Determine error severity based on message and context
+    let severity: ErrorSeverity;
+    let retryable = true;
+
+    if (message.includes('timeout') || message.includes('ETIMEDOUT')) {
+      severity = { level: 'medium', impact: 'local', userVisible: false };
+      retryable = true;
+    } else if (message.includes('ECONNREFUSED') || message.includes('ENOTFOUND')) {
+      severity = { level: 'high', impact: 'service', userVisible: true };
+      retryable = true;
+    } else if (message.includes('rate limit') || message.includes('429')) {
+      severity = { level: 'medium', impact: 'local', userVisible: false };
+      retryable = true;
+    } else if (message.includes('401') || message.includes('403')) {
+      severity = { level: 'high', impact: 'service', userVisible: true };
+      retryable = false;
+    } else if (message.includes('404')) {
+      severity = { level: 'low', impact: 'local', userVisible: false };
+      retryable = false;
+    } else if (message.includes('5')) {
+      severity = { level: 'high', impact: 'service', userVisible: true };
+      retryable = true;
+    } else {
+      severity = { level: 'medium', impact: 'local', userVisible: false };
+      retryable = true;
+    }
+
+    return this.createError(message, context, severity, retryable, fallbackAvailable, error);
+  }
+
+  private createError(
+    message: string,
+    context: ErrorContext,
+    severity: ErrorSeverity,
+    retryable: boolean,
+    fallbackAvailable: boolean,
+    originalError?: Error
+  ): ServiceError {
+    const error = new Error(message) as ServiceError;
+    error.context = context;
+    error.severity = severity;
+    error.retryable = retryable;
+    error.fallbackAvailable = fallbackAvailable;
+    error.originalError = originalError;
+
+    return error;
+  }
+
+  private isCircuitOpen(circuitKey: string): boolean {
+    const state = this.circuitBreakers.get(circuitKey);
+    if (!state) return false;
+
+    if (!state.isOpen) return false;
+
+    // Check if circuit breaker should be reset
+    if (Date.now() >= state.nextAttemptTime) {
+      this.resetCircuitBreaker(circuitKey);
+      return false;
+    }
+
+    return true;
+  }
+
+  private recordFailure(circuitKey: string): void {
+    const state = this.circuitBreakers.get(circuitKey) || {
+      isOpen: false,
+      failureCount: 0,
+      lastFailureTime: 0,
+      nextAttemptTime: 0,
+    };
+
+    state.failureCount++;
+    state.lastFailureTime = Date.now();
+
+    if (state.failureCount >= this.config.circuitBreakerThreshold) {
+      state.isOpen = true;
+      state.nextAttemptTime = Date.now() + this.config.circuitBreakerTimeout;
+      console.warn(`Circuit breaker opened for ${circuitKey}`);
+    }
+
+    this.circuitBreakers.set(circuitKey, state);
+  }
+
+  private resetCircuitBreaker(circuitKey: string): void {
+    this.circuitBreakers.delete(circuitKey);
+  }
+
+  private logError(error: ServiceError): void {
+    this.errorLog.push(error);
+
+    // Keep only last 1000 errors
+    if (this.errorLog.length > 1000) {
+      this.errorLog = this.errorLog.slice(-1000);
+    }
+
+    // Update metrics
+    const key = `${error.context.service}:${error.context.method}`;
+    const current = this.metrics.get(key) || { count: 0, lastError: 0 };
+    current.count++;
+    current.lastError = Date.now();
+    this.metrics.set(key, current);
+
+    // Log to console with appropriate level
+    const logMessage = `[${error.severity.level.toUpperCase()}] ${error.context.service}.${error.context.method}: ${error.message}`;
+
+    switch (error.severity.level) {
+      case 'critical':
+        console.error(logMessage, error);
+        break;
+      case 'high':
+        console.error(logMessage);
+        break;
+      case 'medium':
+        console.warn(logMessage);
+        break;
+      case 'low':
+        console.log(logMessage);
+        break;
+    }
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  // Public methods for monitoring
+  getErrorStats(): {
+    totalErrors: number;
+    errorsByService: Map<string, number>;
+    errorsBySeverity: Map<string, number>;
+    recentErrors: ServiceError[];
+    circuitBreakers: Map<string, CircuitBreakerState>;
+  } {
+    const errorsByService = new Map<string, number>();
+    const errorsBySeverity = new Map<string, number>();
+
+    this.errorLog.forEach(error => {
+      const serviceKey = error.context.service;
+      errorsByService.set(serviceKey, (errorsByService.get(serviceKey) || 0) + 1);
+
+      const severityKey = error.severity.level;
+      errorsBySeverity.set(severityKey, (errorsBySeverity.get(severityKey) || 0) + 1);
+    });
+
+    return {
+      totalErrors: this.errorLog.length,
+      errorsByService,
+      errorsBySeverity,
+      recentErrors: this.errorLog.slice(-50), // Last 50 errors
+      circuitBreakers: new Map(this.circuitBreakers),
+    };
+  }
+
+  getServiceHealth(serviceName: string): {
+    isHealthy: boolean;
+    errorRate: number;
+    lastError: ServiceError | null;
+    circuitBreakerState: CircuitBreakerState | null;
+  } {
+    const serviceErrors = this.errorLog.filter(e => e.context.service === serviceName);
+    const totalAttempts = this.metrics.get(`${serviceName}:*`)?.count || serviceErrors.length;
+    const errorRate = totalAttempts > 0 ? serviceErrors.length / totalAttempts : 0;
+
+    const circuitBreakerKeys = Array.from(this.circuitBreakers.keys()).filter(key => key.startsWith(`${serviceName}:`));
+    const circuitBreakerState = circuitBreakerKeys.length > 0 ? this.circuitBreakers.get(circuitBreakerKeys[0]) || null : null;
+
+    return {
+      isHealthy: errorRate < 0.1 && (!circuitBreakerState || !circuitBreakerState.isOpen),
+      errorRate,
+      lastError: serviceErrors.length > 0 ? serviceErrors[serviceErrors.length - 1] : null,
+      circuitBreakerState,
+    };
+  }
+
+  clearErrorLog(): void {
+    this.errorLog = [];
+    this.metrics.clear();
+    this.circuitBreakers.clear();
+  }
+
+  async healthCheck(): Promise<boolean> {
+    // Basic health check - if we have too many critical errors recently, we're not healthy
+    const recentErrors = this.errorLog.filter(
+      error => error.severity.level === 'critical' &&
+               Date.now() - error.context.timestamp < 5 * 60 * 1000 // Last 5 minutes
+    );
+
+    return recentErrors.length < 5; // Less than 5 critical errors in 5 minutes
+  }
+}
+
+// Export singleton instance
+export const errorHandler = new ErrorHandler();
