@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Opportunity } from "@adapters/core";
+import { Opportunity, EnrichedOpportunity } from "@adapters/core";
 import { OpportunityCard } from "./OpportunityCard";
 
 interface OpportunityFiltersProps {
-  opportunities: Opportunity[];
+  opportunities: (Opportunity | EnrichedOpportunity)[];
   stats: {
     byProtocol: Record<string, number>;
   };
