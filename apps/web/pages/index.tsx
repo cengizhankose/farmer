@@ -6,43 +6,40 @@ import WhyUsInset from "@/components/sections/WhyUsInset";
 import { Market } from "@/components/landing/Market";
 import { Marquee } from "@/components/landing/Marquee";
 
-
 export default function Landing() {
   return (
     <div className="relative">
       <div
         style={{
-          background: 'var(--scene-bg, var(--grad-hero))',
+          background: "var(--scene-bg, var(--grad-hero))",
         }}
       >
         <ScrollOrchestrator
-          heightPerSceneVh={120}
-          tailVh={30}
+          heightPerSceneVh={110}
+          tailVh={5}
           scenes={[
             {
               id: "hero",
               start: 0.0,
-              end: 0.24,
+              end: 0.2,
               theme: "dark",
-              bg: 'var(--grad-hero)',
-              render: (p) => (
-                <Hero progress={p} />
-              ),
+              bg: "var(--grad-hero)",
+              render: (p) => <Hero progress={p} />,
             },
             {
               id: "why",
-              start: 0.24,
-              end: 0.60,
+              start: 0.2,
+              end: 0.4,
               theme: "dark",
-              bg: 'var(--grad-why)',
-              render: (p) => (<WhoWhy progress={p} />),
+              bg: "var(--grad-why)",
+              render: (p) => <WhoWhy progress={p} />,
             },
             {
               id: "whyus",
-              start: 0.60,
-              end: 0.78,
+              start: 0.4,
+              end: 0.6,
               theme: "dark",
-              bg: 'var(--grad-why)',
+              bg: "var(--grad-why)",
               render: () => (
                 <div className="mx-auto flex h-full items-center px-4 sm:px-6 lg:px-8">
                   <WhyUsInset />
@@ -51,19 +48,19 @@ export default function Landing() {
             },
             {
               id: "market",
-              start: 0.78,
-              end: 0.93,
+              start: 0.6,
+              end: 0.8,
               theme: "dark",
-              bg: 'var(--grad-market)',
-              render: (p) => (<Market progress={p} />),
+              bg: "var(--grad-market)",
+              render: (p) => <Market progress={p} />,
             },
             {
               id: "cards",
-              start: 0.93,
-              end: 1.0,
+              start: 0.8,
+              end: 1,
               theme: "dark",
-              bg: 'var(--grad-why)',
-              render: (p) => (<Marquee progress={p} />),
+              bg: "var(--grad-why)",
+              render: (p) => <Marquee progress={p} />,
             },
           ]}
         />

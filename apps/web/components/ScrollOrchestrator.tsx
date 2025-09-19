@@ -95,7 +95,7 @@ export function ScrollOrchestrator({
           const local = (progress - s.start) / span;
           const clamped = Math.min(1, Math.max(0, local));
           // Plateau visibility: ramp in first 20%, hold, ramp out last 20%
-          const edge = 0.12; // shorter in/out distance
+          const edge = 0.06; // tighter in/out distance to reduce overlap
           let opacity = 0;
           if (clamped > 0 && clamped < 1) {
             if (clamped < edge) opacity = clamped / edge;
@@ -116,6 +116,7 @@ export function ScrollOrchestrator({
             filter: undefined,
             background: s.bg,
             pointerEvents: isInteractive ? "auto" : "none",
+            zIndex: isInteractive ? 10 : 0,
           };
           // Blur only near edges; crisp on plateau (compute after style base)
           const blurMax = 8;
