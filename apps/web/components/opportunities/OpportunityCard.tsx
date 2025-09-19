@@ -1,7 +1,25 @@
 "use client";
 import React from "react";
 import { useRouter } from "next/router";
-import { Opportunity, CHAINS } from "@/lib/mock";
+import { CHAINS } from "@/lib/chains";
+
+// Type definition for component props (supports both real and legacy data)
+type Opportunity = {
+  id: string;
+  protocol: string;
+  pair: string;
+  chain: string;
+  apr: number;
+  apy: number;
+  risk: "Low" | "Medium" | "High";
+  tvlUsd: number;
+  rewardToken: string;
+  lastUpdated: string;
+  originalUrl: string;
+  summary: string;
+  source?: 'live' | 'demo';
+  logoUrl?: string;
+};
 import {
   Card,
   Badge,
@@ -20,6 +38,7 @@ export const OpportunityCard: React.FC<
   const router = useRouter();
   const chainLabel =
     CHAINS.find((c) => c.id === data.chain)?.label || data.chain;
+  const [imgOk, setImgOk] = React.useState(Boolean(data.logoUrl));
   const Action = (
     <Button
       className="w-full text-white hover:bg-[var(--brand-orange-700)] transition-colors"
@@ -48,20 +67,60 @@ export const OpportunityCard: React.FC<
       {/* Curved corner logo badge */}
       {(() => {
         const l = protocolLogo(data.protocol);
+        const size = { w: 56, h: 56 };
+        const isArkadiko = data.protocol.toLowerCase() === 'arkadiko';
+        const isZest = data.protocol.toLowerCase() === 'zest';
+        const noBackground = isArkadiko || isZest;
+
         return (
           <div
-            className="absolute -top-3 -left-3 h-12 w-12 md:h-14 md:w-14 grid place-items-center"
-            style={{ 
-              background: 'var(--badge-lilac)', 
-              borderRadius: '16px',
-              boxShadow: '0 4px 10px rgba(0,0,0,.06)',
+            className="absolute grid place-items-center"
+            style={{
+              top: '-3px',
+              left: '-3px',
+              width: `${size.w}px`,
+              height: `${size.h}px`,
+              background: noBackground ? 'transparent' : 'var(--badge-lilac)',
+              borderRadius: '24px 0px 24px 0px',
+              boxShadow: noBackground ? 'none' : '0 4px 10px rgba(0,0,0,.06)',
+              overflow: 'hidden'
             }}
             title={data.protocol}
             aria-hidden
           >
-            <span className="text-sm md:text-base font-semibold" style={{ color: l.fg }}>
-              {l.letter}
-            </span>
+            {isArkadiko ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src="/logos/arkadiko.svg"
+                alt="Arkadiko"
+                style={{
+                  width: '46px',
+                  height: '46px',
+                  objectFit: 'contain',
+                  display: 'block'
+                }}
+              />
+            ) : imgOk && data.logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={data.logoUrl}
+                alt={data.protocol}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  objectPosition: 'center',
+                  display: 'block',
+                  padding: '6px',
+                  borderRadius: 'inherit'
+                }}
+                onError={() => setImgOk(false)}
+              />
+            ) : (
+              <span className="text-sm md:text-base font-semibold" style={{ color: l.fg }}>
+                {l.letter}
+              </span>
+            )}
           </div>
         );
       })()}
@@ -102,18 +161,7 @@ export const OpportunityCard: React.FC<
         </div>
       </div>
 
-      <div className="mt-3 flex items-center justify-between text-[11px] text-zinc-600">
-        <div className="flex items-center gap-1">
-          <span>Last updated {data.lastUpdated}</span>
-          <span className="text-zinc-400">·</span>
-          <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-zinc-700">
-            source: demo
-          </span>
-        </div>
-        <div className="rounded-full bg-zinc-100 px-2 py-0.5 text-zinc-700">
-          {chainLabel}
-        </div>
-      </div>
+      {/* Footer info removed per request */}
 
       <div className="mt-5">
         {disabled ? (

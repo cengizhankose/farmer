@@ -1,4 +1,4 @@
-import { Opportunity, ProtocolInfo } from '@shared/core';
+import { Opportunity, ProtocolInfo } from '../types';
 import { BaseAdapter } from './base-adapter';
 import { DefiLlamaService } from '../services/defillama';
 import { LlamaPool } from '../types/defillama';

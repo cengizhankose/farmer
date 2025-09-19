@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { 
   ResponsiveContainer, 
@@ -13,51 +13,76 @@ import {
   CartesianGrid
 } from "recharts";
 import { ExternalLink, FileText, TrendingUp, TrendingDown, Activity, Users } from "lucide-react";
-import type { Opportunity } from "@/lib/mock";
+type Opportunity = {
+  id: string;
+  protocol: string;
+  pair: string;
+  chain: string;
+  apr: number;
+  apy: number;
+  risk: "Low" | "Medium" | "High";
+  tvlUsd: number;
+  rewardToken: string;
+  lastUpdated: string;
+  originalUrl: string;
+  summary: string;
+};
 import { colors } from "@/lib/colors";
 
 interface OpportunityOverviewCardProps {
   data: Opportunity;
 }
 
-// Demo data generator
-function generateDemoSeries(days = 30) {
-  const series = [];
-  const now = Date.now();
-  let baseApr = 12.3;
-  let baseTvl = 1250000;
-  
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date(now - i * 86400000);
-    const aprVariation = (Math.random() - 0.5) * 2;
-    const tvlVariation = (Math.random() - 0.45) * 100000;
-    const volume = Math.random() * 50000 + 10000;
-    
-    baseApr = Math.max(8, Math.min(18, baseApr + aprVariation * 0.3));
-    baseTvl = Math.max(800000, baseTvl + tvlVariation);
-    
-    series.push({
-      date: date.toISOString().slice(0, 10),
-      apr: Number(baseApr.toFixed(2)),
-      tvl: Math.round(baseTvl / 1000000 * 100) / 100, // in millions
-      volume: Math.round(volume),
-      pnl: Math.random() > 0.5 ? Math.random() * 5000 : -Math.random() * 2000,
-    });
-  }
-  
-  return series;
-}
+// (Removed demo data generator)
+
+type ChartPoint = { date: string; apr: number; tvl: number; volume: number };
 
 export function OpportunityOverviewCard({ data }: OpportunityOverviewCardProps) {
-  const [timeRange, setTimeRange] = useState<"7D" | "30D" | "90D" | "1Y">("30D");
-  const series = generateDemoSeries(timeRange === "7D" ? 7 : timeRange === "30D" ? 30 : timeRange === "90D" ? 90 : 365);
+  const [timeRange, setTimeRange] = useState<"7D" | "30D" | "90D">("30D");
+  const [series, setSeries] = useState<ChartPoint[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState<string | null>(null);
 
-  const latestMetrics = {
-    apr: series[series.length - 1].apr,
-    tvl: series[series.length - 1].tvl,
-    volume24h: series[series.length - 1].volume,
-    participants: Math.floor(Math.random() * 500 + 100),
-  };
+  const days = useMemo(() => (timeRange === '7D' ? 7 : timeRange === '30D' ? 30 : 90), [timeRange]);
+
+  useEffect(() => {
+    let mounted = true;
+    async function load() {
+      try {
+        setLoading(true);
+        setErr(null);
+        const resp = await fetch(`/api/opportunities/${data.id}/chart?days=${days}`);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const json = await resp.json();
+        const pts: Array<{ timestamp: number; tvlUsd: number; apy?: number; apr?: number; volume24h?: number }> = json.series || [];
+        const mapped: ChartPoint[] = pts.map((p) => ({
+          date: new Date(p.timestamp).toISOString().slice(0, 10),
+          apr: Number(((p.apy ?? p.apr ?? 0) * 100).toFixed(2)),
+          tvl: Math.round((p.tvlUsd / 1_000_000) * 100) / 100,
+          volume: Math.round(p.volume24h || 0),
+        }));
+        if (!mounted) return;
+        setSeries(mapped);
+      } catch (e) {
+        console.error('Chart load failed', e);
+        setErr((e as Error).message);
+        setSeries([]);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+    load();
+    return () => { mounted = false; };
+  }, [data.id, days]);
+
+  const latestMetrics = series.length
+    ? {
+        apr: series[series.length - 1].apr,
+        tvl: series[series.length - 1].tvl,
+        volume24h: series[series.length - 1].volume,
+        participants: undefined as number | undefined,
+      }
+    : { apr: data.apr, tvl: Math.round((data.tvlUsd / 1_000_000) * 100) / 100, volume24h: undefined, participants: undefined };
 
   const CustomTooltip = ({ active, payload, label }: { 
     active?: boolean; 
@@ -101,26 +126,35 @@ export function OpportunityOverviewCard({ data }: OpportunityOverviewCardProps) 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <MetricCard
           label="Current APR"
-          value={`${latestMetrics.apr}%`}
-          trend={2.3}
+          value={`${latestMetrics.apr.toFixed(1)}%`}
+          trend={undefined}
           icon={<TrendingUp size={14} />}
         />
         <MetricCard
           label="TVL"
-          value={`$${latestMetrics.tvl}M`}
-          trend={5.2}
+          value={(() => {
+            const tvlM = latestMetrics.tvl;
+            if (tvlM >= 1) return `$${tvlM.toFixed(2)}M`;
+            if (tvlM >= 0.001) return `$${(tvlM * 1000).toFixed(2)}K`;
+            return `$${Math.round(tvlM * 1_000_000).toLocaleString()}`;
+          })()}
+          trend={undefined}
           icon={<Activity size={14} />}
         />
         <MetricCard
           label="24h Volume"
-          value={`$${(latestMetrics.volume24h / 1000).toFixed(1)}K`}
-          trend={-1.8}
+          value={
+            latestMetrics.volume24h && latestMetrics.volume24h > 0
+              ? `$${(latestMetrics.volume24h / 1000).toFixed(1)}K`
+              : '—'
+          }
+          trend={undefined}
           icon={<Activity size={14} />}
         />
         <MetricCard
           label="Participants"
-          value={latestMetrics.participants.toString()}
-          trend={12}
+          value={latestMetrics.participants ? latestMetrics.participants.toString() : '—'}
+          trend={undefined}
           icon={<Users size={14} />}
         />
       </div>
@@ -141,7 +175,7 @@ export function OpportunityOverviewCard({ data }: OpportunityOverviewCardProps) 
           <div className="flex items-center gap-2">
             {/* Time Range Selector */}
             <div className="inline-flex rounded-lg bg-white p-0.5 ring-1 ring-black/5">
-              {(["7D", "30D", "90D", "1Y"] as const).map((range) => (
+              {(["7D", "30D", "90D"] as const).map((range) => (
                 <button
                   key={range}
                   onClick={() => setTimeRange(range)}
@@ -172,6 +206,12 @@ export function OpportunityOverviewCard({ data }: OpportunityOverviewCardProps) 
 
         {/* Chart */}
         <div className="h-[280px]">
+          {err && (
+            <div className="text-xs text-rose-600 mb-2">Chart load failed: {err}</div>
+          )}
+          {loading && (
+            <div className="text-xs text-zinc-500 mb-2">Loading chart…</div>
+          )}
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={series} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
               <defs>

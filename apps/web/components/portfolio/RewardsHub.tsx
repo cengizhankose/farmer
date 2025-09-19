@@ -1,8 +1,53 @@
 "use client";
 import React from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RTooltip, ResponsiveContainer } from "recharts";
-import type { RedirectEntry } from "@/lib/mock";
-import { getOpportunityById } from "@/lib/mock";
+// Local type definitions
+type RedirectEntry = {
+  id: string;
+  protocol: string;
+  pair: string;
+  apr: number;
+  amount: number;
+  days: number;
+  ts: number;
+  chain: string;
+  txid?: string;
+  action?: "Deposit" | "Withdraw";
+};
+
+type Opportunity = {
+  id: string;
+  protocol: string;
+  pair: string;
+  chain: string;
+  apr: number;
+  apy: number;
+  risk: "Low" | "Medium" | "High";
+  tvlUsd: number;
+  rewardToken: string;
+  lastUpdated: string;
+  originalUrl: string;
+  summary: string;
+};
+
+// Mock function - replace with actual data fetching logic
+function getOpportunityById(id: string): Opportunity | undefined {
+  // This is a placeholder - replace with actual implementation
+  return {
+    id,
+    protocol: "Unknown",
+    pair: "Unknown",
+    chain: "stacks",
+    apr: 0,
+    apy: 0,
+    risk: "Medium",
+    tvlUsd: 0,
+    rewardToken: "STX",
+    lastUpdated: "Now",
+    originalUrl: "",
+    summary: ""
+  };
+}
 import { Button, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/primitives";
 
 export const RewardsHub: React.FC<{ rows: RedirectEntry[] }>

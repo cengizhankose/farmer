@@ -4,7 +4,19 @@ import CountUp from "react-countup";
 import { motion } from "framer-motion";
 import { AreaChart, Area, ResponsiveContainer } from "recharts";
 import { TrendingUp, TrendingDown } from "lucide-react";
-import type { RedirectEntry } from "@/lib/mock";
+// Local type definitions
+type RedirectEntry = {
+  id: string;
+  protocol: string;
+  pair: string;
+  apr: number;
+  amount: number;
+  days: number;
+  ts: number;
+  chain: string;
+  txid?: string;
+  action?: "Deposit" | "Withdraw";
+};
 import { colors } from "@/lib/colors";
 
 function calc(rows: RedirectEntry[]) {

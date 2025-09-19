@@ -61,8 +61,9 @@
   );
   --grad-market: linear-gradient(
     120deg,
-    #B8926A 0%,
-    #5C4335 55%,
+    var(--warm-gold) 0%,
+    var(--burnt-orange) 45%,
+    var(--bronze) 75%,
     var(--near-black) 100%
   );
 }
@@ -447,4 +448,46 @@ h3,
 }
 @media (prefers-reduced-motion: reduce) {
   .grad-breathe::before { animation: none; }
+}
+
+/* Why Us section cards - Warm gold theme */
+.card-why {
+  background: linear-gradient(135deg,
+    rgba(226, 200, 114, 0.15) 0%,
+    rgba(226, 200, 114, 0.08) 100%
+  );
+  border: 1px solid rgba(226, 200, 114, 0.3);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.card-why:hover {
+  background: linear-gradient(135deg,
+    rgba(226, 200, 114, 0.18) 0%,
+    rgba(226, 200, 114, 0.12) 100%
+  );
+  border-color: rgba(226, 200, 114, 0.45);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(226, 200, 114, 0.15);
+}
+
+/* Marketing section cards - Brand orange theme */
+.card-market {
+  background: linear-gradient(135deg,
+    rgba(255, 106, 0, 0.12) 0%,
+    rgba(255, 106, 0, 0.06) 100%
+  );
+  border: 1px solid rgba(255, 106, 0, 0.25);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.card-market:hover {
+  background: linear-gradient(135deg,
+    rgba(255, 106, 0, 0.15) 0%,
+    rgba(255, 106, 0, 0.10) 100%
+  );
+  border-color: rgba(255, 106, 0, 0.35);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 106, 0, 0.12);
 }

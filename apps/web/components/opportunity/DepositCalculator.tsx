@@ -23,8 +23,20 @@ import {
   AlertCircle
 } from "lucide-react";
 import { toast } from "sonner";
-import type { Opportunity } from "@/lib/mock";
-import { addRecentRedirect } from "@/lib/mock";
+type Opportunity = {
+  id: string;
+  protocol: string;
+  pair: string;
+  chain: string;
+  apr: number;
+  apy: number;
+  risk: "Low" | "Medium" | "High";
+  tvlUsd: number;
+  rewardToken: string;
+  lastUpdated: string;
+  originalUrl: string;
+  summary: string;
+};
 import { colors } from "@/lib/colors";
 
 interface DepositCalculatorProps {
@@ -104,8 +116,8 @@ export function DepositCalculator({ data }: DepositCalculatorProps) {
 
     setShowSuccess(true);
     
-    // Add to portfolio history
-    addRecentRedirect({
+    // Add to portfolio history (implementation would go here)
+    console.log('Adding to portfolio:', {
       id: data.id,
       protocol: data.protocol,
       pair: data.pair,

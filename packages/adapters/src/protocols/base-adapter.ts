@@ -1,4 +1,4 @@
-import { Adapter, Opportunity, ProtocolInfo, Chain } from '@shared/core';
+import { Adapter, Opportunity, ProtocolInfo, Chain } from '../types';
 
 export abstract class BaseAdapter implements Adapter {
   protected protocolInfo: ProtocolInfo;

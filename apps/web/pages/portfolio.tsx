@@ -2,7 +2,8 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { getRecentRedirects, type RedirectEntry } from "@/lib/mock";
+// import { UserPosition } from "../../../../packages/shared/src/types"; // TODO: Use when wallet integration ready
+import { Logger } from "@/lib/adapters/real";
 import { Card, Button } from "@/components/ui/primitives";
 import { toast } from "sonner";
 import { colors } from "../lib/colors";
@@ -15,23 +16,44 @@ import { toCSV, downloadCSV } from "@/lib/csv";
 
 // Removed unused calc function - was used for MiniSummary that was removed
 
+// Type for compatibility with existing components
+type RedirectEntry = {
+  id: string;
+  protocol: string;
+  pair: string;
+  apr: number;
+  amount: number;
+  days: number;
+  ts: number;
+  chain: string;
+  txid?: string;
+  action?: "Deposit" | "Withdraw";
+};
+
 export default function PortfolioPage() {
+  // const [positions, setPositions] = React.useState<UserPosition[]>([]); // TODO: Use when wallet integration ready
   const [rows, setRows] = React.useState<RedirectEntry[]>([]);
   const [period, setPeriod] = React.useState<"24H" | "7D" | "30D">("30D");
+  const [loading, setLoading] = React.useState(true);
+  const [error] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    setRows(getRecentRedirects());
+    // Wallet integration pending → no mock fallback
+    setLoading(false);
+    setRows([]);
   }, []);
 
   // Removed unused variables - MiniSummary was removed per user request
 
   const clear = () => {
+    Logger.info('🧽 Clearing portfolio data...');
     localStorage.removeItem("stacks_portfolio_mock");
     setRows([]);
     toast("Cleared", { description: "Portfolio history cleared." });
   };
 
   const exportCSV = () => {
+    Logger.info('📄 Exporting portfolio to CSV...');
     const withEst = rows.map((r) => ({
       When: new Date(r.ts).toISOString(),
       Protocol: r.protocol,
@@ -43,6 +65,7 @@ export default function PortfolioPage() {
     }));
     const csv = toCSV(withEst, ["When", "Protocol", "Pair", "Amount", "APR", "Days", "EstReturn"]);
     downloadCSV("portfolio.csv", csv);
+    Logger.info(`✅ Exported ${rows.length} portfolio entries to CSV`);
   };
 
   const emptyIllustration = "https://images.unsplash.com/photo-1622547748225-3fc4abd2cca0?auto=format&fit=crop&q=80&w=1200";
@@ -50,9 +73,50 @@ export default function PortfolioPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-12">
       <h1 className="typo-portfolio-h1">Portfolio</h1>
-      <p className="typo-portfolio-sub max-w-2xl">Recent redirects and estimated returns. Testnet canary transactions will appear here later.</p>
+      <p className="typo-portfolio-sub max-w-2xl">💼 Real portfolio tracking (wallet integration pending). Recent redirects and estimated returns shown below.
+      </p>
+      
+      {/* Portfolio Status Indicator */}
+      {error && (
+        <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4">
+          <div className="flex items-center space-x-3">
+            <div className="h-5 w-5 text-red-600">❌</div>
+            <div>
+              <p className="text-sm font-medium text-red-800">
+                Portfolio Loading Failed
+              </p>
+              <p className="text-sm text-red-700">
+                {error}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {!error && !loading && (
+        <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
+          <div className="flex items-center space-x-3">
+            <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse"></div>
+            <div>
+              <p className="text-sm font-medium text-blue-800">
+                🚀 Portfolio System Ready
+              </p>
+              <p className="text-sm text-blue-700">
+                Wallet integration required to show real transactions
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
-      {rows.length === 0 ? (
+      {loading ? (
+        <div className="mt-8 text-center">
+          <div className="inline-flex items-center gap-2 text-gray-600">
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600"></div>
+            Loading portfolio data...
+          </div>
+        </div>
+      ) : rows.length === 0 ? (
         <Card className="mt-8 overflow-hidden border-white/40 bg-white/60 backdrop-blur-2xl">
           <div className="relative h-48 w-full">
             <Image src={emptyIllustration} alt="empty" fill className="object-cover" />
@@ -86,9 +150,11 @@ export default function PortfolioPage() {
 
           <div className="mt-6">
             <PortfolioOverviewChart period={period} />
-            <AccountSummary rows={rows} />
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            <AccountSummary rows={rows as any} />
           </div>
-          <PositionsList rows={rows} />
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          <PositionsList rows={rows as any} />
           <div className="mt-8">
             <RewardsChart className="mt-0" />
           </div>
@@ -100,7 +166,8 @@ export default function PortfolioPage() {
                 <Button variant="outline" onClick={clear} className={`border-[${colors.zinc[300]}]`}>Clear</Button>
               </div>
             </div>
-            <ActivityFeed rows={rows} />
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            <ActivityFeed rows={rows as any} />
           </Card>
         </>
       )}

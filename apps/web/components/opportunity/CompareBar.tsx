@@ -2,7 +2,20 @@
 import React, { useState, createContext, useContext } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, GitCompare } from "lucide-react";
-import type { Opportunity } from "@/lib/mock";
+type Opportunity = {
+  id: string;
+  protocol: string;
+  pair: string;
+  chain: string;
+  apr: number;
+  apy: number;
+  risk: "Low" | "Medium" | "High";
+  tvlUsd: number;
+  rewardToken: string;
+  lastUpdated: string;
+  originalUrl: string;
+  summary: string;
+};
 import { protocolLogo } from "@/lib/logos";
 import { CompareModal } from "./CompareModal";
 

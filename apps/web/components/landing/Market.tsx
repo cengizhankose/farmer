@@ -20,15 +20,15 @@ export function Market({ progress = 0 }: { progress?: number }) {
             tracks the market and responds immediately to anomalies.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
-            <div className="rounded-2xl bg-white/10 p-6 backdrop-blur-xl border border-white/10">
+            <div className="rounded-2xl card-market p-6">
               <h3 className="typo-card-h">Why TVL matters</h3>
               <p className="typo-card-p">TVL → slippage & withdrawal safety</p>
             </div>
-            <div className="rounded-2xl bg-white/10 p-6 backdrop-blur-xl border border-white/10">
+            <div className="rounded-2xl card-market p-6">
               <h3 className="typo-card-h">Why volume matters</h3>
               <p className="typo-card-p">High turnover = easy entry/exit</p>
             </div>
-            <div className="rounded-2xl bg-white/10 p-6 backdrop-blur-xl border border-white/10">
+            <div className="rounded-2xl card-market p-6">
               <h3 className="typo-card-h">Why risk scoring</h3>
               <p className="typo-card-p">Risk explained with sub-metrics, not a single number</p>
             </div>

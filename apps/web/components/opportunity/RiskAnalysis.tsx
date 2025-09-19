@@ -2,7 +2,20 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Shield, AlertTriangle, TrendingDown, Lock, Info } from "lucide-react";
-import type { Opportunity } from "@/lib/mock";
+type Opportunity = {
+  id: string;
+  protocol: string;
+  pair: string;
+  chain: string;
+  apr: number;
+  apy: number;
+  risk: "Low" | "Medium" | "High";
+  tvlUsd: number;
+  rewardToken: string;
+  lastUpdated: string;
+  originalUrl: string;
+  summary: string;
+};
 
 interface RiskAnalysisProps {
   data: Opportunity;

@@ -1,7 +1,19 @@
 "use client";
 import React from "react";
 import Link from "next/link";
-import type { RedirectEntry } from "@/lib/mock";
+// Local type definitions
+type RedirectEntry = {
+  id: string;
+  protocol: string;
+  pair: string;
+  apr: number;
+  amount: number;
+  days: number;
+  ts: number;
+  chain: string;
+  txid?: string;
+  action?: "Deposit" | "Withdraw";
+};
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/primitives";
 import { colors } from "@/lib/colors";
 

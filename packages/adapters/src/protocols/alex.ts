@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Opportunity, ProtocolInfo } from '@shared/core';
+import { Opportunity, ProtocolInfo } from '../types';
 import { BaseAdapter } from './base-adapter';
 
 interface AlexPoolData {

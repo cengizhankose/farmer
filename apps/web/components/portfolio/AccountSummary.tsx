@@ -1,7 +1,19 @@
 "use client";
 import React from "react";
 import { formatUSD } from "@/lib/format";
-import type { RedirectEntry } from "@/lib/mock";
+// Local type definitions
+type RedirectEntry = {
+  id: string;
+  protocol: string;
+  pair: string;
+  apr: number;
+  amount: number;
+  days: number;
+  ts: number;
+  chain: string;
+  txid?: string;
+  action?: "Deposit" | "Withdraw";
+};
 
 export const AccountSummary: React.FC<{ rows: RedirectEntry[] }> = ({ rows }) => {
   const total = rows.reduce((acc, r) => acc + r.amount, 0);

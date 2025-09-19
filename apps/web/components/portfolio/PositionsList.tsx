@@ -3,8 +3,60 @@ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { colors } from "@/lib/colors";
-import type { RedirectEntry } from "@/lib/mock";
-import { getOpportunityById, RISK_COLORS } from "@/lib/mock";
+// Local type definitions
+type RedirectEntry = {
+  id: string;
+  protocol: string;
+  pair: string;
+  apr: number;
+  amount: number;
+  days: number;
+  ts: number;
+  chain: string;
+  txid?: string;
+  action?: "Deposit" | "Withdraw";
+};
+
+type Opportunity = {
+  id: string;
+  protocol: string;
+  pair: string;
+  chain: string;
+  apr: number;
+  apy: number;
+  risk: "Low" | "Medium" | "High";
+  tvlUsd: number;
+  rewardToken: string;
+  lastUpdated: string;
+  originalUrl: string;
+  summary: string;
+};
+
+// Local constants
+const RISK_COLORS: Record<string, string> = {
+  Low: "bg-green-100 text-green-800 border-green-300",
+  Medium: "bg-yellow-100 text-yellow-800 border-yellow-300", 
+  High: "bg-red-100 text-red-800 border-red-300"
+};
+
+// Mock function - replace with actual data fetching logic
+function getOpportunityById(id: string): Opportunity | undefined {
+  // This is a placeholder - replace with actual implementation
+  return {
+    id,
+    protocol: "Unknown",
+    pair: "Unknown",
+    chain: "stacks",
+    apr: 0,
+    apy: 0,
+    risk: "Medium",
+    tvlUsd: 0,
+    rewardToken: "STX",
+    lastUpdated: "Now",
+    originalUrl: "",
+    summary: ""
+  };
+}
 import { protocolLogo } from "@/lib/logos";
 import { AreaChart, Area, ResponsiveContainer } from "recharts";
 import { Button, Badge } from "@/components/ui/primitives";

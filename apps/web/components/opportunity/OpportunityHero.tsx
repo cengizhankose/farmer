@@ -5,15 +5,47 @@ import { ChevronRight, Clock, Shield, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { colors } from "@/lib/colors";
 import { protocolLogo } from "@/lib/logos";
-import type { Opportunity } from "@/lib/mock";
+type Opportunity = {
+  id: string;
+  protocol: string;
+  pair: string;
+  chain: string;
+  apr: number;
+  apy: number;
+  risk: "Low" | "Medium" | "High";
+  tvlUsd: number;
+  rewardToken: string;
+  lastUpdated: string;
+  originalUrl: string;
+  summary: string;
+  logoUrl?: string;
+};
 
 interface OpportunityHeroProps {
   data: Opportunity;
 }
 
 export function OpportunityHero({ data }: OpportunityHeroProps) {
-  const { protocol, pair, risk, chain, lastUpdated, apr, apy, tvlUsd, summary } = data;
+  const {
+    protocol,
+    pair,
+    risk,
+    chain,
+    lastUpdated,
+    apr,
+    apy,
+    tvlUsd,
+    summary,
+  } = data;
   const logo = protocolLogo(protocol);
+  const hasLogo = Boolean((data as unknown as { logoUrl?: string }).logoUrl);
+  const scale =
+    protocol.toLowerCase() === "zest" || protocol.toLowerCase() === "arkadiko"
+      ? 1.05
+      : 1.0;
+  const isZest = protocol.toLowerCase() === "zest";
+  const isArkadiko = protocol.toLowerCase() === "arkadiko";
+  const noBackground = isZest || isArkadiko;
 
   const riskColors = {
     Low: {
@@ -23,7 +55,7 @@ export function OpportunityHero({ data }: OpportunityHeroProps) {
     },
     Medium: {
       bg: "bg-amber-50/20",
-      text: "text-amber-100", 
+      text: "text-amber-100",
       ring: "ring-amber-300/30",
     },
     High: {
@@ -55,16 +87,44 @@ export function OpportunityHero({ data }: OpportunityHeroProps) {
       <motion.div
         initial={{ scale: 0.95, rotate: -2, opacity: 0 }}
         animate={{ scale: 1, rotate: 0, opacity: 1 }}
-        transition={{ duration: 0.35, type: "spring", stiffness: 260, damping: 20 }}
-        className="absolute -top-3 -left-3 h-14 w-14 md:h-16 md:w-16 rounded-2xl shadow-lg grid place-items-center"
-        style={{ 
-          background: "var(--badge-lilac)",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
+        transition={{
+          duration: 0.35,
+          type: "spring",
+          stiffness: 260,
+          damping: 20,
+        }}
+        className="absolute top-2 right-0 h-20 w-20 md:h-22 md:w-22 rounded-2xl shadow-lg grid place-items-center"
+        style={{
+          background: noBackground ? "transparent" : "var(--badge-lilac)",
+          boxShadow: noBackground ? "none" : "0 4px 12px rgba(0,0,0,0.12)",
         }}
       >
-        <span className="text-xl md:text-2xl font-bold" style={{ color: logo.fg }}>
-          {logo.letter}
-        </span>
+        {hasLogo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={(data as unknown as { logoUrl?: string }).logoUrl}
+            alt={protocol}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "contain",
+              objectPosition: "center",
+              transform: `scale(${scale})`,
+              padding: "6px",
+              borderRadius: "inherit",
+            }}
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).style.display = "none";
+            }}
+          />
+        ) : (
+          <span
+            className="text-xl md:text-2xl font-bold"
+            style={{ color: logo.fg }}
+          >
+            {logo.letter}
+          </span>
+        )}
       </motion.div>
 
       <div className="relative z-10 p-6 md:p-8">
@@ -75,7 +135,10 @@ export function OpportunityHero({ data }: OpportunityHeroProps) {
           transition={{ duration: 0.25 }}
           className="flex items-center gap-1.5 text-xs text-white/70 mb-4"
         >
-          <Link href="/opportunities" className="hover:text-white transition-colors">
+          <Link
+            href="/opportunities"
+            className="hover:text-white transition-colors"
+          >
             Opportunities
           </Link>
           <ChevronRight size={14} />
@@ -147,16 +210,22 @@ export function OpportunityHero({ data }: OpportunityHeroProps) {
   );
 }
 
-function KpiCard({ label, value, trend }: { label: string; value: string; trend?: string }) {
+function KpiCard({
+  label,
+  value,
+  trend,
+}: {
+  label: string;
+  value: string;
+  trend?: string;
+}) {
   return (
     <div className="rounded-2xl bg-white/10 px-4 py-3 ring-1 ring-white/15 backdrop-blur">
       <div className="flex items-center justify-between">
-        <div className="text-[11px] uppercase tracking-wide text-white/80">{label}</div>
-        {trend && (
-          <span className="text-[10px] text-emerald-300">
-            {trend}
-          </span>
-        )}
+        <div className="text-[11px] uppercase tracking-wide text-white/80">
+          {label}
+        </div>
+        {trend && <span className="text-[10px] text-emerald-300">{trend}</span>}
       </div>
       <div className="mt-0.5 font-sans text-lg md:text-xl font-semibold tabular-nums text-white">
         {value}

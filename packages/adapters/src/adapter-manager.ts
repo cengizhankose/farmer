@@ -1,4 +1,4 @@
-import { Adapter, Opportunity, Chain, CacheEntry, AdapterStats } from '@shared/core';
+import { Adapter, Opportunity, Chain, CacheEntry, AdapterStats } from './types';
 import { AlexAdapter } from './protocols/alex';
 import { ArkadikoAdapter } from './protocols/arkadiko';
 import { DefiLlamaAdapter } from './protocols/defillama';

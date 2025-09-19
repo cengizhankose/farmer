@@ -53,7 +53,7 @@ export function WhoWhy({ progress = 0 }: { progress?: number }) {
             ].map((c, i) => (
               <motion.div
                 key={i}
-                className="rounded-2xl bg-white/10 p-6 backdrop-blur-xl border border-white/10 hover:bg-white/15 transition-all hover:-translate-y-[2px]"
+                className="rounded-2xl card-why p-6"
                 variants={{
                   hidden: { y: 10, opacity: 0 },
                   visible: { y: 0, opacity: 1 },
@@ -102,7 +102,7 @@ export function WhoWhy({ progress = 0 }: { progress?: number }) {
             ].map((it, i) => (
               <motion.div
                 key={i}
-                className="rounded-2xl bg-white/10 p-6 backdrop-blur-xl border border-white/10 hover:bg-white/15 transition-all hover:-translate-y-[2px]"
+                className="rounded-2xl card-why p-6"
                 variants={{
                   hidden: { y: 10, opacity: 0 },
                   visible: { y: 0, opacity: 1 },

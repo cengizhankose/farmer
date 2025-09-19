@@ -2,7 +2,19 @@
 import React from "react";
 import { colors } from "@/lib/colors";
 import { formatUSD } from "@/lib/format";
-import type { RedirectEntry } from "@/lib/mock";
+// Local type definitions
+type RedirectEntry = {
+  id: string;
+  protocol: string;
+  pair: string;
+  apr: number;
+  amount: number;
+  days: number;
+  ts: number;
+  chain: string;
+  txid?: string;
+  action?: "Deposit" | "Withdraw";
+};
 
 export const SummaryChips: React.FC<{ rows: RedirectEntry[] }>
   = ({ rows }) => {

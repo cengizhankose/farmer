@@ -1,4 +1,4 @@
-import { Opportunity, ProtocolInfo } from '@shared/core';
+import { Opportunity, ProtocolInfo } from '../types';
 import { BaseAdapter } from './base-adapter';
 import { ArkadikoService } from '../services/arkadiko';
 import { ArkadikoTicker, ArkadikoPool } from '../types/arkadiko';

@@ -2,6 +2,8 @@
 import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import HeroRightChart from "@/components/HeroRightChart";
+import { Badge } from "@/components/ui/primitives";
 
 export function Hero({ progress = 0 }: { progress?: number }) {
   return (
@@ -15,7 +17,7 @@ export function Hero({ progress = 0 }: { progress?: number }) {
               transition: "transform 120ms linear",
             }}
           >
-            {/* Left column: H1 and subhead only */}
+            {/* Left column: H1, subcopy, badge, and actions */}
             <div>
               <motion.h1
                 className="typo-h1-hero"
@@ -42,40 +44,20 @@ export function Hero({ progress = 0 }: { progress?: number }) {
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.15, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
               >
-                Curated, verified yield opportunities. Clear APR/APY, transparent TVL, and instant risk scoring — review, decide, and deposit in one click.
+                Curated, detailed yield analysis. Clear data and instant risk scoring
               </motion.p>
-            </div>
-            
-            {/* Right column: bullets, buttons, badges with top spacing */}
-            <div className="relative pt-8">
-              {/* Token dock placeholder */}
-              <div id="token-dock" className="absolute right-4 top-4 h-[88px] w-[88px] rounded-xl bg-white/6 ring-1 ring-white/10 overflow-hidden z-10"></div>
-              
-              <motion.ul
-                className="space-y-3"
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.3 }}
-                variants={{ visible: { transition: { staggerChildren: 0.06 } } }}
-              >
-                {[
-                  "Curated opportunities: Hand-picked, audited pools (ALEX & Arkadiko)",
-                  "Transparent metrics: APR/APY, TVL, instant risk score — no hidden variables",
-                  "Deposit now (A): One-click; router (B) soon — non-custodial",
-                ].map((txt, i) => (
-                  <motion.li
-                    key={i}
-                    className="typo-bullets"
-                    variants={{ hidden: { y: 8, opacity: 0 }, visible: { y: 0, opacity: 1 } }}
-                  >
-                    <span className="text-orange-400">•</span>
-                    <span>{txt}</span>
-                  </motion.li>
-                ))}
-              </motion.ul>
-              
+
               <motion.div
-                className="mt-10 flex flex-wrap gap-4"
+                className="mt-4"
+                initial={{ y: 8, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.25, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              >
+                <Badge variant="outline" className="uppercase tracking-wide text-white border-white/30">one click deposit</Badge>
+              </motion.div>
+
+              <motion.div
+                className="mt-8 flex flex-wrap gap-4"
                 initial={{ y: 8, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.35, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
@@ -95,16 +77,16 @@ export function Hero({ progress = 0 }: { progress?: number }) {
                   View portfolio →
                 </Link>
               </motion.div>
-              
-              <div className="typo-microcopy">
+
+              <div className="typo-microcopy mt-4">
                 Non-custodial flows — funds stay in your wallet. Smart-contract limits and per-tx caps protect users.
               </div>
-              
-              <div className="mt-6 flex flex-wrap gap-2">
-                <span className="typo-badge">Audited pools</span>
-                <span className="typo-badge">Non-custodial</span>
-                <span className="typo-badge">Per-tx cap</span>
-              </div>
+            </div>
+            
+            {/* Right column: animated chart card */}
+            <div className="relative pt-8">
+              <HeroRightChart />
+              <div id="token-dock" className="absolute right-4 top-4 h-[72px] w-[72px] rounded-xl bg-white/6 ring-1 ring-white/10 overflow-hidden z-10" aria-hidden></div>
             </div>
           </div>
         </div>

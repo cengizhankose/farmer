@@ -163,14 +163,16 @@ export class ArkadikoService {
         this.getPools().catch(() => [])
       ]);
 
-      const totalLiquidity = tickers.reduce((sum, ticker) => {
-        return sum + (ticker.liquidity_in_usd || 0);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const totalLiquidity = (tickers as any[]).reduce((sum: any, ticker: any) => {
+        return sum + (Number(ticker.liquidity_in_usd) || 0);
       }, 0);
 
-      const totalVolume24h = tickers.reduce((sum, ticker) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const totalVolume24h = (tickers as any[]).reduce((sum: any, ticker: any) => {
         // Calculate total volume in USD using base and target volumes
-        const baseVolumeUsd = ticker.base_volume * ticker.base_price;
-        const targetVolumeUsd = ticker.target_volume * ticker.target_price;
+        const baseVolumeUsd = Number(ticker.base_volume) * Number(ticker.base_price);
+        const targetVolumeUsd = Number(ticker.target_volume) * Number(ticker.target_price);
         return sum + baseVolumeUsd + targetVolumeUsd;
       }, 0);
 
