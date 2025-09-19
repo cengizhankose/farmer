@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /* Import typography system */
-@import './typography.css';
+@import "./typography.css";
 
 /* Fonts */
 /* Note: ClashDisplay-Variable.woff2 not found - using system font fallback */
@@ -18,32 +18,33 @@
 */
 
 :root {
-  --font-display: 'Clash Display', ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
-    Roboto, Inter, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji',
-    'Segoe UI Emoji', 'Segoe UI Symbol';
+  --font-display:
+    "Clash Display", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, Inter, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol";
 
   /* Graph paper defaults (dark) */
   --gp-bg: #0e0e10;
   --gp-line: rgba(255, 255, 255, 0.06);
-  --gp-5th: rgba(255, 255, 255, 0.10);
+  --gp-5th: rgba(255, 255, 255, 0.1);
   --gp-10th: rgba(255, 255, 255, 0.16);
   --gp-unit: 16px;
   --gp-scale: 1;
 
   /* UI Design System Colors */
-  --sand-50: #F6F4EF;
-  --sand-200: #E3DDD1;
-  --graph-bg: #0E0E10;
-  --brand-orange: #FF6A00;
-  --brand-orange-700: #E85F00;
-  --badge-lilac: #E6DBFF;
+  --sand-50: #f6f4ef;
+  --sand-200: #e3ddd1;
+  --graph-bg: #0e0e10;
+  --brand-orange: #ff6a00;
+  --brand-orange-700: #e85f00;
+  --badge-lilac: #e6dbff;
 
   /* FE_examples tokens */
-  --burnt-orange: #C6561A;
-  --bronze: #8C5A3A;
-  --coffee: #3A2A21;
-  --near-black: #0E0C0A;
-  --warm-gold: #E2C872;
+  --burnt-orange: #c6561a;
+  --bronze: #8c5a3a;
+  --coffee: #3a2a21;
+  --near-black: #0e0c0a;
+  --warm-gold: #e2c872;
 
   /* Gradient variables */
   --grad-hero: linear-gradient(
@@ -55,9 +56,10 @@
   );
   --grad-why: linear-gradient(
     120deg,
-    var(--warm-gold) 0%,
-    #2A1F15 70%,
-    #0A0807 100%
+    rgba(226, 200, 114, 0.05) 0%,
+    rgba(198, 169, 89, 0.04) 42%,
+    #2a1f15 74%,
+    #0a0807 100%
   );
   --grad-market: linear-gradient(
     120deg,
@@ -74,8 +76,12 @@
   background-color: var(--gp-bg);
 
   /* step variables for chart-style spacing */
-  --chart-step-h: calc(var(--gp-unit) * var(--gp-scale) * 2); /* Horizontal spacing (wider) */
-  --chart-step-v: calc(var(--gp-unit) * var(--gp-scale) * 1.5); /* Vertical spacing */
+  --chart-step-h: calc(
+    var(--gp-unit) * var(--gp-scale) * 2
+  ); /* Horizontal spacing (wider) */
+  --chart-step-v: calc(
+    var(--gp-unit) * var(--gp-scale) * 1.5
+  ); /* Vertical spacing */
   --chart-major-h: calc(var(--chart-step-h) * 4); /* Major horizontal lines */
   --chart-major-v: calc(var(--chart-step-v) * 6); /* Major vertical lines */
 
@@ -91,29 +97,29 @@
       transparent calc(var(--chart-major-h) + 1px)
     ),
     /* Regular horizontal lines (price grid) */
-    repeating-linear-gradient(
-      0deg,
-      var(--gp-line),
-      var(--gp-line) 0.5px,
-      transparent 0.5px,
-      transparent var(--chart-step-h)
-    ),
+      repeating-linear-gradient(
+        0deg,
+        var(--gp-line),
+        var(--gp-line) 0.5px,
+        transparent 0.5px,
+        transparent var(--chart-step-h)
+      ),
     /* Subtle vertical lines (time grid) */
-    repeating-linear-gradient(
-      90deg,
-      var(--gp-5th),
-      var(--gp-5th) 0.5px,
-      transparent 0.5px,
-      transparent var(--chart-major-v)
-    ),
+      repeating-linear-gradient(
+        90deg,
+        var(--gp-5th),
+        var(--gp-5th) 0.5px,
+        transparent 0.5px,
+        transparent var(--chart-major-v)
+      ),
     /* Fine vertical guides */
-    repeating-linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.03),
-      rgba(255, 255, 255, 0.03) 0.5px,
-      transparent 0.5px,
-      transparent var(--chart-step-v)
-    );
+      repeating-linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.03),
+        rgba(255, 255, 255, 0.03) 0.5px,
+        transparent 0.5px,
+        transparent var(--chart-step-v)
+      );
 }
 
 .graph-bg::after {
@@ -124,35 +130,49 @@
   /* Intense center darkness - grids invisible in center */
   background:
     /* Very strong horizontal gradient - almost black center */
-    linear-gradient(to right, 
-      rgba(0,0,0,0) 0%, 
-      rgba(0,0,0,0.3) 10%, 
-      rgba(0,0,0,0.7) 35%, 
-      rgba(0,0,0,0.85) 45%, 
-      rgba(0,0,0,0.92) 50%, 
-      rgba(0,0,0,0.85) 55%, 
-      rgba(0,0,0,0.7) 65%, 
-      rgba(0,0,0,0.3) 90%, 
-      rgba(0,0,0,0) 100%
+    linear-gradient(
+      to right,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 0.3) 10%,
+      rgba(0, 0, 0, 0.7) 35%,
+      rgba(0, 0, 0, 0.85) 45%,
+      rgba(0, 0, 0, 0.92) 50%,
+      rgba(0, 0, 0, 0.85) 55%,
+      rgba(0, 0, 0, 0.7) 65%,
+      rgba(0, 0, 0, 0.3) 90%,
+      rgba(0, 0, 0, 0) 100%
     ),
     /* Additional center focus */
-    radial-gradient(ellipse 80% 100% at 50% 50%, 
-      rgba(0,0,0,0.6) 0%, 
-      rgba(0,0,0,0.3) 40%,
-      rgba(0,0,0,0) 70%
-    ),
+      radial-gradient(
+        ellipse 80% 100% at 50% 50%,
+        rgba(0, 0, 0, 0.6) 0%,
+        rgba(0, 0, 0, 0.3) 40%,
+        rgba(0, 0, 0, 0) 70%
+      ),
     /* Subtle top-to-bottom overlay */
-    linear-gradient(to bottom, rgba(0,15,25,0.1), rgba(0,0,0,0) 25%, rgba(0,0,0,0) 75%,
-      rgba(0,10,20,0.15));
+      linear-gradient(
+        to bottom,
+        rgba(0, 15, 25, 0.1),
+        rgba(0, 0, 0, 0) 25%,
+        rgba(0, 0, 0, 0) 75%,
+        rgba(0, 10, 20, 0.15)
+      );
   z-index: 0;
 }
 
 /* Chart density helpers */
-.graph-density-tight { --gp-scale: 0.75; } /* Dense trading view */
-.graph-density-normal { --gp-scale: 1; } /* Standard chart */
-.graph-density-loose { --gp-scale: 1.4; } /* Spacious overview */
+.graph-density-tight {
+  --gp-scale: 0.75;
+} /* Dense trading view */
+.graph-density-normal {
+  --gp-scale: 1;
+} /* Standard chart */
+.graph-density-loose {
+  --gp-scale: 1.4;
+} /* Spacious overview */
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   height: 100%;
@@ -194,8 +214,18 @@ div[style*="z-index:99999"] {
 }
 
 body {
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
-    "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Roboto",
+    "Oxygen",
+    "Ubuntu",
+    "Cantarell",
+    "Fira Sans",
+    "Droid Sans",
+    "Helvetica Neue",
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -208,8 +238,9 @@ h3,
   font-family: "Clash Display", "Space Grotesk", "Inter", system-ui, sans-serif;
 }
 .font-mono-tech {
-  font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
-    Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family:
+    "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
 }
 
 /* Respect reduced motion globally for transitions (animations handled in components) */
@@ -249,11 +280,11 @@ h3,
   html {
     -webkit-text-size-adjust: 100%;
   }
-  
+
   * {
     @apply border-border;
   }
-  
+
   body {
     @apply bg-white text-neutral-900 antialiased m-0 p-0;
     height: 100%;
@@ -300,7 +331,9 @@ h3,
 .thread-card {
   opacity: 0;
   transform: translateY(22px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s ease;
 }
 .thread-card-show {
   opacity: 1;
@@ -375,7 +408,7 @@ h3,
   background: var(--brand-orange);
   cursor: pointer;
   border: 2px solid white;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .range-orange::-moz-range-thumb {
@@ -385,7 +418,7 @@ h3,
   background: var(--brand-orange);
   cursor: pointer;
   border: 2px solid white;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Curved corner badge cap (optional decorative) */
@@ -409,23 +442,34 @@ h3,
 .noise-overlay {
   position: relative;
 }
- .noise-overlay::after {
+.noise-overlay::after {
   content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-image: radial-gradient(
+    rgba(255, 255, 255, 0.05) 1px,
+    transparent 1px
+  );
   background-size: 3px 3px;
   opacity: 0.95;
   animation: noisePulse 10s ease-in-out infinite;
 }
 @keyframes noisePulse {
-  0% { opacity: 0.9; }
-  50% { opacity: 1; }
-  100% { opacity: 0.9; }
+  0% {
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.9;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .noise-overlay::after { animation: none; }
+  .noise-overlay::after {
+    animation: none;
+  }
 }
 
 /* Gradient breathing (rotating hero gradient) */
@@ -443,51 +487,189 @@ h3,
   animation: breathe-rotate 12s linear infinite;
 }
 @keyframes breathe-rotate {
-  from { transform: rotate(0deg) scale(1.05); opacity: 0.95; }
-  to { transform: rotate(360deg) scale(1.05); opacity: 0.95; }
+  from {
+    transform: rotate(0deg) scale(1.05);
+    opacity: 0.95;
+  }
+  to {
+    transform: rotate(360deg) scale(1.05);
+    opacity: 0.95;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .grad-breathe::before { animation: none; }
+  .grad-breathe::before {
+    animation: none;
+  }
 }
 
 /* Why Us section cards - Warm gold theme */
 .card-why {
-  background: linear-gradient(135deg,
-    rgba(226, 200, 114, 0.15) 0%,
-    rgba(226, 200, 114, 0.08) 100%
-  );
-  border: 1px solid rgba(226, 200, 114, 0.3);
-  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.005);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(6px);
   transition: all 0.3s ease;
 }
 
 .card-why:hover {
-  background: linear-gradient(135deg,
-    rgba(226, 200, 114, 0.18) 0%,
-    rgba(226, 200, 114, 0.12) 100%
-  );
-  border-color: rgba(226, 200, 114, 0.45);
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(226, 200, 114, 0.12);
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(226, 200, 114, 0.15);
+  box-shadow: 0 8px 25px rgba(226, 200, 114, 0.06);
 }
 
 /* Marketing section cards - Brand orange theme */
 .card-market {
-  background: linear-gradient(135deg,
-    rgba(255, 106, 0, 0.12) 0%,
-    rgba(255, 106, 0, 0.06) 100%
-  );
-  border: 1px solid rgba(255, 106, 0, 0.25);
-  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(6px);
   transition: all 0.3s ease;
 }
 
 .card-market:hover {
-  background: linear-gradient(135deg,
-    rgba(255, 106, 0, 0.15) 0%,
-    rgba(255, 106, 0, 0.10) 100%
-  );
-  border-color: rgba(255, 106, 0, 0.35);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 106, 0, 0.15);
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(255, 106, 0, 0.12);
+  box-shadow: 0 8px 25px rgba(255, 106, 0, 0.08);
+}
+
+/* New Why Are We section design */
+.why-we-section {
+  background-color: #ff7d27; /* colors.orange.50 */
+  min-height: 100vh;
+  padding: 4rem 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.why-we-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: start;
+}
+
+.why-we-column {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.why-we-heading {
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: rgb(255, 229, 214);
+  margin-bottom: 2rem;
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.why-we-card {
+  background-color: rgb(255, 224, 203);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.why-we-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.08);
+}
+
+.why-we-card-metric {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #ff7d27;
+  margin-bottom: 0.5rem;
+  font-family: var(--font-display);
+}
+
+.why-we-card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.75rem;
+  font-family: var(--font-display);
+}
+
+.why-we-card-description {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #4b5563;
+  font-family: "Inter", sans-serif;
+}
+
+/* Responsive design */
+@media (max-width: 1024px) {
+  .why-we-content {
+    gap: 3rem;
+  }
+  .why-we-heading {
+    font-size: 3rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .why-we-section {
+    padding: 3rem 1.5rem;
+  }
+  .why-we-content {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+  .why-we-heading {
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .why-we-card {
+    padding: 1.25rem;
+  }
+  .why-we-card-title {
+    font-size: 1.1rem;
+  }
+  .why-we-card-description {
+    font-size: 1rem;
+  }
+}
+
+/* Subtle sunlight effect for Why Are We section */
+.why-sunlight {
+  position: relative;
+  overflow: hidden;
+}
+.why-sunlight::before {
+  content: "";
+  position: absolute;
+  inset: -50%;
+  background: linear-gradient(
+    45deg,
+    transparent 48%,
+    rgba(255, 255, 255, 0.08) 49%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.08) 51%,
+    transparent 52%
+  );
+  transform-origin: 50% 50%;
+  animation: sunlight-drift 20s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes sunlight-drift {
+  0%,
+  100% {
+    transform: translate(-10%, -10%) rotate(0deg);
+  }
+  50% {
+    transform: translate(10%, 10%) rotate(5deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .why-sunlight::before {
+    animation: none;
+  }
 }
