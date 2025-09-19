@@ -2,8 +2,8 @@ import { adapterManager } from "@adapters/core";
 import { OpportunityFilters } from "../components/OpportunityFilters";
 
 export default async function OpportunitiesPage() {
-  // Now fetches real data from multiple sources with caching
-  const opportunities = await adapterManager.getAllOpportunities();
+  // Fetch enriched opportunities with risk scoring
+  const opportunities = await adapterManager.getEnrichedOpportunities();
   const stats = await adapterManager.getAdapterStats();
 
   return (

@@ -85,3 +85,6 @@ export interface AdapterStats {
   avgApy: number;
   lastUpdate: number;
 }
+
+// Export all risk-related types
+export * from './types/risk';

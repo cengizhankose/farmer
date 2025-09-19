@@ -22,7 +22,11 @@
   ],
   "dependencies": {
     "@shared/core": "workspace:*",
-    "axios": "^1.12.2"
+    "@types/lodash": "^4.17.20",
+    "axios": "^1.12.2",
+    "date-fns": "^4.1.0",
+    "lodash": "^4.17.21",
+    "mathjs": "^14.7.0"
   },
   "devDependencies": {
     "typescript": "^5.5.0"

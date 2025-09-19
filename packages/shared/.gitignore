@@ -1,0 +1,16 @@
+# Build outputs
+dist/
+*.d.ts
+*.d.ts.map
+*.js
+*.js.map
+
+# Don't ignore config files
+!*.config.js
+!jest.config.js
+!vitest.config.js
+!tailwind.config.js
+!postcss.config.js
+!next.config.js
+!babel.config.js
+!metro.config.js

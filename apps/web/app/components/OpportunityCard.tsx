@@ -1,9 +1,10 @@
 'use client';
 
-import { Opportunity } from "@adapters/core";
+import { Opportunity, EnrichedOpportunity } from "@adapters/core";
+import { RiskScore, RiskTooltip } from "./risk";
 
 interface OpportunityCardProps {
-  opportunity: Opportunity;
+  opportunity: Opportunity | EnrichedOpportunity;
 }
 
 export function OpportunityCard({ opportunity }: OpportunityCardProps) {
@@ -13,6 +14,13 @@ export function OpportunityCard({ opportunity }: OpportunityCardProps) {
     if (value >= 1e3) return `$${(value / 1e3).toFixed(0)}K`;
     return `$${value.toLocaleString()}`;
   };
+
+  // Type guard to check if opportunity is enriched
+  const isEnrichedOpportunity = (opp: Opportunity | EnrichedOpportunity): opp is EnrichedOpportunity => {
+    return 'riskScore' in opp && opp.riskScore !== undefined;
+  };
+
+  const enrichedOpportunity = isEnrichedOpportunity(opportunity) ? opportunity : null;
 
   const getRiskColor = (risk: string) => {
     switch (risk) {
@@ -110,14 +118,14 @@ export function OpportunityCard({ opportunity }: OpportunityCardProps) {
         </div>
 
         {/* APY Breakdown */}
-        {(opportunity.apyBase || opportunity.apyReward) && (
+        {((opportunity as any).apyBase || (opportunity as any).apyReward) && (
           <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-            {opportunity.apyBase && (
-              <span>Base: {formatApy(opportunity.apyBase)}%</span>
+            {(opportunity as any).apyBase && (
+              <span>Base: {formatApy((opportunity as any).apyBase)}%</span>
             )}
-            {opportunity.apyBase && opportunity.apyReward && <span> + </span>}
-            {opportunity.apyReward && (
-              <span>Rewards: {formatApy(opportunity.apyReward)}%</span>
+            {(opportunity as any).apyBase && (opportunity as any).apyReward && <span> + </span>}
+            {(opportunity as any).apyReward && (
+              <span>Rewards: {formatApy((opportunity as any).apyReward)}%</span>
             )}
           </div>
         )}
@@ -134,22 +142,30 @@ export function OpportunityCard({ opportunity }: OpportunityCardProps) {
 
         <div>
           <p style={{ margin: 0, fontSize: '0.875rem', color: '#6b7280' }}>Risk</p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <div style={{
-              width: '8px',
-              height: '8px',
-              borderRadius: '50%',
-              backgroundColor: getRiskColor(opportunity.risk)
-            }} />
-            <span style={{
-              fontSize: '1.125rem',
-              fontWeight: '600',
-              color: getRiskColor(opportunity.risk),
-              textTransform: 'capitalize'
-            }}>
-              {opportunity.risk}
-            </span>
-          </div>
+          {enrichedOpportunity?.riskScore ? (
+            <RiskTooltip riskScore={enrichedOpportunity.riskScore} position="top">
+              <div style={{ cursor: 'help' }}>
+                <RiskScore riskScore={enrichedOpportunity.riskScore} size="sm" />
+              </div>
+            </RiskTooltip>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                backgroundColor: getRiskColor(opportunity.risk)
+              }} />
+              <span style={{
+                fontSize: '1.125rem',
+                fontWeight: '600',
+                color: getRiskColor(opportunity.risk),
+                textTransform: 'capitalize'
+              }}>
+                {opportunity.risk}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 

@@ -1,12 +1,13 @@
 import { adapterManager } from "@adapters/core";
 import { notFound } from "next/navigation";
+import { RiskScore, RiskBreakdown, RiskFactors } from "../../components/risk";
 
 export default async function OpportunityDetailPage({
   params
 }: {
   params: { id: string }
 }) {
-  const opportunity = await adapterManager.getOpportunityById(params.id);
+  const opportunity = await adapterManager.getEnrichedOpportunityById(params.id);
 
   if (!opportunity) {
     notFound();
@@ -29,15 +30,19 @@ export default async function OpportunityDetailPage({
         </div>
 
         <div style={{ padding: '1rem', border: '1px solid #ccc', borderRadius: '8px' }}>
-          <h3>Risk Level</h3>
-          <p style={{
-            color: opportunity.risk === 'low' ? 'green' :
-                   opportunity.risk === 'med' ? 'orange' : 'red',
-            fontSize: '1.25rem',
-            fontWeight: 'bold'
-          }}>
-            {opportunity.risk.toUpperCase()}
-          </p>
+          <h3>Risk Assessment</h3>
+          {opportunity.riskScore ? (
+            <RiskScore riskScore={opportunity.riskScore} showDetails size="lg" />
+          ) : (
+            <p style={{
+              color: opportunity.risk === 'low' ? 'green' :
+                     opportunity.risk === 'med' ? 'orange' : 'red',
+              fontSize: '1.25rem',
+              fontWeight: 'bold'
+            }}>
+              {opportunity.risk.toUpperCase()}
+            </p>
+          )}
         </div>
 
         <div style={{ padding: '1rem', border: '1px solid #ccc', borderRadius: '8px' }}>
@@ -47,6 +52,21 @@ export default async function OpportunityDetailPage({
           {opportunity.rewardToken && <p>Reward: {opportunity.rewardToken}</p>}
         </div>
       </div>
+
+      {/* Detailed Risk Analysis */}
+      {opportunity.riskScore && (
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+          gap: '2rem',
+          marginTop: '3rem'
+        }}>
+          <RiskBreakdown riskScore={opportunity.riskScore} />
+          {opportunity.riskFactors && opportunity.riskFactors.length > 0 && (
+            <RiskFactors riskFactors={opportunity.riskFactors} />
+          )}
+        </div>
+      )}
 
       <div style={{ marginTop: '2rem' }}>
         <button
