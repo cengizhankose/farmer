@@ -2,12 +2,46 @@
 import React from "react";
 import { useRouter } from "next/router";
 import CountUp from "react-countup";
+import { protocolLogo } from "@/lib/logos";
 
 // Horizontal marquee with two rows flowing in opposite directions.
 // Card count reduced by half (12).
+type CardOpportunity = {
+  id: string;
+  protocol: string;
+  pair: string;
+  chain: string;
+  apr: number; // percent
+  apy: number; // percent
+  risk: "Low" | "Medium" | "High";
+  tvlUsd: number;
+  rewardToken: string;
+  lastUpdated: string; // label like 5m, 2h
+  originalUrl: string;
+  summary: string;
+  source?: "live" | "demo";
+};
+
+type CardItem = {
+  id: string | number;
+  routeId: string;
+  protocol: string;
+  pair: string;
+  risk: "Low" | "Medium" | "High";
+  color: string;
+  letter: string;
+  apr: number;
+  apy: number;
+  tvl: number; // in millions
+  lastUpdated?: string;
+  source?: "live" | "demo";
+};
+
 export const CardsGrid: React.FC<{ progress?: number }> = ({ progress = 0 }) => {
   const router = useRouter();
   const [hasAnimated, setHasAnimated] = React.useState(false);
+  const [items, setItems] = React.useState<CardItem[] | null>(null);
+  const total = 12;
   
   // Trigger animation only once when cards become visible (progress > 0.1)
   React.useEffect(() => {
@@ -15,48 +49,86 @@ export const CardsGrid: React.FC<{ progress?: number }> = ({ progress = 0 }) => 
       setHasAnimated(true);
     }
   }, [progress, hasAnimated]);
-  const total = 12;
-  const items = React.useMemo(() => {
-    const protocols = ["ALEX", "Arkadiko", "Bitflow", "StackSwap"];
-    const pairs = ["STX/USDA", "STX/DIKO", "STX/ALEX", "USDA/ALEX"];
-    const risks = ["Low", "Medium", "High"];
-    const colors = ["#6C7BFF", "#22C55E", "#F97316", "#8B5CF6"];
-    
-    // Static values to prevent hydration mismatch
-    const staticAPRs = [12.3, 8.7, 15.2, 11.5, 9.8, 13.1, 10.4, 16.7, 14.2, 7.9, 11.8, 13.5];
-    const staticAPYs = [13.1, 9.2, 16.8, 12.3, 10.5, 14.7, 11.1, 18.2, 15.6, 8.4, 12.8, 14.9];
-    const staticTVLs = [1.2, 0.8, 2.1, 1.5, 0.9, 1.7, 1.1, 2.3, 1.9, 0.7, 1.4, 1.8];
-    
-    // Valid IDs that exist in mock data
-    const validIds = ["alex-stx-usda", "arkadiko-stx-diko", "alex-stx-usda", "arkadiko-stx-diko"];
-    
-    return Array.from({ length: total }).map((_, i) => {
-      const protocol = protocols[i % protocols.length];
-      const pair = pairs[i % pairs.length];
-      const risk = risks[i % risks.length];
-      const color = colors[i % colors.length];
-      const letter = protocol[0];
-      
-      // Use valid IDs that exist in mock data
-      const routeId = validIds[i % validIds.length];
-      
-      return {
-        id: i,
-        routeId,
-        protocol,
-        pair,
-        risk,
-        color,
-        letter,
-        apr: staticAPRs[i],
-        apy: staticAPYs[i],
-        tvl: staticTVLs[i]
-      };
-    });
+
+  // Load real opportunities for marquee (top N)
+  React.useEffect(() => {
+    let mounted = true;
+    async function load() {
+      try {
+        const resp = await fetch('/api/opportunities');
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const json = await resp.json();
+        const ops: CardOpportunity[] = Array.isArray(json.items) ? json.items : [];
+
+        // Prefer top by TVL, then APR
+        const top = ops
+          .filter((o) => o.chain === 'stacks')
+          .sort((a, b) => {
+            const tvlDiff = b.tvlUsd - a.tvlUsd;
+            if (tvlDiff !== 0) return tvlDiff;
+            return b.apr - a.apr;
+          })
+          .slice(0, total);
+
+        const mapped: CardItem[] = top.map((o, i) => {
+          const logo = protocolLogo(o.protocol);
+          return {
+            id: o.id || i,
+            routeId: o.id,
+            protocol: o.protocol,
+            pair: o.pair,
+            risk: o.risk,
+            color: logo.fg,
+            letter: logo.letter,
+            apr: Number(o.apr.toFixed(1)),
+            apy: Number(o.apy.toFixed(1)),
+            tvl: Math.round((o.tvlUsd / 1_000_000) * 10) / 10,
+            lastUpdated: o.lastUpdated,
+            source: o.source || 'live',
+          };
+        });
+
+        if (!mounted) return;
+        setItems(mapped);
+      } catch (_e) {
+        // Fallback to a static set if API fails
+        if (!mounted) return;
+        const protocols = ["ALEX", "Arkadiko", "Bitflow", "StackSwap"];
+        const pairs = ["STX/USDA", "STX/DIKO", "STX/ALEX", "USDA/ALEX"];
+        const risks: Array<CardItem["risk"]> = ["Low", "Medium", "High"];
+        const staticAPRs = [12.3, 8.7, 15.2, 11.5, 9.8, 13.1, 10.4, 16.7, 14.2, 7.9, 11.8, 13.5];
+        const staticAPYs = [13.1, 9.2, 16.8, 12.3, 10.5, 14.7, 11.1, 18.2, 15.6, 8.4, 12.8, 14.9];
+        const staticTVLs = [1.2, 0.8, 2.1, 1.5, 0.9, 1.7, 1.1, 2.3, 1.9, 0.7, 1.4, 1.8];
+        const fallback: CardItem[] = Array.from({ length: total }).map((_, i) => {
+          const protocol = protocols[i % protocols.length];
+          const pair = pairs[i % pairs.length];
+          const risk = risks[i % risks.length];
+          const logo = protocolLogo(protocol);
+          return {
+            id: i,
+            routeId: i % 2 === 0 ? "alex-stx-usda" : "arkadiko-stx-diko",
+            protocol,
+            pair,
+            risk,
+            color: logo.fg,
+            letter: logo.letter,
+            apr: staticAPRs[i],
+            apy: staticAPYs[i],
+            tvl: staticTVLs[i],
+            lastUpdated: '5m',
+            source: 'demo',
+          };
+        });
+        setItems(fallback);
+      }
+    }
+    load();
+    return () => { mounted = false; };
   }, []);
 
-  const row1 = items.slice(0, Math.ceil(items.length / 2));
-  const row2 = items.slice(Math.ceil(items.length / 2));
+  const data = items || [];
+  const row1 = data.slice(0, Math.ceil(data.length / 2));
+  const row2 = data.slice(Math.ceil(data.length / 2));
 
   const renderRow = (row: typeof items, direction: "left" | "right") => {
     // Duplicate content for seamless loop
@@ -169,11 +241,13 @@ export const CardsGrid: React.FC<{ progress?: number }> = ({ progress = 0 }) => 
 
                 <div className="mt-3 flex items-center justify-between text-[11px] text-zinc-600">
                   <div className="flex items-center gap-1">
-                    <span>Last updated 5m</span>
+                    <span>Last updated {it.lastUpdated || '5m'}</span>
                     <span className="text-zinc-400">·</span>
-                    <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-zinc-700">
-                      source: demo
-                    </span>
+                    {it.source && (
+                      <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-zinc-700">
+                        source: {it.source}
+                      </span>
+                    )}
                   </div>
                   <div className="rounded-full bg-zinc-100 px-2 py-0.5 text-zinc-700">
                     Stacks
