@@ -105,7 +105,11 @@ interface Adapter {
 
 **Data Fetching**: Server-side rendering with `mockAdapter.list()` in page components.
 
-**Styling**: Inline styles (no CSS framework currently).
+**Styling**: Comprehensive CSS system with custom components and gradients:
+- **Color System**: Brand orange (#FF6A00), warm gold (#E2C872), burnt orange (#C6561A), bronze (#8C5A3A)
+- **Gradient Hierarchy**: Hero (orange-focused) → Why Us (gold-focused) → Marketing (orange-to-bronze)
+- **Card Components**: `card-why` (gold theme for trust), `card-market` (orange theme for action)
+- **UI Components**: HeroRightChart (animated metrics), ErrorBoundary (graceful fallback), SoftParticles (background effects)
 
 ## Package Build Dependencies
 
@@ -126,6 +130,25 @@ interface Adapter {
 - `.env.example` - Root environment template
 - `apps/web/.env.local.example` - Next.js specific environment
 
+## UI/UX Architecture
+
+**Component System**: Custom React components with Framer Motion animations:
+- **HeroRightChart**: Animated metrics dashboard with real-time data visualization
+- **ErrorBoundary**: Graceful error handling with auto-retry and fallback UI
+- **SoftParticles**: Dynamic background particle effects for visual enhancement
+
+**Styling Architecture**: CSS-based design system with:
+- **Color Palette**: Brand orange (#FF6A00), warm gold (#E2C872), burnt orange (#C6561A), bronze (#8C5A3A)
+- **Gradient System**: Section-specific gradients for visual hierarchy
+- **Card Components**: Themed cards with hover effects and glass-morphism
+- **Typography**: Consistent typography system with proper hierarchy
+
+**Animation System**: Framer Motion-based animations with:
+- Staggered reveals for content sections
+- Smooth hover transitions with transform effects
+- Reduced motion support for accessibility
+- Performance-optimized animations
+
 ## Testing Strategy
 
 **Contract Tests**: 11 comprehensive tests covering security features, ownership, and error conditions. All tests currently passing.
@@ -138,10 +161,14 @@ interface Adapter {
 
 **Smart Contract**: Router implements allowlist-only protocol access, emergency pause functionality, and transaction caps. All security features have test coverage.
 
-**Frontend**: Risk labeling on opportunities, BETA disclaimers, and read-only fallbacks when wallet unavailable.
+**Frontend**: Risk labeling on opportunities, BETA disclaimers, read-only fallbacks when wallet unavailable, and enhanced error boundaries with auto-retry functionality.
 
 ## Development Status
 
-**Current Phase**: MVP with Stacks-only mock data and functional router contract.
+**Current Phase**: Enhanced MVP with improved UI/UX, real data integration infrastructure, and comprehensive error handling.
+- **UI Improvements**: Animated HeroRightChart, color-coded card system, particle effects
+- **Data Infrastructure**: RealDataBridge service, API endpoints, comprehensive error handling
+- **Styling System**: Professional gradient hierarchy and glass-morphism effects
+
 **Next Phase**: Connect real ALEX/Arkadiko APIs and implement actual deposit flow.
 **Future**: Multi-chain expansion and vault strategies.
