@@ -10,6 +10,12 @@ import { useCompare } from "@/components/opportunity/CompareBar";
 import { GitCompare, ArrowLeft, AlertTriangle, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import {
+  ArkadikoDetailError,
+  ChartDataError,
+  DataLoadingError,
+  NoChartDataAvailable
+} from "@/components/ui/ErrorNotification";
 
 type CardOpportunity = {
   id: string;
@@ -38,8 +44,15 @@ export default function OpportunityDetailPage() {
   const [data, setData] = React.useState<CardOpportunity | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
-  
-  
+  const [errorType, setErrorType] = React.useState<'arkadiko-detail' | 'chart-data' | 'general' | null>(null);
+
+  // Retry function for data loading
+  const handleRetry = React.useCallback(() => {
+    setLoading(true);
+    setError(null);
+    setErrorType(null);
+  }, []);
+
   // Load opportunity data
   React.useEffect(() => {
     if (!id) return;
@@ -53,7 +66,7 @@ export default function OpportunityDetailPage() {
         setLoading(true);
         setError(null);
         
-        Logger.info(`🚀 Loading REAL opportunity detail via API: ${opportunityId}`);
+        Logger.info(`Loading opportunity detail via API`, { opportunityId });
         const resp = await fetch(`/api/opportunities/${opportunityId}`);
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         const json = await resp.json();
@@ -62,17 +75,31 @@ export default function OpportunityDetailPage() {
         if (!mounted) return;
         
         if (opportunity) {
-          Logger.info(`✅ Loaded opportunity detail from REAL APIs: ${opportunityId}`);
-          Logger.debug(`📊 Data: ${opportunity.protocol} - ${opportunity.pair} - ${opportunity.apy.toFixed(1)}% APY`);
+          Logger.info(`Loaded opportunity detail from REAL APIs`, { opportunityId });
+          Logger.debug(`Data loaded`, { opportunityId, protocol: opportunity.protocol });
           setData(opportunity);
         } else {
-          Logger.warn(`❌ Opportunity not found in real data: ${opportunityId}`);
-          setError('Opportunity not found in real data sources');
+          Logger.warn(`Opportunity not found in real data`, { opportunityId });
+          setError('Opportunity data is temporarily unavailable');
+          setErrorType('general');
         }
         
       } catch (fetchError) {
-        Logger.error(`💥 FAILED to load real data for ${opportunityId}`, fetchError);
-        setError(`Real data loading failed: ${fetchError instanceof Error ? fetchError.message : 'Unknown error'}`);
+        Logger.error(`Failed to load real data`, fetchError, { opportunityId });
+        const errorMessage = fetchError instanceof Error ? fetchError.message : 'Unknown error';
+
+        // Determine error type based on error message
+        if (errorMessage.includes('404') && opportunityId.toLowerCase().includes('arkadiko')) {
+          setError('Arkadiko protocol details are temporarily unavailable');
+          setErrorType('arkadiko-detail');
+        } else if (errorMessage.includes('400') && errorMessage.includes('chart')) {
+          setError('Chart data is temporarily unavailable');
+          setErrorType('chart-data');
+        } else {
+          setError('Data loading failed. Please try again later.');
+          setErrorType('general');
+        }
+
         setData(null);
       } finally {
         if (mounted) {
@@ -106,23 +133,36 @@ export default function OpportunityDetailPage() {
   }
   
   // Error or not found state
-  if (!data || error === 'Opportunity not found') {
+  if (!data && error) {
     return (
       <div className="mx-auto max-w-6xl px-6 py-16">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center"
+          className="max-w-2xl mx-auto"
         >
-          <h2 className="typo-404-h">Opportunity not found</h2>
-          <p className="typo-404-p">We couldn't locate this opportunity.</p>
-          <Link 
-            href="/opportunities" 
-            className="typo-link-emerald mt-4 inline-flex items-center gap-2"
-          >
-            <ArrowLeft size={16} />
-            Back to opportunities
-          </Link>
+          {errorType === 'arkadiko-detail' && (
+            <ArkadikoDetailError onRetry={handleRetry} />
+          )}
+          {errorType === 'chart-data' && (
+            <ChartDataError onRetry={handleRetry} />
+          )}
+          {errorType === 'general' && (
+            <DataLoadingError message={error} onRetry={handleRetry} />
+          )}
+          {!errorType && (
+            <DataLoadingError message={error} onRetry={handleRetry} />
+          )}
+
+          <div className="mt-6 text-center">
+            <Link
+              href="/opportunities"
+              className="typo-link-emerald inline-flex items-center gap-2"
+            >
+              <ArrowLeft size={16} />
+              Back to opportunities
+            </Link>
+          </div>
         </motion.div>
       </div>
     );
@@ -151,19 +191,20 @@ export default function OpportunityDetailPage() {
         )}
         
         {/* Error Indicator */}
-        {error && (
-          <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
-            <div className="flex items-center space-x-3">
-              <AlertTriangle className="h-5 w-5 text-red-600" />
-              <div>
-                <p className="text-sm font-medium text-red-800">
-                  ❌ Real Data Loading Failed
-                </p>
-                <p className="text-sm text-red-700">
-                  {error}
-                </p>
-              </div>
-            </div>
+        {error && data && (
+          <div className="mb-6">
+            {errorType === 'arkadiko-detail' && (
+              <ArkadikoDetailError onRetry={handleRetry} />
+            )}
+            {errorType === 'chart-data' && (
+              <ChartDataError onRetry={handleRetry} />
+            )}
+            {errorType === 'general' && (
+              <DataLoadingError message={error} onRetry={handleRetry} />
+            )}
+            {!errorType && (
+              <DataLoadingError message={error} onRetry={handleRetry} />
+            )}
           </div>
         )}
         
@@ -178,7 +219,7 @@ export default function OpportunityDetailPage() {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => {
-              Logger.info(`🔄 Adding opportunity to compare: ${data.id}`);
+              Logger.info(`Adding opportunity to compare`, { opportunityId: data.id });
               // CompareItem matches CardOpportunity structurally (logo? optional)
               addItem(data as unknown as import("@/components/opportunity/CompareBar").CompareItem);
             }}

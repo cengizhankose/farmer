@@ -22,37 +22,44 @@ interface CompareModalProps {
   onClose: () => void;
 }
 
-// Generate demo series data
-function generateSeries(baseApr: number) {
-  const series = [];
-  const days = 30;
-  let apr = baseApr;
-  let tvl = 1000000 + Math.random() * 2000000;
-  
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date(Date.now() - i * 86400000);
-    apr = Math.max(5, Math.min(25, apr + (Math.random() - 0.5) * 1.5));
-    tvl = Math.max(500000, tvl + (Math.random() - 0.5) * 100000);
-    
-    series.push({
-      date: date.toISOString().slice(5, 10),
-      apr: Number(apr.toFixed(2)),
-      tvl: Math.round(tvl / 1000) / 1000, // in millions
-    });
-  }
-  
-  return series;
-}
+type CompareSeries = Array<{ date: string; apr: number; tvl: number }>;
 
 export function CompareModal({ itemA, itemB, onClose }: CompareModalProps) {
   const [swapped, setSwapped] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [leftSeries, setLeftSeries] = useState<CompareSeries>([]);
+  const [rightSeries, setRightSeries] = useState<CompareSeries>([]);
   
   const left = swapped ? itemB : itemA;
   const right = swapped ? itemA : itemB;
-  
-  const leftSeries = generateSeries(left.apr);
-  const rightSeries = generateSeries(right.apr);
+
+  React.useEffect(() => {
+    let mounted = true;
+    async function load(id: string): Promise<CompareSeries> {
+      const resp = await fetch(`/api/opportunities/${id}/chart?days=30`);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const json = await resp.json();
+      const pts: Array<{ timestamp: number; tvlUsd: number; apy?: number; apr?: number }> = json.series || [];
+      return pts.map((p) => ({
+        date: new Date(p.timestamp).toISOString().slice(5, 10),
+        apr: Number(((p.apy ?? p.apr ?? 0) * 100).toFixed(2)),
+        tvl: Math.round((p.tvlUsd / 1_000_000) * 100) / 100,
+      }));
+    }
+    (async () => {
+      try {
+        const [l, r] = await Promise.all([load(left.id), load(right.id)]);
+        if (!mounted) return;
+        setLeftSeries(l);
+        setRightSeries(r);
+      } catch (e) {
+        if (!mounted) return;
+        setLeftSeries([]);
+        setRightSeries([]);
+      }
+    })();
+    return () => { mounted = false; };
+  }, [left.id, right.id]);
 
   return (
     <AnimatePresence>
@@ -190,6 +197,9 @@ function ComparePanel({ item, series, side, hoveredIndex, setHoveredIndex }: Com
 
       {/* Chart */}
       <div className="flex-1 min-h-[200px]">
+        {series.length === 0 ? (
+          <div className="text-xs text-zinc-500">No comparison data available.</div>
+        ) : (
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart 
             data={series} 
@@ -289,6 +299,7 @@ function ComparePanel({ item, series, side, hoveredIndex, setHoveredIndex }: Com
             />
           </ComposedChart>
         </ResponsiveContainer>
+        )}
       </div>
 
       {/* Summary */}

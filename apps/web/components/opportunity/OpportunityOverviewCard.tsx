@@ -84,6 +84,14 @@ export function OpportunityOverviewCard({ data }: OpportunityOverviewCardProps) 
       }
     : { apr: data.apr, tvl: Math.round((data.tvlUsd / 1_000_000) * 100) / 100, volume24h: undefined, participants: undefined };
 
+  // Percent trends from last vs previous point
+  const last = series[series.length - 1];
+  const prev = series[series.length - 2];
+  const pct = (curr: number, base?: number) => (typeof base !== 'number' || base === 0 ? undefined : Math.round(((curr - base) / Math.abs(base)) * 100));
+  const aprTrend = last && prev ? pct(last.apr, prev.apr) : undefined;
+  const tvlTrend = last && prev ? pct(last.tvl, prev.tvl) : undefined;
+  const volTrend = last && prev ? pct(last.volume, prev.volume) : undefined;
+
   const CustomTooltip = ({ active, payload, label }: { 
     active?: boolean; 
     payload?: Array<{ value: number }>; 
@@ -127,7 +135,7 @@ export function OpportunityOverviewCard({ data }: OpportunityOverviewCardProps) 
         <MetricCard
           label="Current APR"
           value={`${latestMetrics.apr.toFixed(1)}%`}
-          trend={undefined}
+          trend={aprTrend}
           icon={<TrendingUp size={14} />}
         />
         <MetricCard
@@ -138,7 +146,7 @@ export function OpportunityOverviewCard({ data }: OpportunityOverviewCardProps) 
             if (tvlM >= 0.001) return `$${(tvlM * 1000).toFixed(2)}K`;
             return `$${Math.round(tvlM * 1_000_000).toLocaleString()}`;
           })()}
-          trend={undefined}
+          trend={tvlTrend}
           icon={<Activity size={14} />}
         />
         <MetricCard
@@ -148,7 +156,7 @@ export function OpportunityOverviewCard({ data }: OpportunityOverviewCardProps) 
               ? `$${(latestMetrics.volume24h / 1000).toFixed(1)}K`
               : '—'
           }
-          trend={undefined}
+          trend={volTrend}
           icon={<Activity size={14} />}
         />
         <MetricCard
@@ -304,6 +312,38 @@ export function OpportunityOverviewCard({ data }: OpportunityOverviewCardProps) 
             <span className="text-zinc-600">24h Volume (Bar)</span>
           </div>
         </div>
+
+        {/* Value Projection (7d/30d/90d) derived from TVL series */}
+        {series.length > 1 && (
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-3">
+            {(() => {
+              const values = series.map((s) => s.tvl);
+              const n = values.length;
+              const lastVal = values[n - 1];
+              const xs = Array.from({ length: n }, (_, i) => i + 1);
+              const xMean = xs.reduce((a, b) => a + b, 0) / n;
+              const yMean = values.reduce((a, b) => a + b, 0) / n;
+              const num = xs.reduce((s, x, i) => s + (x - xMean) * (values[i] - yMean), 0);
+              const den = xs.reduce((s, x) => s + (x - xMean) * (x - xMean), 0) || 1;
+              const slope = num / den; // per-day approx
+              // variance (not used for range display currently)
+              // const varY = values.reduce((s, v) => s + (v - yMean) * (v - yMean), 0) / n;
+              const horizons = [7, 30, 90] as const;
+              return horizons.map((h) => {
+                const expected = lastVal + slope * h;
+                return (
+                  <MetricCard
+                    key={`proj-${h}`}
+                    label={`Value Projection (${h}d)`}
+                    value={`$${expected.toFixed(2)}M`}
+                    trend={undefined}
+                    icon={<Activity size={14} />}
+                  />
+                );
+              });
+            })()}
+          </div>
+        )}
       </div>
     </motion.div>
   );
@@ -317,10 +357,10 @@ function MetricCard({
 }: { 
   label: string; 
   value: string; 
-  trend: number;
+  trend?: number;
   icon: React.ReactNode;
 }) {
-  const isPositive = trend > 0;
+  const isPositive = typeof trend === 'number' ? trend > 0 : false;
   
   return (
     <motion.div
@@ -339,12 +379,16 @@ function MetricCard({
         <span className="text-lg font-semibold text-zinc-900 tabular-nums">
           {value}
         </span>
-        <span className={`text-xs font-medium flex items-center gap-0.5 ${
-          isPositive ? "text-emerald-600" : "text-rose-600"
-        }`}>
-          {isPositive ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
-          {Math.abs(trend)}%
-        </span>
+        {typeof trend === 'number' ? (
+          <span className={`text-xs font-medium flex items-center gap-0.5 ${
+            isPositive ? "text-emerald-600" : "text-rose-600"
+          }`}>
+            {isPositive ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
+            {Math.abs(trend)}%
+          </span>
+        ) : (
+          <span className="text-xs text-zinc-400">—</span>
+        )}
       </div>
     </motion.div>
   );

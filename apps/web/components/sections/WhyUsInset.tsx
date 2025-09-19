@@ -4,25 +4,15 @@ import React, { useMemo, useRef, useState, useCallback } from "react";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import InsetBackgroundFx from "./_fx/InsetBackgroundFx";
 
-const fadeRise = {
-  hidden: { opacity: 0, y: 12, filter: "blur(2px)" },
-  show: {
-    opacity: 1,
-    y: 0,
-    filter: "blur(0)",
-    transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
-  },
-};
+// fade rise inline via initial/animate to satisfy TS types
 
-const pill = {
-  hidden: { opacity: 0, y: 8, scale: 0.98 },
-  show: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { delay: i * 0.06, duration: 0.28, ease: "easeOut" },
-  }),
-};
+// Badge animation helper (replaces variants function to satisfy TS types)
+const badgeAnim = (i: number) => ({
+  opacity: 1,
+  y: 0,
+  scale: 1,
+  transition: { delay: i * 0.06, duration: 0.28, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
+});
 
 function ShieldIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -90,7 +80,7 @@ export default function WhyUsInset() {
         ].join(" ")}
         initial={prefersReducedMotion ? undefined : { opacity: 0, y: 8 }}
         animate={inView ? { opacity: 1, y: 0 } : undefined}
-        transition={{ duration: 0.28, ease: "easeOut" }}
+        transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
         aria-labelledby="whyus-title"
       >
         <InsetBackgroundFx parallax={parallax} reduceMotion={!!prefersReducedMotion} className={!prefersReducedMotion ? "inset-sweep" : undefined} />
@@ -121,10 +111,8 @@ export default function WhyUsInset() {
                       !prefersReducedMotion ? "breath" : "",
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-black/20",
                     ].join(" ")}
-                    variants={pill}
-                    custom={i}
-                    initial="hidden"
-                    animate={inView ? "show" : undefined}
+                    initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                    animate={inView ? badgeAnim(i) : undefined}
                   >
                     {b.key === "audited" ? (
                       <span className="relative inline-flex h-2.5 w-2.5">
@@ -171,9 +159,10 @@ export default function WhyUsInset() {
             ].map((card, idx) => (
               <motion.div
                 key={card.title + idx}
-                variants={fadeRise}
                 className="group relative z-0 h-full rounded-2xl bg-white/10 ring-1 ring-white/15 backdrop-blur-md p-5 md:p-6 transition-transform overflow-hidden isolation-isolate"
                 whileHover={prefersReducedMotion ? undefined : { y: -2 }}
+                initial={prefersReducedMotion ? undefined : { opacity: 0, y: 12, filter: "blur(2px)" }}
+                animate={inView ? { opacity: 1, y: 0, filter: "blur(0)", transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } } : undefined}
               >
                 {/* Accent line */}
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-white/0 via-white/30 to-white/0" />

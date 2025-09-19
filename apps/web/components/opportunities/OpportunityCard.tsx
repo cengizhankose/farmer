@@ -68,9 +68,6 @@ export const OpportunityCard: React.FC<
       {(() => {
         const l = protocolLogo(data.protocol);
         const size = { w: 56, h: 56 };
-        const isArkadiko = data.protocol.toLowerCase() === 'arkadiko';
-        const isZest = data.protocol.toLowerCase() === 'zest';
-        const noBackground = isArkadiko || isZest;
 
         return (
           <div
@@ -80,27 +77,15 @@ export const OpportunityCard: React.FC<
               left: '-3px',
               width: `${size.w}px`,
               height: `${size.h}px`,
-              background: noBackground ? 'transparent' : 'var(--badge-lilac)',
+              background: 'var(--badge-lilac)',
               borderRadius: '24px 0px 24px 0px',
-              boxShadow: noBackground ? 'none' : '0 4px 10px rgba(0,0,0,.06)',
+              boxShadow: '0 4px 10px rgba(0,0,0,.06)',
               overflow: 'hidden'
             }}
             title={data.protocol}
             aria-hidden
           >
-            {isArkadiko ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src="/logos/arkadiko.svg"
-                alt="Arkadiko"
-                style={{
-                  width: '46px',
-                  height: '46px',
-                  objectFit: 'contain',
-                  display: 'block'
-                }}
-              />
-            ) : imgOk && data.logoUrl ? (
+            {imgOk && data.logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={data.logoUrl}

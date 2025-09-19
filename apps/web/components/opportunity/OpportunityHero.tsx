@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { ChevronRight, Clock, Shield, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { colors } from "@/lib/colors";
-import { protocolLogo } from "@/lib/logos";
 type Opportunity = {
   id: string;
   protocol: string;
@@ -37,15 +36,7 @@ export function OpportunityHero({ data }: OpportunityHeroProps) {
     tvlUsd,
     summary,
   } = data;
-  const logo = protocolLogo(protocol);
-  const hasLogo = Boolean((data as unknown as { logoUrl?: string }).logoUrl);
-  const scale =
-    protocol.toLowerCase() === "zest" || protocol.toLowerCase() === "arkadiko"
-      ? 1.05
-      : 1.0;
-  const isZest = protocol.toLowerCase() === "zest";
-  const isArkadiko = protocol.toLowerCase() === "arkadiko";
-  const noBackground = isZest || isArkadiko;
+  // Note: Logo badge removed per request (no logo on detail page)
 
   const riskColors = {
     Low: {
@@ -83,49 +74,7 @@ export function OpportunityHero({ data }: OpportunityHeroProps) {
         style={{ background: colors.radial.darkGlow }}
       />
 
-      {/* Protocol Badge - curved corner style */}
-      <motion.div
-        initial={{ scale: 0.95, rotate: -2, opacity: 0 }}
-        animate={{ scale: 1, rotate: 0, opacity: 1 }}
-        transition={{
-          duration: 0.35,
-          type: "spring",
-          stiffness: 260,
-          damping: 20,
-        }}
-        className="absolute top-2 right-0 h-20 w-20 md:h-22 md:w-22 rounded-2xl shadow-lg grid place-items-center"
-        style={{
-          background: noBackground ? "transparent" : "var(--badge-lilac)",
-          boxShadow: noBackground ? "none" : "0 4px 12px rgba(0,0,0,0.12)",
-        }}
-      >
-        {hasLogo ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={(data as unknown as { logoUrl?: string }).logoUrl}
-            alt={protocol}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "contain",
-              objectPosition: "center",
-              transform: `scale(${scale})`,
-              padding: "6px",
-              borderRadius: "inherit",
-            }}
-            onError={(e) => {
-              (e.currentTarget as HTMLImageElement).style.display = "none";
-            }}
-          />
-        ) : (
-          <span
-            className="text-xl md:text-2xl font-bold"
-            style={{ color: logo.fg }}
-          >
-            {logo.letter}
-          </span>
-        )}
-      </motion.div>
+      {/* Logo badge intentionally removed */}
 
       <div className="relative z-10 p-6 md:p-8">
         {/* Breadcrumb */}

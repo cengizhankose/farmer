@@ -29,22 +29,40 @@ export class DefiLlamaService {
   async getPoolChart(poolId: string): Promise<LlamaChartData[]> {
     try {
       const response = await this.fetchWithTimeout(`${this.baseUrl}/chart/${poolId}`);
-      const data = await response.json();
+      const raw = await response.json();
 
-      if (!Array.isArray(data)) {
-        throw new Error('Invalid chart data format');
+      // Accept multiple shapes: Array | { data: Array } | { status: 'success', data: Array } | { points: Array }
+      const arr: any[] = Array.isArray(raw)
+        ? raw
+        : (raw && Array.isArray(raw.data))
+          ? raw.data
+          : (raw && raw.status === 'success' && Array.isArray(raw.data))
+            ? raw.data
+            : (raw && Array.isArray(raw.points))
+              ? raw.points
+              : [];
+
+      if (!Array.isArray(arr) || arr.length === 0) {
+        // Return empty array instead of throwing to let callers fallback gracefully
+        return [];
       }
 
-      return data.map(point => ({
-        timestamp: point.timestamp,
-        tvlUsd: point.tvlUsd || 0,
-        apy: point.apy || 0,
-        apyBase: point.apyBase || 0,
-        apyReward: point.apyReward || 0,
-      }));
+      return arr.map((point: any) => {
+        const ts = typeof point.timestamp === 'string'
+          ? point.timestamp
+          : new Date(Number(point.timestamp) || Date.now()).toISOString();
+        return {
+          timestamp: ts,
+          tvlUsd: Number(point.tvlUsd ?? point.tvl_usd ?? 0) || 0,
+          apy: Number(point.apy ?? point.apr ?? point.apyBase ?? 0) || 0,
+          apyBase: Number(point.apyBase ?? 0) || 0,
+          apyReward: Number(point.apyReward ?? 0) || 0,
+        };
+      });
     } catch (error) {
-      console.error(`Error fetching chart for pool ${poolId}:`, error);
-      throw new Error(`Failed to fetch chart data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.warn(`DefiLlama chart fetch failed for ${poolId}:`, error);
+      // Do not throw, let upstream handle empty series gracefully
+      return [];
     }
   }
 

@@ -30,6 +30,7 @@ type CardItem = {
   risk: "Low" | "Medium" | "High";
   color: string;
   letter: string;
+  logoUrl?: string;
   apr: number;
   apy: number;
   tvl: number; // in millions
@@ -80,6 +81,7 @@ export const CardsGrid: React.FC<{ progress?: number }> = ({ progress = 0 }) => 
             risk: o.risk,
             color: logo.fg,
             letter: logo.letter,
+            logoUrl: (o as unknown as { logoUrl?: string }).logoUrl,
             apr: Number(o.apr.toFixed(1)),
             apy: Number(o.apy.toFixed(1)),
             tvl: Math.round((o.tvlUsd / 1_000_000) * 10) / 10,
@@ -90,36 +92,10 @@ export const CardsGrid: React.FC<{ progress?: number }> = ({ progress = 0 }) => 
 
         if (!mounted) return;
         setItems(mapped);
-      } catch (_e) {
-        // Fallback to a static set if API fails
+      } catch {
         if (!mounted) return;
-        const protocols = ["ALEX", "Arkadiko", "Bitflow", "StackSwap"];
-        const pairs = ["STX/USDA", "STX/DIKO", "STX/ALEX", "USDA/ALEX"];
-        const risks: Array<CardItem["risk"]> = ["Low", "Medium", "High"];
-        const staticAPRs = [12.3, 8.7, 15.2, 11.5, 9.8, 13.1, 10.4, 16.7, 14.2, 7.9, 11.8, 13.5];
-        const staticAPYs = [13.1, 9.2, 16.8, 12.3, 10.5, 14.7, 11.1, 18.2, 15.6, 8.4, 12.8, 14.9];
-        const staticTVLs = [1.2, 0.8, 2.1, 1.5, 0.9, 1.7, 1.1, 2.3, 1.9, 0.7, 1.4, 1.8];
-        const fallback: CardItem[] = Array.from({ length: total }).map((_, i) => {
-          const protocol = protocols[i % protocols.length];
-          const pair = pairs[i % pairs.length];
-          const risk = risks[i % risks.length];
-          const logo = protocolLogo(protocol);
-          return {
-            id: i,
-            routeId: i % 2 === 0 ? "alex-stx-usda" : "arkadiko-stx-diko",
-            protocol,
-            pair,
-            risk,
-            color: logo.fg,
-            letter: logo.letter,
-            apr: staticAPRs[i],
-            apy: staticAPYs[i],
-            tvl: staticTVLs[i],
-            lastUpdated: '5m',
-            source: 'demo',
-          };
-        });
-        setItems(fallback);
+        // No mock fallback outside portfolio: render nothing on failure
+        setItems([]);
       }
     }
     load();
@@ -163,13 +139,26 @@ export const CardsGrid: React.FC<{ progress?: number }> = ({ progress = 0 }) => 
                     background: 'var(--badge-lilac)', 
                     borderRadius: '16px',
                     boxShadow: '0 4px 10px rgba(0,0,0,.06)',
+                    overflow: 'hidden'
                   }}
                   title={it.protocol}
                   aria-hidden
                 >
-                  <span className="text-sm md:text-base font-semibold" style={{ color: it.color }}>
-                    {it.letter}
-                  </span>
+                  {it.logoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={it.logoUrl}
+                      alt={it.protocol}
+                      style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '6px' }}
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                    />
+                  ) : (
+                    <span className="text-sm md:text-base font-semibold" style={{ color: it.color }}>
+                      {it.letter}
+                    </span>
+                  )}
+                  {/* Chain mini-badge */}
+                  {/* Chain mini-badge removed by request */}
                 </div>
 
                 <div className="flex items-start justify-between">

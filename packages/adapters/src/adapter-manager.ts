@@ -177,13 +177,15 @@ export class AdapterManager {
       // Try DefiLlama adapter first for chart data
       const defiLlamaAdapter = this.adapters.get('defillama') as any;
       if (defiLlamaAdapter && typeof defiLlamaAdapter.getChartData === 'function') {
-        return await defiLlamaAdapter.getChartData(poolId);
+        const llama = await defiLlamaAdapter.getChartData(poolId);
+        if (Array.isArray(llama) && llama.length > 0) return llama;
       }
 
-      // Try Arkadiko adapter for pool prices
+      // Fallback to Arkadiko adapter for pool prices
       const arkadikoAdapter = this.adapters.get('arkadiko') as any;
       if (arkadikoAdapter && typeof arkadikoAdapter.getPoolPrices === 'function') {
-        return await arkadikoAdapter.getPoolPrices(poolId);
+        const ark = await arkadikoAdapter.getPoolPrices(poolId);
+        if (Array.isArray(ark) && ark.length > 0) return ark;
       }
 
       return [];

@@ -16,35 +16,112 @@ enum LogLevel {
   ERROR = 3
 }
 
+interface LogContext {
+  component?: string;
+  action?: string;
+  opportunityId?: string;
+  protocol?: string;
+  errorType?: string;
+  statusCode?: number;
+}
+
 class Logger {
   private static level = LogLevel.INFO;
-  
+
   static setLevel(level: LogLevel) {
     Logger.level = level;
   }
-  
-  private static log(level: LogLevel, message: string, ...args: unknown[]) {
+
+  private static formatMessage(level: LogLevel, message: string, context?: LogContext, ...args: unknown[]): string {
+    const timestamp = new Date().toISOString();
+    const levelStr = LogLevel[level];
+
+    let contextStr = '';
+    if (context) {
+      const contextParts = [
+        context.component && `[${context.component}]`,
+        context.action && `${context.action}`,
+        context.opportunityId && `ID:${context.opportunityId}`,
+        context.protocol && `Protocol:${context.protocol}`,
+        context.errorType && `Type:${context.errorType}`,
+        context.statusCode && `Status:${context.statusCode}`
+      ].filter(Boolean);
+
+      if (contextParts.length > 0) {
+        contextStr = `(${contextParts.join(' ')}) `;
+      }
+    }
+
+    return `[${timestamp}] [${levelStr}] [RealDataBridge] ${contextStr}${message}`;
+  }
+
+  private static log(level: LogLevel, message: string, context?: LogContext, ...args: unknown[]) {
     if (level >= Logger.level) {
-      const timestamp = new Date().toISOString();
-      const levelStr = LogLevel[level];
-      console.log(`[${timestamp}] [${levelStr}] [RealDataBridge] ${message}`, ...args);
+      const formattedMessage = this.formatMessage(level, message, context);
+
+      // Use console.error for errors, console.log for others
+      if (level === LogLevel.ERROR) {
+        console.error(formattedMessage, ...args);
+      } else {
+        console.log(formattedMessage, ...args);
+      }
     }
   }
-  
-  static debug(message: string, ...args: unknown[]) {
-    Logger.log(LogLevel.DEBUG, message, ...args);
+
+  static debug(message: string, context?: LogContext, ...args: unknown[]) {
+    Logger.log(LogLevel.DEBUG, message, context, ...args);
   }
-  
-  static info(message: string, ...args: unknown[]) {
-    Logger.log(LogLevel.INFO, message, ...args);
+
+  static info(message: string, context?: LogContext, ...args: unknown[]) {
+    Logger.log(LogLevel.INFO, message, context, ...args);
   }
-  
-  static warn(message: string, ...args: unknown[]) {
-    Logger.log(LogLevel.WARN, message, ...args);
+
+  static warn(message: string, context?: LogContext, ...args: unknown[]) {
+    Logger.log(LogLevel.WARN, message, context, ...args);
   }
-  
-  static error(message: string, error?: unknown, ...args: unknown[]) {
-    Logger.log(LogLevel.ERROR, message, error, ...args);
+
+  static error(message: string, error?: unknown, context?: LogContext, ...args: unknown[]) {
+    const errorContext = {
+      ...context,
+      errorType: error instanceof Error ? error.constructor.name : typeof error
+    };
+
+    Logger.log(LogLevel.ERROR, message, errorContext, ...args);
+
+    // Additional error details in development
+    if (process.env.NODE_ENV === 'development' && error instanceof Error) {
+      console.debug(`└─ Stack trace: ${error.stack}`);
+    }
+  }
+
+  // Structured error reporting for specific scenarios
+  static reportApiError(endpoint: string, error: Error, context?: LogContext) {
+    const errorContext: LogContext = {
+      ...context,
+      component: 'API',
+      action: endpoint,
+      errorType: error.constructor.name
+    };
+
+    if (error.message.includes('404')) {
+      errorContext.statusCode = 404;
+      this.warn(`Resource not found: ${endpoint}`, errorContext);
+    } else if (error.message.includes('400')) {
+      errorContext.statusCode = 400;
+      this.warn(`Bad request: ${endpoint}`, errorContext);
+    } else {
+      this.error(`API call failed: ${endpoint}`, error, errorContext);
+    }
+  }
+
+  static reportDataIssue(type: 'missing' | 'corrupted' | 'unexpected', field: string, data?: unknown) {
+    const context: LogContext = {
+      component: 'DataProcessing',
+      action: type,
+      errorType: 'DataIssue'
+    };
+
+    this.warn(`Data ${type}: ${field}`, context, data);
   }
 }
 
@@ -177,13 +254,8 @@ function transformOpportunity(real: SharedOpportunity): MockOpportunity {
   try {
     Logger.debug(`Transforming opportunity: ${real.id}`);
     
-    // Prefer protocol-specific local logos when adapter fails to provide a proper one
-    const proto = real.protocol?.toLowerCase?.() || '';
-    let resolvedLogo = real.logoUrl || '';
-    // Force official local logo for Arkadiko across the app
-    if (proto === 'arkadiko') {
-      resolvedLogo = '/logos/arkadiko.svg';
-    }
+    // Use logo provided by adapters as-is
+    const resolvedLogo = real.logoUrl || '';
 
     const transformed: MockOpportunity = {
       id: real.id,
@@ -318,55 +390,61 @@ class RealDataAdapter {
    */
   async fetchOpportunityById(id: string): Promise<MockOpportunity | null> {
     const cacheKey = `opportunity_${id}`;
-    
+
     try {
       // Check cache first
       const cached = DataCache.get<MockOpportunity>(cacheKey);
       if (cached) {
-        Logger.info(`Returning opportunity ${id} from cache`);
+        Logger.info(`Returning opportunity from cache`, { opportunityId: id });
         return cached;
       }
-      
-      Logger.info(`Fetching opportunity ${id} from real data sources...`);
-      
+
+      Logger.info(`Fetching opportunity from real data sources`, { opportunityId: id });
+
       const adapterManager = await this.getAdapterManager();
-      
-      // Try to get from detail endpoint first
+
+      // For Arkadiko IDs, skip detail (some IDs 404); otherwise try detail first
+      const isArkadikoId = id.toLowerCase().startsWith('arkadiko-');
+      if (!isArkadikoId) {
+        try {
+          const realOpportunity: SharedOpportunity = await adapterManager.getOpportunityDetail(id);
+          const transformed = transformOpportunity(realOpportunity);
+          Logger.info(`Successfully fetched opportunity detail`, { opportunityId: id, protocol: realOpportunity.protocol });
+          DataCache.set(cacheKey, transformed, 10 * 60 * 1000); // 10 minutes for details
+          return transformed;
+        } catch (detailError) {
+          Logger.reportApiError('getOpportunityDetail', detailError as Error, { opportunityId: id });
+          Logger.warn(`Detail fetch failed, falling back to list search`, { opportunityId: id });
+        }
+      } else {
+        Logger.debug(`Skipping Arkadiko detail; using list fallback`, { opportunityId: id, protocol: 'Arkadiko' });
+      }
+
       try {
-        const realOpportunity: SharedOpportunity = await adapterManager.getOpportunityDetail(id);
-        const transformed = transformOpportunity(realOpportunity);
-        
-        Logger.info(`Successfully fetched opportunity detail: ${id}`);
-        
-        // Cache the result
-        DataCache.set(cacheKey, transformed, 10 * 60 * 1000); // 10 minutes for details
-        
-        return transformed;
-        
-      } catch (detailError) {
-        Logger.warn(`Detail fetch failed for ${id}, falling back to list search`, detailError);
-        
         // Fallback: search in full list
         const allOpportunities = await this.fetchOpportunities();
         const found = allOpportunities.find(opp => opp.id === id);
-        
+
         if (found) {
-          Logger.info(`Found opportunity ${id} in list fallback`);
+          Logger.info(`Found opportunity in list fallback`, { opportunityId: id, protocol: found.protocol });
           DataCache.set(cacheKey, found, 5 * 60 * 1000); // 5 minutes for fallback
           return found;
         }
-        
-        Logger.warn(`Opportunity ${id} not found in any data source`);
+
+        Logger.warn(`Opportunity not found in any data source`, { opportunityId: id });
+        return null;
+      } catch (listError) {
+        Logger.error(`Failed list fallback`, listError, { opportunityId: id });
         return null;
       }
-      
+
     } catch (error) {
-      Logger.error(`Failed to fetch opportunity ${id}`, error);
-      
+      Logger.error(`Failed to fetch opportunity`, error, { opportunityId: id });
+
       if (error instanceof DataFetchError || error instanceof DataTransformError) {
         throw error;
       }
-      
+
       throw new DataFetchError(
         `Failed to fetch opportunity ${id}`,
         'adapter',
@@ -446,38 +524,80 @@ class RealDataAdapter {
     apr?: number;
     volume24h?: number;
   }>> {
-    const adapterManager = await this.getAdapterManager();
+    try {
+      const adapterManager = await this.getAdapterManager();
 
-    // Get underlying opportunity to resolve poolId if needed
-    const opp: SharedOpportunity | null = await adapterManager.getOpportunityDetail(id);
-    if (!opp || !opp.poolId) {
-      // No poolId -> cannot fetch chart; return empty
+      // Resolve poolId without forcing protocol detail (avoid Arkadiko 404)
+      let poolId: string | undefined;
+      try {
+        const opp: SharedOpportunity | null = await adapterManager.getOpportunityDetail(id);
+        poolId = opp?.poolId;
+      } catch (detailError) {
+        Logger.reportApiError('getOpportunityDetail', detailError as Error, { opportunityId: id });
+        poolId = undefined;
+      }
+
+      if (!poolId) {
+        try {
+          const all: SharedOpportunity[] = await adapterManager.getAllOpportunities();
+          const found = all.find(o => o.id === id);
+          poolId = found?.poolId;
+          if (found) {
+            Logger.debug(`Found poolId in list fallback`, { opportunityId: id, protocol: found.protocol });
+          }
+        } catch (listError) {
+          Logger.reportApiError('getAllOpportunities', listError as Error, { opportunityId: id });
+          poolId = undefined;
+        }
+      }
+
+      if (!poolId) {
+        Logger.reportDataIssue('missing', 'poolId', { opportunityId: id });
+        Logger.info(`No poolId found, returning empty chart data`, { opportunityId: id });
+        return [];
+      }
+
+      const raw = await adapterManager.getChartData(poolId);
+
+      // Normalize potential shapes (DefiLlama vs Arkadiko)
+      // DefiLlama: { timestamp, tvlUsd, apy, apyBase, apyReward }
+      // Arkadiko: { timestamp, liquidity_usd, volume_24h }
+      type LlamaPoint = { timestamp: number | string; tvlUsd?: number; apy?: number; apyBase?: number; apyReward?: number };
+      type ArkPoint = { timestamp: number | string; liquidity_usd?: number; volume_24h?: number };
+      const arr = Array.isArray(raw) ? raw : [];
+
+      if (arr.length === 0) {
+        Logger.reportDataIssue('missing', 'chartData', { opportunityId: id, poolId });
+        Logger.info(`No chart data available for pool`, { opportunityId: id });
+        return [];
+      }
+
+      const points = arr.map((p: LlamaPoint | ArkPoint) => {
+        const tsVal = (p as LlamaPoint).timestamp ?? (p as ArkPoint).timestamp;
+        const ts = typeof tsVal === 'string' ? Date.parse(tsVal) : Number(tsVal) || Date.now();
+        const tvl = typeof (p as LlamaPoint).tvlUsd === 'number' ? (p as LlamaPoint).tvlUsd : (typeof (p as ArkPoint).liquidity_usd === 'number' ? (p as ArkPoint).liquidity_usd! : 0);
+        const apy = typeof (p as LlamaPoint).apy === 'number' ? (p as LlamaPoint).apy : (typeof (p as LlamaPoint).apyBase === 'number' ? (p as LlamaPoint).apyBase : undefined);
+        const apr = typeof apy === 'number' ? apy : undefined; // approximate
+        const volume24h = typeof (p as ArkPoint).volume_24h === 'number' ? (p as ArkPoint).volume_24h : undefined;
+        return { timestamp: ts, tvlUsd: tvl, apy, apr, volume24h };
+      });
+
+      // Filter by days
+      const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+      const filtered = points.filter(pt => pt.timestamp >= cutoff);
+      const result = filtered.length > 5 ? filtered : points;
+
+      Logger.debug(`Chart data processed`, { opportunityId: id, action: 'processChartData' });
+
+      return result;
+
+    } catch (error) {
+      Logger.reportApiError('getChartData', error as Error, { opportunityId: id });
+
+      // Return empty array instead of throwing error to maintain UI functionality
+      Logger.info(`Returning empty chart data due to API error`, { opportunityId: id });
       return [];
     }
-
-    const raw = await adapterManager.getChartData(opp.poolId);
-
-    // Normalize potential shapes (DefiLlama vs Arkadiko)
-    // DefiLlama: { timestamp, tvlUsd, apy, apyBase, apyReward }
-    // Arkadiko: { timestamp, liquidity_usd, volume_24h }
-    type LlamaPoint = { timestamp: number | string; tvlUsd?: number; apy?: number; apyBase?: number; apyReward?: number };
-    type ArkPoint = { timestamp: number | string; liquidity_usd?: number; volume_24h?: number };
-    const arr = Array.isArray(raw) ? raw : [];
-    const points = arr.map((p: LlamaPoint | ArkPoint) => {
-      const tsVal = (p as LlamaPoint).timestamp ?? (p as ArkPoint).timestamp;
-      const ts = typeof tsVal === 'string' ? Date.parse(tsVal) : Number(tsVal) || Date.now();
-      const tvl = typeof (p as LlamaPoint).tvlUsd === 'number' ? (p as LlamaPoint).tvlUsd : (typeof (p as ArkPoint).liquidity_usd === 'number' ? (p as ArkPoint).liquidity_usd! : 0);
-      const apy = typeof (p as LlamaPoint).apy === 'number' ? (p as LlamaPoint).apy : (typeof (p as LlamaPoint).apyBase === 'number' ? (p as LlamaPoint).apyBase : undefined);
-      const apr = typeof apy === 'number' ? apy : undefined; // approximate
-      const volume24h = typeof (p as ArkPoint).volume_24h === 'number' ? (p as ArkPoint).volume_24h : undefined;
-      return { timestamp: ts, tvlUsd: tvl, apy, apr, volume24h };
-    });
-
-    // Filter by days
-    const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
-    const filtered = points.filter(pt => pt.timestamp >= cutoff);
-    // If provider returned too few points, just return all available
-    return filtered.length > 5 ? filtered : points;
   }
 }
 

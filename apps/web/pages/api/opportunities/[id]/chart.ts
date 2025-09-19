@@ -28,7 +28,10 @@ export default async function handler(
     return res.status(200).json({ series });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
-    return res.status(500).json({ error: message });
+
+    // Log the error but return empty series to maintain UI functionality
+    console.error(`Chart data fetch failed for ${oppId}:`, message);
+    return res.status(200).json({ series: [] });
   }
 }
 

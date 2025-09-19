@@ -15,7 +15,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import SoftParticles from "@/components/particles/SoftParticles";
-import { generateMockSeries, kpiFromSeries, compactCurrency, percent1, SeriesPoint } from "@/lib/mock/series";
+import { compactCurrency, percent1, SeriesPoint } from "@/lib/mock/series";
 
 type HeroRightChartProps = {
   series?: SeriesPoint[];
@@ -63,17 +63,16 @@ function CustomTooltip({ active, payload, label }: TooltipContentProps) {
 
 export default function HeroRightChart(props: HeroRightChartProps) {
   const prefersReducedMotion = useReducedMotion();
-  const series = React.useMemo(() => props.series ?? generateMockSeries(60), [props.series]);
+  const series = React.useMemo(() => props.series ?? [], [props.series]);
   // Slightly amplify bar heights without affecting KPIs/lines
   const barScale = 1.35;
   const derivedSeries = React.useMemo(
     () => series.map(s => ({ ...s, change24hScaled: s.change24h * barScale })),
     [series]
   );
-  const kpi = React.useMemo(() => ({ ...kpiFromSeries(series) }), [series]);
-  const apr7d = props.apr7d ?? kpi.apr7d;
-  const tvl = props.tvl ?? kpi.tvl;
-  const netPnl = props.netPnl ?? kpi.netPnl;
+  const apr7d = props.apr7d ?? 0;
+  const tvl = props.tvl ?? 0;
+  const netPnl = props.netPnl ?? 0;
 
   // moving beacon index
   const [iBeacon, setIBeacon] = React.useState(series.length - 1);
@@ -150,6 +149,11 @@ export default function HeroRightChart(props: HeroRightChartProps) {
 
       {/* Chart area */}
       <div className="relative mt-3 h-[340px] md:h-[400px]" aria-hidden={false}>
+        {series.length === 0 && (
+          <div className="absolute inset-0 grid place-items-center text-xs text-white/70">
+            No live series available
+          </div>
+        )}
         {/* Sweep-reveal mask */}
         <motion.div
           className="absolute inset-0 z-20"
@@ -158,6 +162,7 @@ export default function HeroRightChart(props: HeroRightChartProps) {
           animate={{ clipPath: "inset(0% 0% 0% 0%)" }}
           transition={{ duration: prefersReducedMotion ? 0 : 1.2, ease: [0.22, 1, 0.36, 1] }}
         >
+          {series.length > 0 && (
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={derivedSeries} margin={{ top: 24, right: 12, bottom: 26, left: 0 }}>
               <defs>
@@ -203,12 +208,13 @@ export default function HeroRightChart(props: HeroRightChartProps) {
               </Bar>
               <Area type="monotone" dataKey="value" stroke="var(--line, #FFE7D1)" strokeWidth={2.2} fill="url(#areaGrad)" />
               <Line type="monotone" dataKey="pnl" stroke="var(--pnl, #93C5FD)" strokeOpacity={0.85} strokeWidth={1.6} dot={false} />
-              {!prefersReducedMotion && (
-                <ReferenceDot x={series[iBeacon].t} y={series[iBeacon].value} r={4}
+              {!prefersReducedMotion && series.length > 0 && (
+                <ReferenceDot x={series[iBeacon]?.t} y={series[iBeacon]?.value} r={4}
                   fill="var(--line, #FFE7D1)" stroke="transparent" />
               )}
             </ComposedChart>
           </ResponsiveContainer>
+          )}
         </motion.div>
 
         {/* Optional keyboard-accessible tooltip toggle */}

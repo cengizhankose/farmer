@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { motion } from "framer-motion";
-import { Shield, AlertTriangle, TrendingDown, Lock, Info } from "lucide-react";
+import { Shield, AlertTriangle, TrendingDown, Info, Activity, LineChart } from "lucide-react";
 type Opportunity = {
   id: string;
   protocol: string;
@@ -23,66 +23,218 @@ interface RiskAnalysisProps {
 
 interface RiskItem {
   category: string;
-  level: number; // 0-100
+  level: number; // 0-100, higher means higher risk
   status: "Low" | "Medium" | "High";
   description: string;
   icon: React.ReactNode;
-  color: {
-    bg: string;
-    bar: string;
-    text: string;
-  };
+  color: { bg: string; bar: string; text: string };
 }
 
 export function RiskAnalysis({ data }: RiskAnalysisProps) {
-  // Generate risk scores based on the opportunity's risk level
-  const baseRiskMultiplier = 
-    data.risk === "Low" ? 0.3 : 
-    data.risk === "Medium" ? 0.6 : 
-    0.85;
+  // Fetch optional backend-enhanced metrics first
+  const [enhanced, setEnhanced] = React.useState<{
+    liquidity: number;
+    stability: number;
+    yield: number;
+    concentration: number;
+    momentum: number;
+    total: number;
+  } | null>(null);
+
+  React.useEffect(() => {
+    let mounted = true;
+    async function loadEnhanced() {
+      try {
+        const resp = await fetch(`/api/opportunities/${data.id}/enhanced`);
+        if (!resp.ok) return; // fallback silently
+        const json = await resp.json();
+        const risk = json?.risk;
+        if (!mounted || !risk) return;
+        setEnhanced({
+          liquidity: Number(risk.liquidity ?? 0),
+          stability: Number(risk.stability ?? 0),
+          yield: Number(risk.yield ?? 0),
+          concentration: Number(risk.concentration ?? 0),
+          momentum: Number(risk.momentum ?? 0),
+          total: Number(risk.total ?? 0),
+        });
+      } catch {
+        // ignore; heuristics will be used
+      }
+    }
+    loadEnhanced();
+    return () => { mounted = false; };
+  }, [data.id]);
+
+  // Fetch recent series to compute heuristic risk metrics if needed
+  const [series, setSeries] = React.useState<Array<{ timestamp: number; tvlUsd: number; apy?: number; apr?: number; volume24h?: number }>>([]);
+
+  React.useEffect(() => {
+    let mounted = true;
+    async function load() {
+      try {
+        // no-op: internal loading state is not displayed
+        const resp = await fetch(`/api/opportunities/${data.id}/chart?days=90`);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const json = await resp.json();
+        const pts = Array.isArray(json.series) ? json.series : [];
+        if (!mounted) return;
+        setSeries(pts);
+      } catch {
+        setSeries([]);
+      } finally {
+        // no-op
+      }
+    }
+    load();
+    return () => { mounted = false; };
+  }, [data.id]);
+
+  // Helpers
+  const clamp01 = (n: number) => Math.max(0, Math.min(1, n));
+  const pct = (n: number) => Math.round(n * 100);
+  const mean = (arr: number[]) => (arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0);
+  const stdev = (arr: number[]) => {
+    if (arr.length < 2) return 0;
+    const m = mean(arr);
+    const v = mean(arr.map((x) => (x - m) * (x - m)));
+    return Math.sqrt(v);
+  };
+  const slope = (arr: number[]) => {
+    const n = arr.length;
+    if (n < 2) return 0;
+    const xs = Array.from({ length: n }, (_, i) => i + 1);
+    const xMean = mean(xs);
+    const yMean = mean(arr);
+    const num = xs.reduce((s, x, i) => s + (x - xMean) * (arr[i] - yMean), 0);
+    const den = xs.reduce((s, x) => s + (x - xMean) * (x - xMean), 0) || 1;
+    return num / den;
+  };
+  const maxDrawdown = (arr: number[]) => {
+    let peak = arr[0] || 0;
+    let maxDD = 0;
+    for (const v of arr) {
+      peak = Math.max(peak, v);
+      maxDD = Math.min(maxDD, (v - peak) / (peak || 1));
+    }
+    return Math.abs(maxDD); // 0..1
+  };
+  const herfindahl = (arr: number[]) => {
+    const s = arr.reduce((a, b) => a + Math.max(b, 0), 0) || 1;
+    return arr.reduce((a, v) => a + Math.pow(Math.max(v, 0) / s, 2), 0); // 1/N..1
+  };
+
+  // Build time-series vectors
+  const tvlVec = series.map((p) => p.tvlUsd).filter((n) => Number.isFinite(n)) as number[];
+  const apyVec = series.map((p) => (typeof p.apy === 'number' ? p.apy : typeof p.apr === 'number' ? p.apr : 0)).filter((n) => Number.isFinite(n)) as number[];
+  const volVec = series.map((p) => p.volume24h ?? 0).filter((n) => Number.isFinite(n)) as number[];
+
+  const latestTvl = tvlVec.length ? tvlVec[tvlVec.length - 1] : data.tvlUsd;
+  const tvlMean = mean(tvlVec);
+  const tvlVol = stdev(tvlVec);
+  const tvlCv = tvlMean ? tvlVol / tvlMean : 0; // coefficient of variation
+  const tvlSlope = slope(tvlVec);
+  const tvlDD = maxDrawdown(tvlVec);
+
+  const apyMean = mean(apyVec);
+  const apyVol = stdev(apyVec);
+  const apyCv = apyMean ? apyVol / Math.abs(apyMean) : 0;
+  const apySlope = slope(apyVec);
+
+  const volHerf = volVec.length ? herfindahl(volVec) : 1 / Math.max(1, volVec.length || 1);
+  const turnover = tvlMean ? mean(volVec) / tvlMean : 0; // approx daily
+
+  // Risk mappings (0..100 higher = higher risk)
+  const liquidityRisk = (() => {
+    const tvlRisk = 1 - clamp01(Math.log10((latestTvl || 1) + 1) / 7); // high TVL => low risk
+    const turnoverRisk = clamp01(turnover); // higher turnover => higher risk of churn
+    return pct(clamp01(0.7 * tvlRisk + 0.3 * turnoverRisk));
+  })();
+
+  const stabilityRisk = (() => {
+    const volRisk = clamp01(tvlCv); // variability
+    const ddRisk = clamp01(tvlDD);  // deep drawdowns
+    return pct(clamp01(0.6 * volRisk + 0.4 * ddRisk));
+  })();
+
+  const yieldRisk = (() => {
+    const volRisk = clamp01(apyCv);
+    const trendBonus = apySlope > 0 ? -0.1 : 0.05; // improving yield reduces risk slightly
+    return pct(clamp01(volRisk + trendBonus));
+  })();
+
+  const concentrationRisk = (() => {
+    if (volVec.length < 5) return 55; // unknown → medium
+    // Higher Herfindahl implies more concentrated volume flow
+    const h = clamp01((volHerf - 0.1) / 0.9);
+    return pct(h);
+  })();
+
+  const momentumRisk = (() => {
+    // Negative momentum increases risk, positive reduces
+    const m = tvlSlope;
+    // Normalize slope by scale of TVL
+    const norm = tvlMean ? m / (tvlMean || 1) : 0;
+    const mapped = 0.5 - Math.max(-0.5, Math.min(0.5, norm * 200)); // heuristic
+    return pct(clamp01(mapped));
+  })();
+
+  const toStatus = (score: number): RiskItem["status"] => (score < 33 ? "Low" : score < 66 ? "Medium" : "High");
+
+  // Prefer backend-enhanced values when present
+  const scores = enhanced ?? {
+    liquidity: liquidityRisk,
+    stability: stabilityRisk,
+    yield: yieldRisk,
+    concentration: concentrationRisk,
+    momentum: momentumRisk,
+    total: Math.round((liquidityRisk + stabilityRisk + yieldRisk + concentrationRisk + momentumRisk) / 5),
+  };
 
   const risks: RiskItem[] = [
     {
-      category: "Smart Contract Risk",
-      level: Math.round((20 + Math.random() * 30) * baseRiskMultiplier),
-      status: data.risk,
-      description: "Audit status, code complexity, and time in production",
-      icon: <Lock size={16} />,
-      color: {
-        bg: "bg-blue-50",
-        bar: "bg-blue-500",
-        text: "text-blue-700"
-      }
-    },
-    {
-      category: "Market Risk",
-      level: Math.round((30 + Math.random() * 40) * baseRiskMultiplier),
-      status: data.risk,
-      description: "Price volatility, impermanent loss potential, and liquidity depth",
-      icon: <TrendingDown size={16} />,
-      color: {
-        bg: "bg-amber-50",
-        bar: "bg-amber-500",
-        text: "text-amber-700"
-      }
-    },
-    {
       category: "Liquidity Risk",
-      level: Math.round((15 + Math.random() * 25) * baseRiskMultiplier),
-      status: data.risk,
-      description: "Exit liquidity, withdrawal limits, and lock-up periods",
+      level: scores.liquidity,
+      status: toStatus(scores.liquidity),
+      description: "Exit depth and turnover vs TVL (derived from real series)",
       icon: <AlertTriangle size={16} />,
-      color: {
-        bg: "bg-purple-50",
-        bar: "bg-purple-500",
-        text: "text-purple-700"
-      }
-    }
+      color: { bg: "bg-purple-50", bar: "bg-purple-500", text: "text-purple-700" },
+    },
+    {
+      category: "Stability Risk",
+      level: scores.stability,
+      status: toStatus(scores.stability),
+      description: "TVL volatility and drawdown computed from historical data",
+      icon: <TrendingDown size={16} />,
+      color: { bg: "bg-amber-50", bar: "bg-amber-500", text: "text-amber-700" },
+    },
+    {
+      category: "Yield Risk",
+      level: scores.yield,
+      status: toStatus(scores.yield),
+      description: "APR/APY variability and trend of returns",
+      icon: <LineChart size={16} />,
+      color: { bg: "bg-blue-50", bar: "bg-blue-500", text: "text-blue-700" },
+    },
+    {
+      category: "Concentration Risk",
+      level: scores.concentration,
+      status: toStatus(scores.concentration),
+      description: "Volume distribution proxy (higher concentration = higher risk)",
+      icon: <Shield size={16} />,
+      color: { bg: "bg-rose-50", bar: "bg-rose-500", text: "text-rose-700" },
+    },
+    {
+      category: "Momentum Risk",
+      level: scores.momentum,
+      status: toStatus(scores.momentum),
+      description: "Recent TVL momentum; weakening momentum increases risk",
+      icon: <Activity size={16} />,
+      color: { bg: "bg-emerald-50", bar: "bg-emerald-500", text: "text-emerald-700" },
+    },
   ];
 
-  const overallRiskScore = Math.round(
-    risks.reduce((sum, risk) => sum + risk.level, 0) / risks.length
-  );
+  const overallRiskScore = scores.total ?? Math.round(risks.reduce((sum, r) => sum + r.level, 0) / (risks.length || 1));
 
   const getRiskLabel = (score: number) => {
     if (score < 33) return { label: "Low Risk", color: "text-emerald-600" };
@@ -172,9 +324,8 @@ export function RiskAnalysis({ data }: RiskAnalysisProps) {
         <Info size={14} className="text-blue-600 mt-0.5" />
         <div className="flex-1">
           <p className="text-xs text-blue-700">
-            Risk scores are calculated based on multiple factors including audit status, 
-            TVL stability, historical performance, and market conditions. Lower scores 
-            indicate lower risk.
+            Risk scores are derived from real series: TVL volatility/drawdown, APR/APY volatility, 
+            liquidity turnover, volume concentration and recent momentum. Lower scores indicate lower risk.
           </p>
         </div>
       </div>

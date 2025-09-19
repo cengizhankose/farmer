@@ -54,10 +54,10 @@ export default function InsetShowcaseAlt({
   return (
     <section className={"relative mx-auto max-w-[1200px] " + (className ?? "")} aria-label={title || kicker}>
       <motion.div
-        ref={(node: HTMLDivElement | null) => {
-          (ref as any).current = node;
-          (wrapRef as any).current = node;
-        }}
+        ref={((node: HTMLDivElement | null) => {
+          (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+          (wrapRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+        })}
         onMouseMove={onMouseMove}
         onMouseLeave={onMouseLeave}
         className={[
@@ -141,4 +141,3 @@ export default function InsetShowcaseAlt({
     </section>
   );
 }
-
