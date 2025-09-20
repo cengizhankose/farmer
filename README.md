@@ -85,54 +85,54 @@ farmer/
 graph TB
     %% Contract State
     subgraph "Contract Storage"
-        A[owner: principal]
-        B[paused: bool]
-        C[per-tx-cap: uint]
-        D[allowed-protocols: map<br/>{id: uint = protocol-entry}]
+        A["owner: principal"]
+        B["paused: bool"]
+        C["per-tx-cap: uint"]
+        D["allowed-protocols: map<br/>{id: uint = protocol-entry}"]
     end
 
     %% Owner Functions
     subgraph "Owner-Only Functions"
-        E[set-paused<br/>paused: bool]
-        F[set-tx-cap<br/>cap: uint]
-        G[allow-protocol<br/>id: uint<br/>target: principal<br/>token: principal<br/>adapter: principal]
-        H[is-protocol-allowed<br/>id: uint → bool]
+        E["set-paused<br/>paused: bool"]
+        F["set-tx-cap<br/>cap: uint"]
+        G["allow-protocol<br/>id: uint<br/>target: principal<br/>token: principal<br/>adapter: principal"]
+        H["is-protocol-allowed<br/>id: uint → bool"]
     end
 
     %% Main Deposit Flow
     subgraph "Deposit Flow Validation"
-        I[route-deposit<br/>token: sip10-token<br/>amount: uint<br/>protocol-id: uint<br/>min-out: uint<br/>adapter: yield-adapter]
+        I["route-deposit<br/>token: sip10-token<br/>amount: uint<br/>protocol-id: uint<br/>min-out: uint<br/>adapter: yield-adapter"]
 
         %% Validation Checks
-        J{Contract<br/>Paused?}
-        K{Amount > 0?}
-        L{Amount ≤<br/>TX Cap?}
-        M{Protocol<br/>Allowed?}
-        N{Protocol Entry<br/>Exists?}
-        O{Token<br/>Match?}
-        P{Adapter<br/>Match?}
-        Q{Token Transfer<br/>Success?}
-        R{Adapter Deposit<br/>Success?}
-        S{Output ≥<br/>Min-Out?}
+        J{"Contract<br/>Paused?"}
+        K{"Amount > 0?"}
+        L{"Amount ≤<br/>TX Cap?"}
+        M{"Protocol<br/>Allowed?"}
+        N{"Protocol Entry<br/>Exists?"}
+        O{"Token<br/>Match?"}
+        P{"Adapter<br/>Match?"}
+        Q{"Token Transfer<br/>Success?"}
+        R{"Adapter Deposit<br/>Success?"}
+        S{"Output ≥<br/>Min-Out?"}
     end
 
     %% Error States
     subgraph "Error Codes"
-        T[ERR-NOT-AUTH: 100]
-        U[ERR-PAUSED: 200]
-        V[ERR-INVALID-AMOUNT: 201]
-        W[ERR-AMOUNT-TOO-HIGH: 202]
-        X[ERR-NOT-ALLOWED: 300]
-        Y[ERR-ADAPTER-MISMATCH: 301]
-        Z[ERR-TRANSFER-FAILED: 302]
-        AA[ERR-SLIPPAGE: 303]
-        AB[ERR-ADAPTER-FAILED: 304]
+        T["ERR-NOT-AUTH: 100"]
+        U["ERR-PAUSED: 200"]
+        V["ERR-INVALID-AMOUNT: 201"]
+        W["ERR-AMOUNT-TOO-HIGH: 202"]
+        X["ERR-NOT-ALLOWED: 300"]
+        Y["ERR-ADAPTER-MISMATCH: 301"]
+        Z["ERR-TRANSFER-FAILED: 302"]
+        AA["ERR-SLIPPAGE: 303"]
+        AB["ERR-ADAPTER-FAILED: 304"]
     end
 
     %% Event Logging
     subgraph "Events"
-        AC[route-deposit event]
-        AD[adapter-error event]
+        AC["route-deposit event"]
+        AD["adapter-error event"]
     end
 
     %% Data Flow
