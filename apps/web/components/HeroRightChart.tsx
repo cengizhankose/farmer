@@ -171,57 +171,57 @@ export default function HeroRightChart(props: HeroRightChartProps) {
           transition={{ duration: prefersReducedMotion ? 0 : 1.2, ease: [0.22, 1, 0.36, 1] }}
         >
           {series.length > 0 && (
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={derivedSeries} margin={{ top: 24, right: 12, bottom: 26, left: 0 }}>
-              <defs>
-                <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="var(--brand-orange, #FF7A1A)" stopOpacity={0.24} />
-                  <stop offset="60%" stopColor="var(--burnt-orange, #C6561A)" stopOpacity={0.12} />
-                  <stop offset="100%" stopColor="var(--bronze, #8C5A3A)" stopOpacity={0} />
-                </linearGradient>
-                <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-                  <feGaussianBlur stdDeviation="2.2" result="coloredBlur" />
-                  <feMerge>
-                    <feMergeNode in="coloredBlur" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-              </defs>
-              <CartesianGrid vertical={false} stroke={gridStroke} />
-              <XAxis
-                dataKey="t"
-                type="number"
-                domain={xDomain}
-                allowDataOverflow
-                tickFormatter={(t) => new Date(t).toLocaleDateString(undefined, { month: "short", day: "2-digit" })}
-                tick={{ fill: axisStroke, fontSize: 11 }}
-                tickMargin={8}
-                tickLine={false}
-                axisLine={false}
-                interval={7}
-              />
-              <YAxis
-                orientation="right"
-                tickFormatter={(v) => compactCurrency(Number(v))}
-                tick={{ fill: axisStroke, fontSize: 11 }}
-                tickLine={false}
-                axisLine={false}
-                width={60}
-              />
-              <Tooltip content={<CustomTooltip />} trigger="hover" />
-              <Bar dataKey="change24hScaled" strokeWidth={0} fillOpacity={0.9} barSize={4} radius={[3, 3, 0, 0]}>
-                {series.map((pt, idx) => (
-                  <Cell key={`c-${idx}`} fill={pt.change24h >= 0 ? "var(--bar-pos, #34D399)" : "var(--bar-neg, #FCA5A5)"} />
-                ))}
-              </Bar>
-              <Area type="monotone" dataKey="value" stroke="var(--line, #FFE7D1)" strokeWidth={2.2} fill="url(#areaGrad)" />
-              <Line type="monotone" dataKey="pnl" stroke="var(--pnl, #93C5FD)" strokeOpacity={0.85} strokeWidth={1.6} dot={false} />
-              {!prefersReducedMotion && series.length > 0 && (
-                <ReferenceDot x={series[iBeacon]?.t} y={series[iBeacon]?.value} r={4}
-                  fill="var(--line, #FFE7D1)" stroke="transparent" />
-              )}
-            </ComposedChart>
-          </ResponsiveContainer>
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={derivedSeries} margin={{ top: 24, right: 12, bottom: 26, left: 0 }}>
+                <defs>
+                  <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="var(--brand-orange, #FF7A1A)" stopOpacity={0.24} />
+                    <stop offset="60%" stopColor="var(--burnt-orange, #C6561A)" stopOpacity={0.12} />
+                    <stop offset="100%" stopColor="var(--bronze, #8C5A3A)" stopOpacity={0} />
+                  </linearGradient>
+                  <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="2.2" result="coloredBlur" />
+                    <feMerge>
+                      <feMergeNode in="coloredBlur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                </defs>
+                <CartesianGrid vertical={false} stroke={gridStroke} />
+                <XAxis
+                  dataKey="t"
+                  type="number"
+                  domain={xDomain}
+                  allowDataOverflow
+                  tickFormatter={(t) => new Date(t).toLocaleDateString(undefined, { month: "short", day: "2-digit" })}
+                  tick={{ fill: axisStroke, fontSize: 11 }}
+                  tickMargin={8}
+                  tickLine={false}
+                  axisLine={false}
+                  interval={7}
+                />
+                <YAxis
+                  orientation="right"
+                  tickFormatter={(v) => compactCurrency(Number(v))}
+                  tick={{ fill: axisStroke, fontSize: 11 }}
+                  tickLine={false}
+                  axisLine={false}
+                  width={60}
+                />
+                <Tooltip content={<CustomTooltip />} trigger="hover" />
+                <Bar dataKey="change24hScaled" strokeWidth={0} fillOpacity={0.9} barSize={4} radius={[3, 3, 0, 0]}>
+                  {series.map((pt, idx) => (
+                    <Cell key={`c-${idx}`} fill={pt.change24h >= 0 ? "var(--bar-pos, #34D399)" : "var(--bar-neg, #FCA5A5)"} />
+                  ))}
+                </Bar>
+                <Area type="monotone" dataKey="value" stroke="var(--line, #FFE7D1)" strokeWidth={2.2} fill="url(#areaGrad)" />
+                <Line type="monotone" dataKey="pnl" stroke="var(--pnl, #93C5FD)" strokeOpacity={0.85} strokeWidth={1.6} dot={false} />
+                {!prefersReducedMotion && series.length > 0 && (
+                  <ReferenceDot x={series[iBeacon]?.t} y={series[iBeacon]?.value} r={4}
+                    fill="var(--line, #FFE7D1)" stroke="transparent" />
+                )}
+              </ComposedChart>
+            </ResponsiveContainer>
           )}
         </motion.div>
 
