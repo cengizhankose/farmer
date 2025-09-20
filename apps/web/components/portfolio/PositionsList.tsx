@@ -39,22 +39,116 @@ const RISK_COLORS: Record<string, string> = {
   High: "bg-red-100 text-red-800 border-red-300"
 };
 
-// Mock function - replace with actual data fetching logic
+// Mocked opportunity catalog with randomized APR/APY/TVL per reload scenario
 function getOpportunityById(id: string): Opportunity | undefined {
-  // This is a placeholder - replace with actual implementation
+  // Determine scenario to vary values on reload
+  let scenario: "A" | "B" = "A";
+  if (typeof window !== "undefined") {
+    const s = window.localStorage.getItem("portfolio_mock_scenario");
+    if (s === "A" || s === "B") scenario = s;
+  }
+
+  // Seeded RNG for deterministic per-id, per-scenario numbers
+  const seeded = (key: string) => {
+    let h = 2166136261 >>> 0;
+    for (let i = 0; i < key.length; i++) {
+      h ^= key.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return () => {
+      h += 0x6D2B79F5;
+      let t = Math.imul(h ^ (h >>> 15), 1 | h);
+      t ^= t + Math.imul(t ^ (t >>> 7), 61 | t);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  };
+  const rnd = seeded(`${id}:${scenario}`);
+  const between = (min: number, max: number) => min + (max - min) * rnd();
+
+  const base: Record<string, {
+    protocol: string;
+    pair: string;
+    chain: string;
+    risk: "Low" | "Medium" | "High";
+    rewardToken: string;
+    apr: [number, number];
+    apy: [number, number];
+    tvl: [number, number]; // USD
+  }> = {
+    "zest-stx": {
+      protocol: "ZEST",
+      pair: "STX",
+      chain: "stacks",
+      risk: "Medium",
+      rewardToken: "ZEST",
+      apr: scenario === "A" ? [9, 16] : [12, 20],
+      apy: scenario === "A" ? [11, 19] : [14, 22],
+      tvl: [1_000_000, 6_000_000],
+    },
+    "arkadiko-stx-welsh": {
+      protocol: "Arkadiko",
+      pair: "STX/WELSH",
+      chain: "stacks",
+      risk: "High",
+      rewardToken: "DIKO",
+      apr: scenario === "A" ? [22, 32] : [25, 35],
+      apy: scenario === "A" ? [26, 40] : [28, 45],
+      tvl: [600_000, 3_000_000],
+    },
+    "arkadiko-xbtc-usda": {
+      protocol: "Arkadiko",
+      pair: "xBTC/USDA",
+      chain: "stacks",
+      risk: "Medium",
+      rewardToken: "DIKO",
+      apr: scenario === "A" ? [11, 18] : [12, 20],
+      apy: scenario === "A" ? [13, 22] : [15, 25],
+      tvl: [1_000_000, 7_000_000],
+    },
+    "arkadiko-stx-diko": {
+      protocol: "Arkadiko",
+      pair: "STX/DIKO",
+      chain: "stacks",
+      risk: "High",
+      rewardToken: "DIKO",
+      apr: scenario === "A" ? [19, 28] : [22, 32],
+      apy: scenario === "A" ? [22, 36] : [24, 40],
+      tvl: [500_000, 2_500_000],
+    },
+    "zest-aeusdc": {
+      protocol: "ZEST",
+      pair: "AEUSDC",
+      chain: "stacks",
+      risk: "Low",
+      rewardToken: "ZEST",
+      apr: scenario === "A" ? [5, 8] : [6, 10],
+      apy: scenario === "A" ? [6, 10] : [7, 12],
+      tvl: [2_000_000, 8_000_000],
+    },
+  };
+
+  const meta = base[id];
+  if (!meta) return undefined;
+
+  const apr = +between(meta.apr[0], meta.apr[1]).toFixed(1);
+  const apy = +between(meta.apy[0], meta.apy[1]).toFixed(1);
+  const tvlUsd = Math.round(between(meta.tvl[0], meta.tvl[1]) / 10_000) * 10_000;
+  const lastUpdated = ["3m", "5m", "12m", "1h"][Math.floor(between(0, 3.99))];
+  const risk: "Low" | "Medium" | "High" = (["Low", "Medium", "High"] as const)[Math.floor(between(0, 2.999))];
+
   return {
     id,
-    protocol: "Unknown",
-    pair: "Unknown",
-    chain: "stacks",
-    apr: 0,
-    apy: 0,
-    risk: "Medium",
-    tvlUsd: 0,
-    rewardToken: "STX",
-    lastUpdated: "Now",
+    protocol: meta.protocol,
+    pair: meta.pair,
+    chain: meta.chain,
+    apr,
+    apy,
+    risk,
+    tvlUsd,
+    rewardToken: meta.rewardToken,
+    lastUpdated,
     originalUrl: "",
-    summary: ""
+    summary: `${meta.protocol} ${meta.pair} pool on Stacks with ${risk} risk`,
   };
 }
 import { protocolLogo } from "@/lib/logos";
