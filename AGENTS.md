@@ -1,31 +1,19 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-- apps/web: Next.js app (pages: `opportunities`, `opportunities/[id]`, `portfolio`; libs: `lib/adapters/{alex,arkadiko}.ts`, `lib/normalize/{apr,risk}.ts`; UI: `components/{OpportunityCard,DepositPanel,PortfolioTable}`).
-- contracts: Router contract (Stacks-first; e.g., `Router.clar`) and unit tests.
-- packages/shared: Shared `types/` and `utils/`.
-- scripts: Operational helpers (`setup_hackathon.sh`, `create_issues.sh`).
+Keep user-facing code inside `apps/web`. Pages live under `pages/` (e.g., `opportunities`, `opportunities/[id]`, `portfolio`), shared UI sits in `components/`, and data transforms remain in `lib/adapters/` and `lib/normalize/`. Smart contracts and Clarinet tests reside in `contracts/`. Reusable domain types and utilities belong in `packages/shared`. Operational scripts, including `setup_hackathon.sh` and `create_issues.sh`, are in `scripts/`. Store any new test fixtures alongside the feature they exercise.
 
 ## Build, Test, and Development Commands
-- Frontend (once scaffolded): `cd apps/web && npm i && npm run dev` (local dev), `npm run build` (production), `npm test` (unit/UI tests).
-- Contracts (Stacks/Clarity): `cd contracts && clarinet check` (lint/compile), `clarinet test` (unit tests). If EVM is introduced later, prefer Foundry (`forge build`, `forge test`).
-- Scripts: `./scripts/setup_hackathon.sh` (labels/milestones), `./scripts/create_issues.sh` (issue seeds). Requires `gh` and `jq`.
+Run `cd apps/web && npm install` once, then `npm run dev` for local development and `npm run build` to produce a production bundle. Execute UI and adapter tests with `npm test`. For Clarity contracts, use `cd contracts && clarinet check` before committing and `clarinet test` for unit coverage. Script helpers run via `./scripts/<name>.sh`; most require `gh` and `jq` in your PATH.
 
 ## Coding Style & Naming Conventions
-- TypeScript/React: 2-space indent, Prettier + ESLint (recommended rules). Components `PascalCase`, hooks `useCamelCase`, files `kebab-case.ts(x)`. Routes follow Next.js file routing.
-- Modules: Adapters in `lib/adapters/*`, normalization helpers in `lib/normalize/*`, shared domain types in `packages/shared`.
-- Clarity: small, single-purpose public functions; event names `PascalCase` and parameters `camelCase`.
+TypeScript follows a 2-space indent with Prettier (`npm run lint` / `npm run format`) enforcing the rule set shared through `eslint.config.mjs` and `prettier.config.cjs`. Components use `PascalCase`, hooks use `useCamelCase`, and files prefer `kebab-case.ts(x)`. Clarinet contracts favour single-purpose public entry points, `PascalCase` events, and `camelCase` parameters. Keep all persisted language (code, comments, docs) in English.
 
 ## Testing Guidelines
-- Contracts: Unit tests cover `pause`, `allowlist`, `minOut`, `perTxCap`, and event emissions. Aim for green tests before integration. Name tests by feature (e.g., `allowlist_test.ts` or Clarinet conventions).
-- Frontend: Jest/Vitest + React Testing Library. Place tests as `*.test.ts(x)` near source or under `__tests__/`. Include adapters/normalizers and critical flows (connect wallet, list/detail, deposit CTA, portfolio state).
+Mirror existing patterns by naming files `*.test.ts(x)` or using Clarinet conventions such as `allowlist_test.ts`. Focus frontend coverage on wallet connection, listing/detail flows, deposit CTAs, and portfolio state. Contract suites must assert `pause`, `allowlist`, `minOut`, `perTxCap`, and event emissions before merge.
 
 ## Commit & Pull Request Guidelines
-- Commits: Imperative mood, concise scope prefix mirroring issues: `[FE]`, `[BE]`, `[DATA]`, `[DOCS]` (e.g., `[FE] Add portfolio table`). Reference issues with `#123` when applicable.
-- PRs: Clear description, linked issues, screenshots for UI changes, and testnet explorer links for contract flows. Include checklist: build passes, tests updated, security notes (if router/tx paths touched).
+Write commits in imperative mood with scope prefixes like `[FE]`, `[BE]`, `[DATA]`, or `[DOCS]` (e.g., `[FE] Add portfolio table`) and reference issues using `#123` when relevant. PRs need a concise summary, links to tickets, screenshots for UI updates, and explorer URLs for contract work. Confirm builds and tests pass, flag security-sensitive changes, and translate any non-English discussion into an English note.
 
 ## Security & Configuration Tips
-- Contracts: Follow CEI pattern, keep `pausable`, `reentrancy` protections, and `perTxCap`. Log events for deposits.
-- Frontend: Show data `source` and `lastUpdated`; display NFA/BETA banners. Default to read-only on wrong chain.
-- Secrets: Use env files per app; never commit private keys or API tokens.
-
+Adhere to CEI patterns, retain `pausable` and reentrancy guards, and log deposit events in router logic. Frontend surfaces must show data sources and last-updated timestamps, default to read-only if the wallet sits on the wrong chain, and avoid committing secrets—use environment-specific `.env` files instead.

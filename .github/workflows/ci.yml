@@ -1,0 +1,16 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: 'pnpm' }
+      - run: pnpm i
+      - run: pnpm -r typecheck
+      - run: pnpm -r lint
+      - run: pnpm -r --filter "./packages/*" run build
+      - run: pnpm -r --filter "./apps/*" run build

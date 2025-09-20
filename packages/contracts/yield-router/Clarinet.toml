@@ -1,0 +1,35 @@
+[project]
+name = 'yield-router'
+description = ''
+authors = []
+telemetry = true
+cache_dir = './.cache'
+requirements = []
+[contracts.router]
+path = 'contracts/router.clar'
+clarity_version = 3
+epoch = 'latest'
+[contracts.mock-adapter]
+path = 'contracts/mock-adapter.clar'
+clarity_version = 3
+epoch = 'latest'
+[contracts.mock-token]
+path = 'contracts/mock-token.clar'
+clarity_version = 3
+epoch = 'latest'
+[contracts.mock-stacking]
+path = 'contracts/adapters/mock-stacking.clar'
+clarity_version = 3
+epoch = 'latest'
+[repl.analysis]
+passes = ['check_checker']
+
+[repl.analysis.check_checker]
+strict = false
+trusted_sender = false
+trusted_caller = false
+callee_filter = false
+
+[repl.remote_data]
+enabled = false
+api_url = 'https://api.hiro.so'

@@ -1,0 +1,177 @@
+/* Typography System - Web3 Design Excellence */
+
+/* Display ailesi ve sayısal hizalama */
+.font-display {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Headings */
+.typo-h1-hero {
+  @apply font-display text-5xl sm:text-6xl md:text-7xl font-semibold text-white;
+  letter-spacing: -0.02em;
+}
+
+.typo-h1 {
+  @apply font-display text-3xl md:text-4xl font-semibold text-neutral-900;
+  letter-spacing: -0.01em;
+}
+
+.typo-h2 {
+  @apply font-display text-2xl md:text-3xl font-semibold text-white;
+  letter-spacing: -0.01em;
+}
+
+.typo-h3 {
+  @apply text-lg md:text-xl font-semibold text-neutral-900;
+}
+
+/* Paragraphs */
+.typo-subhead { @apply text-lg text-white/80 leading-relaxed; }
+.typo-body { @apply text-base text-white/80 leading-relaxed; }
+.typo-microcopy { @apply mt-4 text-xs text-white/70; }
+
+.typo-lead {
+  @apply text-lg md:text-xl text-neutral-700 leading-relaxed;
+  letter-spacing: 0.01em;
+}
+
+.typo-p {
+  @apply text-base text-neutral-600 leading-relaxed;
+}
+
+.typo-fine {
+  @apply text-sm text-neutral-500;
+}
+
+/* Buttons & Links */
+.typo-btn-primary {
+  @apply inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent text-white shadow-sm;
+  background: var(--brand-orange);
+}
+.typo-btn-primary:hover { @apply -translate-y-[2px] shadow-md; background: var(--brand-orange-700); }
+.typo-btn-primary:active { transform: translateY(0); }
+
+.typo-btn-secondary {
+  @apply inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent text-neutral-700 bg-white border border-neutral-200 shadow-sm;
+}
+.typo-btn-secondary:hover { @apply -translate-y-[2px] shadow-md bg-neutral-50; }
+.typo-btn-secondary:active { transform: translateY(0); }
+
+.typo-btn-ghost {
+  @apply inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent text-neutral-600 hover:text-neutral-900 bg-transparent;
+}
+.typo-btn-ghost:hover { @apply -translate-y-[2px] shadow-sm bg-neutral-100; }
+.typo-btn-ghost:active { transform: translateY(0); }
+
+.typo-link {
+  @apply text-orange-500 hover:text-orange-600 font-medium;
+  @apply underline underline-offset-4 decoration-orange-200 hover:decoration-orange-300;
+  @apply transition-colors;
+}
+
+/* Eyebrow and bullets */
+.typo-eyebrow { @apply text-[11px] uppercase tracking-wide font-semibold text-white/70; }
+.typo-bullets { @apply flex items-start gap-2 text-white/85 text-base; }
+
+/* Cards */
+.typo-card-h { 
+  @apply font-display text-lg text-white mb-2;
+}
+
+.typo-card-p { 
+  @apply text-sm text-white/85 leading-relaxed;
+}
+
+.typo-card-metric {
+  @apply font-semibold text-white tabular-nums;
+}
+
+/* Opportunities */
+.typo-note { 
+  @apply font-medium text-sm text-zinc-700 bg-amber-50/50 px-3 py-2 rounded-lg border border-amber-200/50;
+}
+
+.typo-subtle-note { 
+  @apply text-xs text-zinc-500 flex items-center gap-1.5;
+}
+
+/* Detail pages */
+.typo-404-h { 
+  @apply text-3xl font-semibold text-zinc-900 mb-3;
+}
+
+.typo-404-p { 
+  @apply text-base text-zinc-600;
+}
+
+.typo-link-emerald { 
+  @apply text-emerald-600 hover:text-emerald-700 underline-offset-4 hover:underline transition-colors;
+}
+
+.typo-btn-sm-muted { 
+  @apply text-sm font-medium text-zinc-700 hover:text-zinc-900 transition-colors;
+}
+
+/* Portfolio */
+.typo-portfolio-h1 { 
+  @apply font-display text-4xl md:text-5xl font-semibold text-neutral-900 tracking-tight;
+}
+
+.typo-portfolio-sub { 
+  @apply text-lg text-neutral-600 mt-2;
+}
+
+.typo-section-h { 
+  @apply text-lg font-semibold text-zinc-900 flex items-center gap-2;
+}
+
+.typo-empty { 
+  @apply text-sm text-zinc-600;
+}
+
+.typo-link-primary { 
+  @apply font-medium text-emerald-600 hover:text-emerald-700 underline underline-offset-4 transition-colors;
+}
+
+.typo-toggle { 
+  @apply text-sm font-medium px-3 py-1.5 rounded-lg transition-all;
+}
+
+/* Badges & Pills */
+.typo-badge {
+  @apply inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide rounded-full;
+  @apply bg-white/10 text-white/80 backdrop-blur-sm border border-white/20;
+}
+
+/* Animations */
+.typo-animate-in {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Focus states */
+.typo-focus {
+  @apply focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-transparent;
+}
+
+/* Responsive font sizes */
+@media (max-width: 640px) {
+  .typo-h1-hero {
+    letter-spacing: -0.01em;
+  }
+  
+  .typo-h2 {
+    letter-spacing: 0;
+  }
+}

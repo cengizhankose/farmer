@@ -1,0 +1,25 @@
+{
+  "name": "@contracts/core",
+  "version": "0.0.1",
+  "description": "Smart contracts for yield router",
+  "scripts": {
+    "test": "cd yield-router && pnpm test",
+    "check": "cd yield-router && clarinet check",
+    "clarinet:test": "cd yield-router && clarinet test",
+    "clarinet:check": "cd yield-router && clarinet check",
+    "console": "cd yield-router && clarinet console",
+    "build": "echo \"(contracts) build step\"",
+    "lint": "echo \"(contracts) no lint\"",
+    "format": "echo \"(contracts) no format\"",
+    "typecheck": "echo \"(contracts) no typecheck\""
+  },
+  "keywords": ["stacks", "clarity", "defi", "yield"],
+  "dependencies": {
+    "@hirosystems/clarinet-sdk": "^3.0.2",
+    "@stacks/transactions": "^7.0.6",
+    "chokidar-cli": "^3.0.0",
+    "vite": "^5.0.0",
+    "vitest": "^3.1.3",
+    "vitest-environment-clarinet": "^2.3.0"
+  }
+}

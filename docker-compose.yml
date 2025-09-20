@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  # Web Application
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./apps/web:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - REACT_APP_STACKS_NETWORK=testnet
+    depends_on:
+      - stacks-node
+    command: npm start
+
+  # Stacks Local Development Node
+  stacks-node:
+    image: blockstack/stacks-blockchain:latest
+    ports:
+      - "20443:20443"
+      - "20444:20444"
+    volumes:
+      - stacks-data:/root/stacks-node/data
+    environment:
+      - STACKS_LOG_DEBUG=1
+    command: >
+      /bin/stacks-node start --config=/root/stacks-node/Config.toml
+
+  # Redis for caching (optional)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+
+  # PostgreSQL for data storage (future use)
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=stacks_yield_agg
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  stacks-data:
+  redis-data:
+  postgres-data:

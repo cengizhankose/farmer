@@ -1,0 +1,675 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Import typography system */
+@import "./typography.css";
+
+/* Fonts */
+/* Note: ClashDisplay-Variable.woff2 not found - using system font fallback */
+/*
+@font-face {
+  font-family: 'Clash Display';
+  src: url('/fonts/ClashDisplay-Variable.woff2') format('woff2-variations');
+  font-weight: 200 700;
+  font-style: normal;
+  font-display: swap;
+}
+*/
+
+:root {
+  --font-display:
+    "Clash Display", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, Inter, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol";
+
+  /* Graph paper defaults (dark) */
+  --gp-bg: #0e0e10;
+  --gp-line: rgba(255, 255, 255, 0.06);
+  --gp-5th: rgba(255, 255, 255, 0.1);
+  --gp-10th: rgba(255, 255, 255, 0.16);
+  --gp-unit: 16px;
+  --gp-scale: 1;
+
+  /* UI Design System Colors */
+  --sand-50: #f6f4ef;
+  --sand-200: #e3ddd1;
+  --graph-bg: #0e0e10;
+  --brand-orange: #ff6a00;
+  --brand-orange-700: #e85f00;
+  --badge-lilac: #e6dbff;
+
+  /* FE_examples tokens */
+  --burnt-orange: #c6561a;
+  --bronze: #8c5a3a;
+  --coffee: #3a2a21;
+  --near-black: #0e0c0a;
+  --warm-gold: #e2c872;
+
+  /* Gradient variables */
+  --grad-hero: linear-gradient(
+    135deg,
+    var(--brand-orange) 0%,
+    var(--burnt-orange) 35%,
+    var(--bronze) 70%,
+    var(--near-black) 100%
+  );
+  --grad-why: linear-gradient(
+    120deg,
+    rgba(226, 200, 114, 0.05) 0%,
+    rgba(198, 169, 89, 0.04) 42%,
+    #2a1f15 74%,
+    #0a0807 100%
+  );
+  --grad-market: linear-gradient(
+    120deg,
+    var(--warm-gold) 0%,
+    var(--burnt-orange) 45%,
+    var(--bronze) 75%,
+    var(--near-black) 100%
+  );
+}
+
+/* Chart lines background utility */
+.graph-bg {
+  position: relative;
+  background-color: var(--gp-bg);
+
+  /* step variables for chart-style spacing */
+  --chart-step-h: calc(
+    var(--gp-unit) * var(--gp-scale) * 2
+  ); /* Horizontal spacing (wider) */
+  --chart-step-v: calc(
+    var(--gp-unit) * var(--gp-scale) * 1.5
+  ); /* Vertical spacing */
+  --chart-major-h: calc(var(--chart-step-h) * 4); /* Major horizontal lines */
+  --chart-major-v: calc(var(--chart-step-v) * 6); /* Major vertical lines */
+
+  /* Chart-style grid: horizontal dominance for trading feel */
+  background-image:
+    /* Major horizontal lines (thicker, like price levels) */
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent calc(var(--chart-major-h) - 1px),
+      var(--gp-10th) calc(var(--chart-major-h) - 1px),
+      var(--gp-10th) calc(var(--chart-major-h) + 1px),
+      transparent calc(var(--chart-major-h) + 1px)
+    ),
+    /* Regular horizontal lines (price grid) */
+      repeating-linear-gradient(
+        0deg,
+        var(--gp-line),
+        var(--gp-line) 0.5px,
+        transparent 0.5px,
+        transparent var(--chart-step-h)
+      ),
+    /* Subtle vertical lines (time grid) */
+      repeating-linear-gradient(
+        90deg,
+        var(--gp-5th),
+        var(--gp-5th) 0.5px,
+        transparent 0.5px,
+        transparent var(--chart-major-v)
+      ),
+    /* Fine vertical guides */
+      repeating-linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.03),
+        rgba(255, 255, 255, 0.03) 0.5px,
+        transparent 0.5px,
+        transparent var(--chart-step-v)
+      );
+}
+
+.graph-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* Intense center darkness - grids invisible in center */
+  background:
+    /* Very strong horizontal gradient - almost black center */
+    linear-gradient(
+      to right,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 0.3) 10%,
+      rgba(0, 0, 0, 0.7) 35%,
+      rgba(0, 0, 0, 0.85) 45%,
+      rgba(0, 0, 0, 0.92) 50%,
+      rgba(0, 0, 0, 0.85) 55%,
+      rgba(0, 0, 0, 0.7) 65%,
+      rgba(0, 0, 0, 0.3) 90%,
+      rgba(0, 0, 0, 0) 100%
+    ),
+    /* Additional center focus */
+      radial-gradient(
+        ellipse 80% 100% at 50% 50%,
+        rgba(0, 0, 0, 0.6) 0%,
+        rgba(0, 0, 0, 0.3) 40%,
+        rgba(0, 0, 0, 0) 70%
+      ),
+    /* Subtle top-to-bottom overlay */
+      linear-gradient(
+        to bottom,
+        rgba(0, 15, 25, 0.1),
+        rgba(0, 0, 0, 0) 25%,
+        rgba(0, 0, 0, 0) 75%,
+        rgba(0, 10, 20, 0.15)
+      );
+  z-index: 0;
+}
+
+/* Chart density helpers */
+.graph-density-tight {
+  --gp-scale: 0.75;
+} /* Dense trading view */
+.graph-density-normal {
+  --gp-scale: 1;
+} /* Standard chart */
+.graph-density-loose {
+  --gp-scale: 1.4;
+} /* Spacious overview */
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overscroll-behavior-y: none;
+}
+
+/* Next.js root div de height: 100% olmalı */
+#__next {
+  height: 100%;
+}
+
+/* Next.js dev indicator'ı tamamen gizle - tüm olası seçiciler */
+div[style*="position: fixed"][style*="z-index"][style*="left"][style*="bottom"],
+div[style*="position:fixed"][style*="z-index"][style*="left"][style*="bottom"],
+div[style*="position: fixed"][style*="z-index"][style*="right"][style*="bottom"],
+div[style*="position:fixed"][style*="z-index"][style*="right"][style*="bottom"],
+[data-nextjs-toast-wrapper],
+[data-nextjs-toast],
+[data-nextjs-build-indicator],
+[data-nextjs-dev-indicator],
+.__next-dev-indicator,
+.__next-dev-overlay,
+.__nextjs_original_stack_trace,
+[id^="__nextjs"],
+[class*="__nextjs"],
+[id*="__next"]:not(#__next),
+/* NextJS 15 yeni seçiciler */
+div[data-nextjs-build-watcher],
+div[data-nextjs-compilation-indicator],
+div[style*="z-index: 99999"],
+div[style*="z-index:99999"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  left: -9999px !important;
+  top: -9999px !important;
+}
+
+body {
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Roboto",
+    "Oxygen",
+    "Ubuntu",
+    "Cantarell",
+    "Fira Sans",
+    "Droid Sans",
+    "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: "Clash Display", "Space Grotesk", "Inter", system-ui, sans-serif;
+}
+.font-mono-tech {
+  font-family:
+    "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+}
+
+/* Respect reduced motion globally for transitions (animations handled in components) */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@layer base {
+  :root {
+    --background: 30 6% 98%;
+    --foreground: 240 5% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 5% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 5% 10%;
+    --primary: 240 5% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 240 5% 10%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 240 4.8% 46.1%;
+    --accent: 24 95% 54%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
+    --radius: 0.9rem;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-white text-neutral-900 antialiased m-0 p-0;
+    height: 100%;
+  }
+}
+
+/* Scroll stage orchestration */
+.scroll-stage {
+  will-change: opacity, transform, filter;
+}
+
+/* Header theming to blend with scene backgrounds on landing */
+:root[data-theme="dark"] .site-header {
+  background: transparent !important;
+  border-color: transparent !important;
+}
+:root[data-theme="dark"] .site-header,
+:root[data-theme="dark"] .site-header a {
+  color: #ffffff !important;
+}
+
+/* Thread styles */
+.thread-center {
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.073),
+    rgba(255, 255, 255, 0.073)
+  );
+  border-radius: 999px;
+  position: sticky;
+}
+.thread-center::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  height: var(--thread-progress, 0%);
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 125, 39, 0.95),
+    rgba(255, 125, 39, 0.5)
+  );
+  border-radius: 999px;
+}
+.thread-card {
+  opacity: 0;
+  transform: translateY(22px);
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s ease;
+}
+.thread-card-show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* LiveFeed animation */
+.livefeed {
+  display: block;
+  animation: liveFeed 16s linear infinite;
+}
+@keyframes liveFeed {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-50%);
+  }
+}
+
+/* Marquee rows */
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+@keyframes marquee-rev {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+.animate-marquee {
+  animation: marquee 28s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  will-change: transform;
+}
+.animate-marquee-rev {
+  animation: marquee-rev 32s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  will-change: transform;
+}
+/* Pause marquee when parent hovered */
+.marquee-group:hover .animate-marquee,
+.marquee-group:hover .animate-marquee-rev {
+  animation-play-state: paused;
+}
+
+/* Tabular numbers utility */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Custom range slider styling */
+.range-orange {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  outline: none;
+}
+
+.range-orange::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--brand-orange);
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.range-orange::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--brand-orange);
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Curved corner badge cap (optional decorative) */
+.card-corner-cap {
+  position: relative;
+}
+.card-corner-cap::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 46px;
+  height: 46px;
+  border-bottom-right-radius: 16px;
+  background: var(--badge-lilac);
+  transform: translate(-8px, -8px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+}
+
+/* Noise overlay (subtle, ~4-6% opacity) */
+.noise-overlay {
+  position: relative;
+}
+.noise-overlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(
+    rgba(255, 255, 255, 0.05) 1px,
+    transparent 1px
+  );
+  background-size: 3px 3px;
+  opacity: 0.95;
+  animation: noisePulse 10s ease-in-out infinite;
+}
+@keyframes noisePulse {
+  0% {
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.9;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .noise-overlay::after {
+    animation: none;
+  }
+}
+
+/* Gradient breathing (rotating hero gradient) */
+.grad-breathe {
+  position: relative;
+  overflow: hidden;
+}
+.grad-breathe::before {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  background: var(--grad-hero);
+  filter: saturate(1.05) contrast(1.02);
+  transform-origin: 50% 50%;
+  animation: breathe-rotate 12s linear infinite;
+}
+@keyframes breathe-rotate {
+  from {
+    transform: rotate(0deg) scale(1.05);
+    opacity: 0.95;
+  }
+  to {
+    transform: rotate(360deg) scale(1.05);
+    opacity: 0.95;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .grad-breathe::before {
+    animation: none;
+  }
+}
+
+/* Why Us section cards - Warm gold theme */
+.card-why {
+  background: rgba(255, 255, 255, 0.005);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(6px);
+  transition: all 0.3s ease;
+}
+
+.card-why:hover {
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(226, 200, 114, 0.12);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(226, 200, 114, 0.06);
+}
+
+/* Marketing section cards - Brand orange theme */
+.card-market {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(6px);
+  transition: all 0.3s ease;
+}
+
+.card-market:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 106, 0, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 106, 0, 0.08);
+}
+
+/* New Why Are We section design */
+.why-we-section {
+  background-color: #ff7d27; /* colors.orange.50 */
+  min-height: 100vh;
+  padding: 4rem 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.why-we-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: start;
+}
+
+.why-we-column {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.why-we-heading {
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: rgb(255, 229, 214);
+  margin-bottom: 2rem;
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.why-we-card {
+  background-color: rgb(255, 224, 203);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.why-we-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.08);
+}
+
+.why-we-card-metric {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #ff7d27;
+  margin-bottom: 0.5rem;
+  font-family: var(--font-display);
+}
+
+.why-we-card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.75rem;
+  font-family: var(--font-display);
+}
+
+.why-we-card-description {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #4b5563;
+  font-family: "Inter", sans-serif;
+}
+
+/* Responsive design */
+@media (max-width: 1024px) {
+  .why-we-content {
+    gap: 3rem;
+  }
+  .why-we-heading {
+    font-size: 3rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .why-we-section {
+    padding: 3rem 1.5rem;
+  }
+  .why-we-content {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+  .why-we-heading {
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .why-we-card {
+    padding: 1.25rem;
+  }
+  .why-we-card-title {
+    font-size: 1.1rem;
+  }
+  .why-we-card-description {
+    font-size: 1rem;
+  }
+}
+
+/* Subtle sunlight effect for Why Are We section */
+.why-sunlight {
+  position: relative;
+  overflow: hidden;
+}
+.why-sunlight::before {
+  content: "";
+  position: absolute;
+  inset: -50%;
+  background: linear-gradient(
+    45deg,
+    transparent 48%,
+    rgba(255, 255, 255, 0.08) 49%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.08) 51%,
+    transparent 52%
+  );
+  transform-origin: 50% 50%;
+  animation: sunlight-drift 20s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes sunlight-drift {
+  0%,
+  100% {
+    transform: translate(-10%, -10%) rotate(0deg);
+  }
+  50% {
+    transform: translate(10%, 10%) rotate(5deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .why-sunlight::before {
+    animation: none;
+  }
+}

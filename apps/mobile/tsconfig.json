@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-native",
+    "types": ["jest"]
+  },
+  "include": [
+    "App.tsx",
+    "src/**/*",
+    "metro.config.js"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "babel.config.js"
+  ]
+}
