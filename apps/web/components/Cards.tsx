@@ -111,7 +111,7 @@ export const CardsGrid: React.FC<{ progress?: number }> = ({ progress = 0 }) => 
   const row1 = data.slice(0, Math.ceil(data.length / 2));
   const row2 = data.slice(Math.ceil(data.length / 2));
 
-  const renderRow = (row: typeof items, direction: "left" | "right") => {
+  const renderRow = (row: CardItem[], direction: "left" | "right") => {
     // Duplicate content for seamless loop
     const doubled = [...row, ...row];
     const animClass = direction === "right" ? "animate-marquee-rev" : "animate-marquee";

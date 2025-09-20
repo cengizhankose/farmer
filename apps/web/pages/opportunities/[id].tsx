@@ -210,10 +210,11 @@ export default function OpportunityDetailPage() {
         )}
         
         {/* Hero Section */}
-        <OpportunityHero data={data} />
+        {data && <OpportunityHero data={data} />}
 
         {/* Compare Button */}
-        <div className="mt-6 flex justify-end">
+        {data && (
+          <div className="mt-6 flex justify-end">
           <motion.button
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -229,22 +230,23 @@ export default function OpportunityDetailPage() {
             <GitCompare size={16} />
             Add to Compare
           </motion.button>
-        </div>
+          </div>
+        )}
 
         {/* Main Content Grid */}
         <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - 2/3 */}
           <div className="lg:col-span-2 space-y-6">
             {/* Performance Overview */}
-            <OpportunityOverviewCard data={data} />
+            {data && <OpportunityOverviewCard data={data} />}
             
             {/* Risk Analysis */}
-            <RiskAnalysis data={data} />
+            {data && <RiskAnalysis data={data} />}
           </div>
 
           {/* Right Column - 1/3 */}
           <div className="lg:col-span-1">
-            <DepositCalculator data={data} />
+            {data && <DepositCalculator data={data} />}
           </div>
         </div>
       </div>

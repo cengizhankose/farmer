@@ -82,7 +82,7 @@ export function DepositCalculator({ data }: DepositCalculatorProps) {
   // Generate projection data for chart
   useEffect(() => {
     const generateProjection = () => {
-      const projData = [];
+      const projData: Array<{day: number; value: number; label: string}> = [];
       const intervals = Math.min(days, 30); // Max 30 points for performance
       const dayStep = Math.floor(days / intervals);
       

@@ -579,7 +579,7 @@ class RealDataAdapter {
         const apy = typeof (p as LlamaPoint).apy === 'number' ? (p as LlamaPoint).apy : (typeof (p as LlamaPoint).apyBase === 'number' ? (p as LlamaPoint).apyBase : undefined);
         const apr = typeof apy === 'number' ? apy : undefined; // approximate
         const volume24h = typeof (p as ArkPoint).volume_24h === 'number' ? (p as ArkPoint).volume_24h : undefined;
-        return { timestamp: ts, tvlUsd: tvl, apy, apr, volume24h };
+        return { timestamp: ts, tvlUsd: tvl ?? 0, apy, apr, volume24h };
       });
 
       // Filter by days

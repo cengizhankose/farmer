@@ -53,7 +53,7 @@ function CustomTooltip({ active, payload, label }: TooltipContentProps) {
   const ch = Number(payload.find((p) => p.dataKey === "change24h")?.value ?? 0);
   return (
     <div className="rounded-lg bg-white/10 ring-1 ring-white/15 backdrop-blur px-3 py-2 text-xs text-white/90" aria-live="polite">
-      <div className="opacity-80">{new Date(label).toLocaleString()}</div>
+      <div className="opacity-80">{label ? new Date(label).toLocaleString() : 'N/A'}</div>
       <div className="mt-1">Value: <span className="tabular-nums">{compactCurrency(v)}</span></div>
       <div>PnL: <span className="tabular-nums">{compactCurrency(pnl)}</span></div>
       <div>24h: <span className="tabular-nums">{compactCurrency(ch)}</span></div>
