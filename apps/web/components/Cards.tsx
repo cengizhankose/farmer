@@ -57,9 +57,11 @@ export const CardsGrid: React.FC<{ progress?: number }> = ({ progress = 0 }) => 
     async function load() {
       try {
         const resp = await fetch('/api/opportunities');
+        console.log("🚀 ~ load ~ resp:", resp)
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         const json = await resp.json();
         const ops: CardOpportunity[] = Array.isArray(json.items) ? json.items : [];
+        console.log("🚀 ~ load ~ ops:", ops)
 
         // Prefer top by TVL, then APR
         const top = ops
@@ -85,8 +87,8 @@ export const CardsGrid: React.FC<{ progress?: number }> = ({ progress = 0 }) => 
             logoUrl: o.protocol.toLowerCase() === 'arkadiko'
               ? '/logos/arkadiko.svg'
               : (o as unknown as { logoUrl?: string }).logoUrl,
-            apr: Number(o.apr.toFixed(1)),
-            apy: Number(o.apy.toFixed(1)),
+            apr: Number(o.apr),
+            apy: Number(o.apy),
             tvl: Math.round((o.tvlUsd / 1_000_000) * 10) / 10,
             lastUpdated: o.lastUpdated,
             source: o.source || 'live',
@@ -199,7 +201,7 @@ export const CardsGrid: React.FC<{ progress?: number }> = ({ progress = 0 }) => 
                         <CountUp
                           end={it.apr}
                           duration={1.2}
-                          decimals={1}
+                          decimals={2}
                           suffix="%"
                           preserveValue
                         />
@@ -215,7 +217,7 @@ export const CardsGrid: React.FC<{ progress?: number }> = ({ progress = 0 }) => 
                         <CountUp
                           end={it.apy}
                           duration={1.4}
-                          decimals={1}
+                          decimals={2}
                           suffix="%"
                           preserveValue
                         />
@@ -231,7 +233,7 @@ export const CardsGrid: React.FC<{ progress?: number }> = ({ progress = 0 }) => 
                         <CountUp
                           end={it.tvl}
                           duration={1.6}
-                          decimals={1}
+                          decimals={2}
                           prefix="$"
                           suffix="M"
                           preserveValue

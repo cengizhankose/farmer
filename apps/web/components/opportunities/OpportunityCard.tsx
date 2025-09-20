@@ -143,13 +143,13 @@ export const OpportunityCard: React.FC<
         <div>
           <div className="text-[11px] uppercase font-medium text-zinc-500 tracking-wide">APR</div>
           <div className="text-sm md:text-base font-semibold leading-tight text-zinc-900 tabular-nums">
-            {formatPct(data.apr, 1)}
+            {formatPct(data.apr, 2)}
           </div>
         </div>
         <div>
           <div className="text-[11px] uppercase font-medium text-zinc-500 tracking-wide">APY</div>
           <div className="text-sm md:text-base font-semibold leading-tight text-zinc-900 tabular-nums">
-            {formatPct(data.apy, 1)}
+            {formatPct(data.apy, 2)}
           </div>
         </div>
         <div>
