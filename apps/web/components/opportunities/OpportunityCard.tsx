@@ -39,6 +39,7 @@ export const OpportunityCard: React.FC<
   const chainLabel =
     CHAINS.find((c) => c.id === data.chain)?.label || data.chain;
   const [imgOk, setImgOk] = React.useState(Boolean(data.logoUrl));
+  const isArkadiko = data.protocol.toLowerCase() === 'arkadiko';
   const Action = (
     <Button
       className="w-full text-white hover:bg-[var(--brand-orange-700)] transition-colors"
@@ -85,7 +86,23 @@ export const OpportunityCard: React.FC<
             title={data.protocol}
             aria-hidden
           >
-            {imgOk && data.logoUrl ? (
+            {isArkadiko ? (
+              // Always show local Arkadiko logo (no letter fallback)
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src="/logos/arkadiko.svg"
+                alt="Arkadiko logo"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  objectPosition: 'center',
+                  display: 'block',
+                  padding: '6px',
+                  borderRadius: 'inherit'
+                }}
+              />
+            ) : imgOk && data.logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={data.logoUrl}

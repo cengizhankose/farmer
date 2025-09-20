@@ -30,6 +30,7 @@ type CardOpportunity = {
   lastUpdated: string; // label like 5m, 2h
   originalUrl: string;
   summary: string;
+  logoUrl?: string;
   // Extended metadata may exist but is not required here
   ilRisk?: string;
   exposure?: string;

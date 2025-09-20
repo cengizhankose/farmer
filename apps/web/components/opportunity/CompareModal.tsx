@@ -154,10 +154,27 @@ function ComparePanel({ item, series, side, hoveredIndex, setHoveredIndex }: Com
       {/* Header */}
       <div className="flex items-start gap-3 mb-6">
         <div 
-          className="h-12 w-12 rounded-xl grid place-items-center text-lg font-bold shadow-sm"
+          className="h-12 w-12 rounded-xl grid place-items-center text-lg font-bold shadow-sm overflow-hidden"
           style={{ backgroundColor: "var(--badge-lilac)", color: logo.fg }}
         >
-          {logo.letter}
+          {item.protocol.toLowerCase() === 'arkadiko' ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src="/logos/arkadiko.svg"
+              alt="Arkadiko logo"
+              style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '4px' }}
+            />
+          ) : item.logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={item.logoUrl}
+              alt={`${item.protocol} logo`}
+              style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '4px' }}
+              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+            />
+          ) : (
+            logo.letter
+          )}
         </div>
         <div className="flex-1">
           <h3 className="font-display text-lg text-zinc-900">
