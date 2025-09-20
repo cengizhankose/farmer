@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import Head from "next/head";
 import { Logger } from "@/lib/adapters/real";
 import { AlertTriangle } from "lucide-react";
 import { OpportunityCard } from "@/components/opportunities/OpportunityCard";
@@ -162,7 +163,18 @@ export default function OpportunitiesPage() {
   // const chainEnabled = chain === "stacks"; // Unused for now
 
   return (
-    <main>
+    <>
+      <Head>
+        <title>Yield Opportunities | Farmer</title>
+        <meta name="description" content="Explore the best yield farming opportunities on Stacks. Find highest APR/APY rates across DeFi protocols." />
+        <meta property="og:title" content="Yield Opportunities | Farmer" />
+        <meta property="og:description" content="Explore the best yield farming opportunities on Stacks. Find highest APR/APY rates across DeFi protocols." />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Yield Opportunities | Farmer" />
+        <meta name="twitter:description" content="Explore the best yield farming opportunities on Stacks. Find highest APR/APY rates across DeFi protocols." />
+      </Head>
+      <main>
       <HeroHeader
         title="Explore Yield Opportunities"
         subtitle="Find the best APR/APY on Stacks. Multichain coming soon."
@@ -264,5 +276,6 @@ export default function OpportunitiesPage() {
         {/* Bottom info/debug note removed per request */}
       </section>
     </main>
+    </>
   );
 }

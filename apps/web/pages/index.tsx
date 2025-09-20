@@ -1,4 +1,5 @@
 import React from "react";
+import Head from "next/head";
 import { ScrollOrchestrator } from "@/components/ScrollOrchestrator";
 import { Hero } from "@/components/landing/Hero";
 import { WhoWhy } from "@/components/landing/WhoWhy";
@@ -8,7 +9,18 @@ import { Marquee } from "@/components/landing/Marquee";
 
 export default function Landing() {
   return (
-    <div className="relative">
+    <>
+      <Head>
+        <title>Farmer - Yield Farming Aggregator</title>
+        <meta name="description" content="Production-grade yield tooling on Stacks. Built with security, transparency and user control at the forefront." />
+        <meta property="og:title" content="Farmer - Yield Farming Aggregator" />
+        <meta property="og:description" content="Production-grade yield tooling on Stacks. Built with security, transparency and user control at the forefront." />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Farmer - Yield Farming Aggregator" />
+        <meta name="twitter:description" content="Production-grade yield tooling on Stacks. Built with security, transparency and user control at the forefront." />
+      </Head>
+      <div className="relative">
       <div
         style={{
           background: "var(--scene-bg, var(--grad-hero))",
@@ -66,5 +78,6 @@ export default function Landing() {
         />
       </div>
     </div>
+    </>
   );
 }

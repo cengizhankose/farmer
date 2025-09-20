@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useWallet } from "@/contexts/WalletContext";
 import { useSlowScroll } from "@/hooks/useSlowScroll";
 import { colors, buttonColors } from "../lib/colors";
@@ -44,9 +45,8 @@ export const ChainGuardBanner = () => {
   if (!networkMismatch) return null;
   return (
     <div
-      className={`relative z-30 w-full border-b border-[${
-        colors.orange[300]
-      }] bg-[${colors.orange[50] || colors.orange[100]}]/80 backdrop-blur-xl`}
+      className={`relative z-30 w-full border-b border-[${colors.orange[300]
+        }] bg-[${colors.orange[50] || colors.orange[100]}]/80 backdrop-blur-xl`}
     >
       <div
         className={`mx-auto max-w-7xl px-6 py-2 text-sm text-[${colors.orange[700]}]`}
@@ -115,8 +115,14 @@ export const Header = () => {
       }}
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
-        <Link href="/" className="font-semibold tracking-tight text-white">
-          Stacks Opportunities
+        <Link href="/" className="flex items-center gap-2">
+          <Image
+            src="/logo-full.png"
+            alt="Farmer"
+            width={3547}
+            height={850}
+            className="h-12 w-auto"
+          />
         </Link>
         <nav className="flex items-center gap-6 text-sm">
           <Link
@@ -142,18 +148,24 @@ export const Header = () => {
 export const Footer = () => (
   <footer
     className="relative mt-0 text-white border-t border-white/5"
-    style={{ 
+    style={{
       background: `linear-gradient(to bottom, ${colors.black.footer}, #000000)`
     }}
   >
     <div className="mx-auto max-w-7xl px-6 py-8">
       <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
         <div className="md:col-span-2">
-          <div className="font-display text-xl text-white mb-3">
-            Stacks Opportunities
+          <div className="flex items-center gap-2 font-display text-xl text-white mb-3">
+            <Image
+              src="/logo-full.png"
+              alt="Farmer"
+              width={3547}
+              height={850}
+              className="h-8 w-auto"
+            />
           </div>
           <p className="text-sm text-white/70 max-w-md leading-relaxed">
-            Production-grade yield tooling on Stacks. Built with security, 
+            Production-grade yield tooling on Stacks. Built with security,
             transparency and user control at the forefront.
           </p>
           <div className="mt-4 flex gap-3">
@@ -169,7 +181,7 @@ export const Footer = () => (
             </span>
           </div>
         </div>
-        
+
         <div>
           <div className="text-white font-semibold text-sm mb-3">Quick Links</div>
           <div className="flex flex-col gap-2">
@@ -199,7 +211,7 @@ export const Footer = () => (
             </a>
           </div>
         </div>
-        
+
         <div>
           <div className="text-white font-semibold text-sm mb-3">Legal</div>
           <div className="flex flex-col gap-2">
@@ -230,10 +242,10 @@ export const Footer = () => (
           </div>
         </div>
       </div>
-      
+
       <div className="mt-8 pt-6 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
         <div className="text-xs text-white/50">
-          © 2025 Stacks Opportunities. Built on Stacks. All rights reserved.
+          © 2025 Farmer. Built on Stacks. All rights reserved.
         </div>
         <div className="flex gap-6 text-xs text-white/50">
           <span>Non-custodial</span>

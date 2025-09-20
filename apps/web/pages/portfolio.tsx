@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import Head from "next/head";
 import Link from "next/link";
 import Image from "next/image";
 // import { UserPosition } from "../../../../packages/shared/src/types"; // TODO: Use when wallet integration ready
@@ -71,7 +72,18 @@ export default function PortfolioPage() {
   const emptyIllustration = "https://images.unsplash.com/photo-1622547748225-3fc4abd2cca0?auto=format&fit=crop&q=80&w=1200";
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-12">
+    <>
+      <Head>
+        <title>Portfolio | Farmer</title>
+        <meta name="description" content="Track your yield farming portfolio, view positions, and monitor your returns on Farmer." />
+        <meta property="og:title" content="Portfolio | Farmer" />
+        <meta property="og:description" content="Track your yield farming portfolio, view positions, and monitor your returns on Farmer." />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Portfolio | Farmer" />
+        <meta name="twitter:description" content="Track your yield farming portfolio, view positions, and monitor your returns on Farmer." />
+      </Head>
+      <div className="mx-auto max-w-6xl px-4 py-12">
       <h1 className="typo-portfolio-h1">Portfolio</h1>
       <p className="typo-portfolio-sub max-w-2xl">💼 Real portfolio tracking (wallet integration pending). Recent redirects and estimated returns shown below.
       </p>
@@ -172,5 +184,6 @@ export default function PortfolioPage() {
         </>
       )}
     </div>
+    </>
   );
 }

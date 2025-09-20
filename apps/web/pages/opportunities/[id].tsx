@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import Head from "next/head";
 import { useRouter } from "next/router";
 import { Logger } from "@/lib/adapters/real";
 import { OpportunityHero } from "@/components/opportunity/OpportunityHero";
@@ -171,7 +172,18 @@ export default function OpportunityDetailPage() {
 
 
   return (
-    <main className="min-h-screen pb-20">
+    <>
+      <Head>
+        <title>{data ? `${data.protocol} ${data.pair} | Farmer` : "Opportunity Details | Farmer"}</title>
+        <meta name="description" content={data ? `Detailed information about ${data.protocol} ${data.pair} yield farming opportunity on Stacks.` : "View detailed information about yield farming opportunities on Farmer."} />
+        <meta property="og:title" content={data ? `${data.protocol} ${data.pair} | Farmer` : "Opportunity Details | Farmer"} />
+        <meta property="og:description" content={data ? `Detailed information about ${data.protocol} ${data.pair} yield farming opportunity on Stacks.` : "View detailed information about yield farming opportunities on Farmer."} />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={data ? `${data.protocol} ${data.pair} | Farmer` : "Opportunity Details | Farmer"} />
+        <meta name="twitter:description" content={data ? `Detailed information about ${data.protocol} ${data.pair} yield farming opportunity on Stacks.` : "View detailed information about yield farming opportunities on Farmer."} />
+      </Head>
+      <main className="min-h-screen pb-20">
       <div className="mx-auto max-w-7xl px-6 py-8">
 
         {/* Real Data Status Indicator */}
@@ -251,5 +263,6 @@ export default function OpportunityDetailPage() {
         </div>
       </div>
     </main>
+    </>
   );
 }

@@ -1,5 +1,5 @@
 {
-  "name": "stacks-yield-agg",
+  "name": "farmer",
   "private": true,
   "packageManager": "pnpm@10.16.1",
   "workspaces": [
@@ -29,8 +29,8 @@
     "stacks:prepare:web": "pnpm --filter web stacks:prepare",
     "setup": "pnpm install && pnpm build"
   },
-  "keywords": ["stacks", "defi", "yield", "aggregator", "hackathon"],
-  "author": "Stacks Yield Aggregator Team",
+  "keywords": ["stacks", "defi", "yield", "aggregator", "hackathon", "farmer"],
+  "author": "Farmer Team",
   "license": "MIT",
   "engines": {
     "node": ">=18.0.0",
