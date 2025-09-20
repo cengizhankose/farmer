@@ -1,14 +1,14 @@
 "use client";
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  ResponsiveContainer, 
+import {
+  ResponsiveContainer,
   ComposedChart,
-  Area, 
+  Area,
   Line,
-  XAxis, 
-  YAxis, 
-  Tooltip, 
+  XAxis,
+  YAxis,
+  Tooltip,
   CartesianGrid
 } from "recharts";
 import { X, ArrowLeftRight, TrendingUp, Shield, DollarSign } from "lucide-react";
@@ -29,7 +29,7 @@ export function CompareModal({ itemA, itemB, onClose }: CompareModalProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [leftSeries, setLeftSeries] = useState<CompareSeries>([]);
   const [rightSeries, setRightSeries] = useState<CompareSeries>([]);
-  
+
   const left = swapped ? itemB : itemA;
   const right = swapped ? itemA : itemB;
 
@@ -110,17 +110,17 @@ export function CompareModal({ itemA, itemB, onClose }: CompareModalProps) {
 
           {/* Content */}
           <div className="grid grid-cols-1 md:grid-cols-2 divide-x divide-zinc-200 max-h-[calc(85vh-80px)] overflow-y-auto">
-            <ComparePanel 
-              item={left} 
-              series={leftSeries} 
-              side="left" 
+            <ComparePanel
+              item={left}
+              series={leftSeries}
+              side="left"
               hoveredIndex={hoveredIndex}
               setHoveredIndex={setHoveredIndex}
             />
-            <ComparePanel 
-              item={right} 
-              series={rightSeries} 
-              side="right" 
+            <ComparePanel
+              item={right}
+              series={rightSeries}
+              side="right"
               hoveredIndex={hoveredIndex}
               setHoveredIndex={setHoveredIndex}
             />
@@ -142,7 +142,7 @@ interface ComparePanelProps {
 function ComparePanel({ item, series, side, hoveredIndex, setHoveredIndex }: ComparePanelProps) {
   const logo = protocolLogo(item.protocol);
   const chartColor = side === "left" ? colors.orange[600] : "#6C7BFF";
-  
+
   const riskColors = {
     Low: "bg-emerald-100 text-emerald-700",
     Medium: "bg-amber-100 text-amber-700",
@@ -153,29 +153,28 @@ function ComparePanel({ item, series, side, hoveredIndex, setHoveredIndex }: Com
     <div className="flex flex-col p-6">
       {/* Header */}
       <div className="flex items-start gap-3 mb-6">
-        <div 
-          className="h-12 w-12 rounded-xl grid place-items-center text-lg font-bold shadow-sm overflow-hidden"
-          style={{ backgroundColor: "var(--badge-lilac)", color: logo.fg }}
-        >
+        <>
           {item.protocol.toLowerCase() === 'arkadiko' ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
+              className="h-12 w-12 rounded-xl grid place-items-center text-lg font-bold shadow-sm overflow-hidden"
               src="/logos/arkadiko.svg"
               alt="Arkadiko logo"
-              style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '4px' }}
+              style={{ objectFit: 'contain', padding: '4px' }}
             />
           ) : item.logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
+              className="h-12 w-12 rounded-xl grid place-items-center text-lg font-bold shadow-sm overflow-hidden"
               src={item.logoUrl}
               alt={`${item.protocol} logo`}
-              style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '4px' }}
+              style={{ objectFit: 'contain', padding: '4px' }}
               onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
             />
           ) : (
             logo.letter
           )}
-        </div>
+        </>
         <div className="flex-1">
           <h3 className="font-display text-lg text-zinc-900">
             {item.protocol} — {item.pair}
@@ -194,19 +193,19 @@ function ComparePanel({ item, series, side, hoveredIndex, setHoveredIndex }: Com
 
       {/* Metrics */}
       <div className="grid grid-cols-3 gap-3 mb-6">
-        <MetricCard 
-          label="APR" 
+        <MetricCard
+          label="APR"
           value={`${item.apr.toFixed(1)}%`}
           icon={<TrendingUp size={12} />}
           highlight
         />
-        <MetricCard 
-          label="APY" 
+        <MetricCard
+          label="APY"
           value={`${item.apy.toFixed(1)}%`}
           icon={<TrendingUp size={12} />}
         />
-        <MetricCard 
-          label="TVL" 
+        <MetricCard
+          label="TVL"
           value={`$${(item.tvlUsd / 1000000).toFixed(2)}M`}
           icon={<DollarSign size={12} />}
         />
@@ -217,105 +216,105 @@ function ComparePanel({ item, series, side, hoveredIndex, setHoveredIndex }: Com
         {series.length === 0 ? (
           <div className="text-xs text-zinc-500">No comparison data available.</div>
         ) : (
-        <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart 
-            data={series} 
-            margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
-            onMouseMove={(e) => {
-              const event = e as { activeTooltipIndex?: number };
-              setHoveredIndex(event?.activeTooltipIndex ?? null);
-            }}
-            onMouseLeave={() => setHoveredIndex(null)}
-          >
-            <defs>
-              <linearGradient id={`gradient-${side}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={chartColor} stopOpacity={0.6} />
-                <stop offset="100%" stopColor={chartColor} stopOpacity={0.1} />
-              </linearGradient>
-            </defs>
-            
-            <CartesianGrid stroke="rgba(0,0,0,.04)" strokeDasharray="0" vertical={false} />
-            
-            <XAxis
-              dataKey="date"
-              axisLine={false}
-              tickLine={false}
-              tick={{ fontSize: 10, fill: "rgba(0,0,0,.5)" }}
-            />
-            
-            <YAxis
-              yAxisId="tvl"
-              orientation="left"
-              axisLine={false}
-              tickLine={false}
-              tick={{ fontSize: 10, fill: "rgba(0,0,0,.5)" }}
-              tickFormatter={(value) => `$${value}M`}
-            />
-            
-            <YAxis
-              yAxisId="apr"
-              orientation="right"
-              axisLine={false}
-              tickLine={false}
-              tick={{ fontSize: 10, fill: "rgba(0,0,0,.5)" }}
-              tickFormatter={(value) => `${value}%`}
-            />
-            
-            <Tooltip
-              content={({ active, payload }) =>
-                active && payload ? (
-                  <div className="rounded-lg bg-white px-2.5 py-1.5 shadow-lg ring-1 ring-black/5">
-                    <div className="text-[10px] font-medium text-zinc-600">
-                      {payload[0]?.payload?.date}
-                    </div>
-                    <div className="space-y-0.5 mt-1">
-                      <div className="text-xs">
-                        <span className="text-zinc-500">TVL:</span>{" "}
-                        <span className="font-medium">${payload[0]?.value}M</span>
-                      </div>
-                      <div className="text-xs">
-                        <span className="text-zinc-500">APR:</span>{" "}
-                        <span className="font-medium">{payload[1]?.value}%</span>
-                      </div>
-                    </div>
-                  </div>
-                ) : null
-              }
-            />
-            
-            {/* Shared cursor line */}
-            {hoveredIndex !== null && (
-              <line
-                x1={0}
-                x2={0}
-                y1={0}
-                y2="100%"
-                stroke={chartColor}
-                strokeWidth={1}
-                strokeDasharray="3 3"
-                opacity={0.5}
+          <ResponsiveContainer width="100%" height="100%">
+            <ComposedChart
+              data={series}
+              margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+              onMouseMove={(e) => {
+                const event = e as { activeTooltipIndex?: number };
+                setHoveredIndex(event?.activeTooltipIndex ?? null);
+              }}
+              onMouseLeave={() => setHoveredIndex(null)}
+            >
+              <defs>
+                <linearGradient id={`gradient-${side}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={chartColor} stopOpacity={0.6} />
+                  <stop offset="100%" stopColor={chartColor} stopOpacity={0.1} />
+                </linearGradient>
+              </defs>
+
+              <CartesianGrid stroke="rgba(0,0,0,.04)" strokeDasharray="0" vertical={false} />
+
+              <XAxis
+                dataKey="date"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 10, fill: "rgba(0,0,0,.5)" }}
               />
-            )}
-            
-            <Area
-              yAxisId="tvl"
-              type="monotone"
-              dataKey="tvl"
-              stroke={chartColor}
-              strokeWidth={2}
-              fill={`url(#gradient-${side})`}
-            />
-            
-            <Line
-              yAxisId="apr"
-              type="monotone"
-              dataKey="apr"
-              stroke={side === "left" ? "#0EA5E9" : "#22C55E"}
-              strokeWidth={2}
-              dot={false}
-            />
-          </ComposedChart>
-        </ResponsiveContainer>
+
+              <YAxis
+                yAxisId="tvl"
+                orientation="left"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 10, fill: "rgba(0,0,0,.5)" }}
+                tickFormatter={(value) => `$${value}M`}
+              />
+
+              <YAxis
+                yAxisId="apr"
+                orientation="right"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 10, fill: "rgba(0,0,0,.5)" }}
+                tickFormatter={(value) => `${value}%`}
+              />
+
+              <Tooltip
+                content={({ active, payload }) =>
+                  active && payload ? (
+                    <div className="rounded-lg bg-white px-2.5 py-1.5 shadow-lg ring-1 ring-black/5">
+                      <div className="text-[10px] font-medium text-zinc-600">
+                        {payload[0]?.payload?.date}
+                      </div>
+                      <div className="space-y-0.5 mt-1">
+                        <div className="text-xs">
+                          <span className="text-zinc-500">TVL:</span>{" "}
+                          <span className="font-medium">${payload[0]?.value}M</span>
+                        </div>
+                        <div className="text-xs">
+                          <span className="text-zinc-500">APR:</span>{" "}
+                          <span className="font-medium">{payload[1]?.value}%</span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : null
+                }
+              />
+
+              {/* Shared cursor line */}
+              {hoveredIndex !== null && (
+                <line
+                  x1={0}
+                  x2={0}
+                  y1={0}
+                  y2="100%"
+                  stroke={chartColor}
+                  strokeWidth={1}
+                  strokeDasharray="3 3"
+                  opacity={0.5}
+                />
+              )}
+
+              <Area
+                yAxisId="tvl"
+                type="monotone"
+                dataKey="tvl"
+                stroke={chartColor}
+                strokeWidth={2}
+                fill={`url(#gradient-${side})`}
+              />
+
+              <Line
+                yAxisId="apr"
+                type="monotone"
+                dataKey="apr"
+                stroke={side === "left" ? "#0EA5E9" : "#22C55E"}
+                strokeWidth={2}
+                dot={false}
+              />
+            </ComposedChart>
+          </ResponsiveContainer>
         )}
       </div>
 
@@ -341,14 +340,14 @@ function ComparePanel({ item, series, side, hoveredIndex, setHoveredIndex }: Com
   );
 }
 
-function MetricCard({ 
-  label, 
-  value, 
+function MetricCard({
+  label,
+  value,
   icon,
   highlight = false
-}: { 
-  label: string; 
-  value: string; 
+}: {
+  label: string;
+  value: string;
   icon: React.ReactNode;
   highlight?: boolean;
 }) {

@@ -55,20 +55,19 @@ export const OpportunityCard: React.FC<
 
   const riskColors = {
     Low: "bg-emerald-100 text-emerald-800",
-    Medium: "bg-amber-100 text-amber-900", 
+    Medium: "bg-amber-100 text-amber-900",
     High: "bg-rose-100 text-rose-800",
   };
 
   return (
     <Card
-      className={`group relative overflow-hidden rounded-3xl border border-black/5 bg-[var(--sand-50)] shadow-sm p-5 md:p-6 transition hover:-translate-y-1 hover:shadow-md ${
-        disabled ? "opacity-60" : ""
-      }`}
+      className={`group relative overflow-hidden rounded-3xl border border-black/5 bg-[var(--sand-50)] shadow-sm p-5 md:p-6 transition hover:-translate-y-1 hover:shadow-md ${disabled ? "opacity-60" : ""
+        }`}
     >
       {/* Curved corner logo badge */}
       {(() => {
         const l = protocolLogo(data.protocol);
-        const size = { w: 56, h: 56 };
+        const size = { w: 42, h: 42 };
 
         return (
           <div
@@ -79,7 +78,7 @@ export const OpportunityCard: React.FC<
               width: `${size.w}px`,
               height: `${size.h}px`,
               background: 'var(--badge-lilac)',
-              borderRadius: '24px 0px 24px 0px',
+              borderRadius: '18px 0px 18px 0px',
               boxShadow: '0 4px 10px rgba(0,0,0,.06)',
               overflow: 'hidden'
             }}
@@ -98,7 +97,6 @@ export const OpportunityCard: React.FC<
                   objectFit: 'contain',
                   objectPosition: 'center',
                   display: 'block',
-                  padding: '6px',
                   borderRadius: 'inherit'
                 }}
               />
@@ -113,7 +111,6 @@ export const OpportunityCard: React.FC<
                   objectFit: 'contain',
                   objectPosition: 'center',
                   display: 'block',
-                  padding: '6px',
                   borderRadius: 'inherit'
                 }}
                 onError={() => setImgOk(false)}
