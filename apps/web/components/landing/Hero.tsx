@@ -4,8 +4,12 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import HeroRightChart from "@/components/HeroRightChart";
 import { Badge } from "@/components/ui/primitives";
+import { generateMockSeries, kpiFromSeries } from "@/lib/mock/series";
 
 export function Hero({ progress = 0 }: { progress?: number }) {
+  // Mock series for landing hero chart (deterministic seed for stability)
+  const series = React.useMemo(() => generateMockSeries(60, 1337), []);
+  const { apr7d, tvl, netPnl } = React.useMemo(() => kpiFromSeries(series), [series]);
   return (
     <section className="relative h-full">
       <div className="mx-auto flex h-full items-center max-w-6xl px-8 pt-20">
@@ -85,7 +89,7 @@ export function Hero({ progress = 0 }: { progress?: number }) {
             
             {/* Right column: animated chart card */}
             <div className="relative pt-8">
-              <HeroRightChart />
+              <HeroRightChart series={series} apr7d={apr7d} tvl={tvl} netPnl={netPnl} />
               <div id="token-dock" className="absolute right-4 top-4 h-[72px] w-[72px] rounded-xl bg-white/6 ring-1 ring-white/10 overflow-hidden z-10" aria-hidden></div>
             </div>
           </div>
