@@ -67,4 +67,19 @@ plan:
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/router.clar
             clarity-version: 3
+        - emulated-contract-publish:
+            contract-name: mock-adapter
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: contracts/mock-adapter.clar
+            clarity-version: 3
+        - emulated-contract-publish:
+            contract-name: mock-stacking
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: contracts/adapters/mock-stacking.clar
+            clarity-version: 3
+        - emulated-contract-publish:
+            contract-name: mock-token
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: contracts/mock-token.clar
+            clarity-version: 3
       epoch: "3.2"

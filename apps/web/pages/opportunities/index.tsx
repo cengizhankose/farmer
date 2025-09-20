@@ -10,6 +10,8 @@ import HeroHeader from "@/components/HeroHeader";
 import HeroKpiBar from "@/components/HeroKpiBar";
 // Removed chain filter pills - only Stacks for now
 import OpportunityCardPlaceholder from "@/components/OpportunityCardPlaceholder";
+// Enhanced components temporarily removed due to TypeScript errors
+// import { ChartTimeSelector } from "@/components/enhanced/TimeSelector";
 
 type CardOpportunity = {
   id: string;
@@ -35,6 +37,7 @@ export default function OpportunitiesPage() {
     key: "apr",
     dir: "desc",
   });
+  const [timeframe, setTimeframe] = React.useState<"7D" | "30D" | "90D">("7D");
   const [loading, setLoading] = React.useState(true);
   const [opportunities, setOpportunities] = React.useState<CardOpportunity[]>([]);
   const [error, setError] = React.useState<string | null>(null);
@@ -43,12 +46,12 @@ export default function OpportunitiesPage() {
   // Load opportunities data from real APIs only
   React.useEffect(() => {
     let mounted = true;
-    
+
     async function loadRealData() {
       try {
         setLoading(true);
         setError(null);
-        
+
         Logger.info('🚀 Loading opportunities via API bridge (/api/opportunities)...');
 
         const resp = await fetch('/api/opportunities');
@@ -62,15 +65,15 @@ export default function OpportunitiesPage() {
           totalTvlUsd: realOpportunities.reduce((a, o) => a + o.tvlUsd, 0),
           results: realOpportunities.length,
         };
-        
+
         if (!mounted) return;
-        
+
         Logger.info(`✅ Loaded ${realOpportunities.length} opportunities from REAL APIs`);
-        Logger.info(`📊 Stats: ${realStats.avgApr7d.toFixed(1)}% avg APR, $${(realStats.totalTvlUsd/1_000_000).toFixed(1)}M TVL`);
-        
+        Logger.info(`📊 Stats: ${realStats.avgApr7d.toFixed(1)}% avg APR, $${(realStats.totalTvlUsd / 1_000_000).toFixed(1)}M TVL`);
+
         setOpportunities(realOpportunities);
         setStats(realStats);
-        
+
       } catch (error) {
         Logger.error('❌ FAILED to load real data - this should not happen in production!', error);
         setError(`Real data loading failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -82,9 +85,9 @@ export default function OpportunitiesPage() {
         }
       }
     }
-    
+
     loadRealData();
-    
+
     return () => {
       mounted = false;
     };
@@ -92,14 +95,14 @@ export default function OpportunitiesPage() {
 
   const filtered = React.useMemo(() => {
     Logger.debug(`🔍 Filtering ${opportunities.length} opportunities with query='${query}', risk='${risk}'`);
-    
+
     const result = opportunities.filter((o) => {
       // Only Stacks chain for now
       if (o.chain !== "stacks") return false;
-      
+
       // Risk filter
       if (risk !== "all" && o.risk !== risk) return false;
-      
+
       // Search query
       if (query) {
         const q = query.toLowerCase();
@@ -110,7 +113,7 @@ export default function OpportunitiesPage() {
       }
       return true;
     });
-    
+
     Logger.debug(`✅ Filtered to ${result.length} opportunities`);
     return result;
   }, [opportunities, query, risk]);
@@ -118,11 +121,11 @@ export default function OpportunitiesPage() {
   const sorted = React.useMemo(() => {
     const dir = sort.dir === "asc" ? 1 : -1;
     const rankRisk = (r: string) => (r === "Low" ? 1 : r === "Medium" ? 2 : 3);
-    
+
     const result = [...filtered].sort((a, b) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let va: any, vb: any;
-      
+
       if (sort.key === "risk") {
         va = rankRisk(a.risk);
         vb = rankRisk(b.risk);
@@ -130,12 +133,12 @@ export default function OpportunitiesPage() {
         va = a[sort.key as keyof CardOpportunity];
         vb = b[sort.key as keyof CardOpportunity];
       }
-      
+
       if (va < vb) return -1 * dir;
       if (va > vb) return 1 * dir;
       return 0;
     });
-    
+
     Logger.debug(`📈 Sorted ${result.length} opportunities by ${sort.key} ${sort.dir}`);
     return result;
   }, [filtered, sort]);
@@ -145,13 +148,13 @@ export default function OpportunitiesPage() {
     const count = filtered.length;
     const avgAPR = count ? filtered.reduce((a, o) => a + o.apr, 0) / count : 0; // Already percent
     const sumTVL = filtered.reduce((a, o) => a + o.tvlUsd, 0);
-    
+
     Logger.debug(`📊 Display stats: count=${count}, avgAPR=${avgAPR.toFixed(1)}%, totalTVL=$${(sumTVL / 1_000_000).toFixed(1)}M`);
-    
-    return { 
-      avgApr7d: avgAPR, 
-      totalTvlUsd: sumTVL, 
-      results: count 
+
+    return {
+      avgApr7d: avgAPR,
+      totalTvlUsd: sumTVL,
+      results: count
     };
   }, [filtered]);
 
@@ -171,7 +174,6 @@ export default function OpportunitiesPage() {
           />
         }
       />
-
       <AnimatedFilterBar
         defaultRisk={risk === "Medium" ? "medium" : (risk === "High" ? "high" : (risk === "Low" ? "low" : "all"))}
         defaultSort={`${sort.key === "tvlUsd" ? "tvl" : sort.key}-${sort.dir}` as "apr-desc" | "apr-asc" | "apy-desc" | "apy-asc" | "tvl-desc" | "tvl-asc" | "risk-desc" | "risk-asc"}
@@ -194,7 +196,7 @@ export default function OpportunitiesPage() {
       />
 
       <section className="mx-auto max-w-6xl px-4 py-8 sm:py-10">
-        
+
         {/* Real Data Status Indicator */}
         {!error && !loading && (
           <div className="mb-6 rounded-lg border border-green-200 bg-green-50 p-4">
@@ -211,7 +213,7 @@ export default function OpportunitiesPage() {
             </div>
           </div>
         )}
-        
+
         {/* Error Indicator */}
         {error && (
           <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
@@ -249,8 +251,8 @@ export default function OpportunitiesPage() {
             {sorted.map((o, index) => {
               Logger.debug(`🃏 Rendering opportunity ${index + 1}/${sorted.length}: ${o.protocol} - ${o.pair}`);
               return (
-                <OpportunityCard 
-                  key={o.id} 
+                <OpportunityCard
+                  key={o.id}
                   data={o}
                   disabled={false} // All Stacks opportunities are enabled
                 />

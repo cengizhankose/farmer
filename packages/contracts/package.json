@@ -5,6 +5,8 @@
   "scripts": {
     "test": "cd yield-router && pnpm test",
     "check": "cd yield-router && clarinet check",
+    "clarinet:test": "cd yield-router && clarinet test",
+    "clarinet:check": "cd yield-router && clarinet check",
     "console": "cd yield-router && clarinet console",
     "build": "echo \"(contracts) build step\"",
     "lint": "echo \"(contracts) no lint\"",

@@ -131,46 +131,7 @@ importers:
         specifier: ^5.5.3
         version: 5.9.2
 
-  apps/web2:
-    dependencies:
-      '@adapters/core':
-        specifier: workspace:*
-        version: link:../../packages/adapters
-      '@shared/core':
-        specifier: workspace:*
-        version: link:../../packages/shared
-      next:
-        specifier: 14.2.5
-        version: 14.2.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      react:
-        specifier: 18.3.1
-        version: 18.3.1
-      react-dom:
-        specifier: 18.3.1
-        version: 18.3.1(react@18.3.1)
-      recharts:
-        specifier: ^3.2.1
-        version: 3.2.1(@types/react@18.2.79)(react-dom@18.3.1(react@18.3.1))(react-is@18.3.1)(react@18.3.1)(redux@5.0.1)
-    devDependencies:
-      '@types/node':
-        specifier: ^20.0.0
-        version: 20.19.15
-      '@types/react':
-        specifier: ^18.0.0
-        version: 18.2.79
-      '@types/react-dom':
-        specifier: ^18.0.0
-        version: 18.3.7(@types/react@18.2.79)
-      eslint:
-        specifier: ^8.0.0
-        version: 8.57.1
-      eslint-config-next:
-        specifier: 14.2.5
-        version: 14.2.5(eslint@8.57.1)(typescript@5.9.2)
-      typescript:
-        specifier: ^5.5.0
-        version: 5.9.2
-
+  
   packages/adapters:
     dependencies:
       '@shared/core':

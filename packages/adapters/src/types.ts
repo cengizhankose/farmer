@@ -28,6 +28,9 @@ export interface Opportunity {
   stablecoin?: boolean;    // Whether pool contains stablecoins
 }
 
+// Type alias for backward compatibility during migration
+export type EnrichedOpportunity = Opportunity;
+
 export interface ProtocolInfo {
   name: string;
   chain: Chain;

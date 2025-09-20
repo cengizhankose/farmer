@@ -167,6 +167,14 @@ export class AdapterManager {
     }
   }
 
+  async getEnrichedOpportunityById(id: string): Promise<Opportunity | null> {
+    return this.getOpportunityById(id);
+  }
+
+  async getEnrichedOpportunities(): Promise<Opportunity[]> {
+    return this.getAllOpportunities();
+  }
+
   // Alias for backward compatibility
   async getOpportunityDetail(id: string): Promise<Opportunity | null> {
     return this.getOpportunityById(id);

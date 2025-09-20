@@ -9,6 +9,18 @@ requirements = []
 path = 'contracts/router.clar'
 clarity_version = 3
 epoch = 'latest'
+[contracts.mock-adapter]
+path = 'contracts/mock-adapter.clar'
+clarity_version = 3
+epoch = 'latest'
+[contracts.mock-token]
+path = 'contracts/mock-token.clar'
+clarity_version = 3
+epoch = 'latest'
+[contracts.mock-stacking]
+path = 'contracts/adapters/mock-stacking.clar'
+clarity_version = 3
+epoch = 'latest'
 [repl.analysis]
 passes = ['check_checker']
 

@@ -1,7 +1,7 @@
 /**
  * Real Data Bridge Layer
  * 
- * Provides a bridge between the web2 adapter system and the web app,
+ * Provides a bridge between the adapter system and the web app,
  * handling data transformation, caching, error handling, and logging.
  */
 
@@ -228,8 +228,8 @@ function transformRiskLevel(risk: string): "Low" | "Medium" | "High" {
 }
 
 function convertDecimalToPercentage(decimal: number): number {
-  // Convert 0.123 to 12.3
-  return decimal * 100;
+  // DeFiLlama already provides percentage values, so return as-is
+  return decimal;
 }
 
 function formatLastUpdated(timestamp: number): string {
@@ -287,7 +287,7 @@ function transformOpportunity(real: SharedOpportunity): MockOpportunity {
 }
 
 /**
- * Real Data Adapter - interfaces with the web2 adapter system
+ * Real Data Adapter - interfaces with the adapter system
  */
 class RealDataAdapter {
   private static instance: RealDataAdapter;

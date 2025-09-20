@@ -57,7 +57,7 @@ export function OpportunityOverviewCard({ data }: OpportunityOverviewCardProps) 
         const pts: Array<{ timestamp: number; tvlUsd: number; apy?: number; apr?: number; volume24h?: number }> = json.series || [];
         const mapped: ChartPoint[] = pts.map((p) => ({
           date: new Date(p.timestamp).toISOString().slice(0, 10),
-          apr: Number(((p.apy ?? p.apr ?? 0) * 100).toFixed(2)),
+          apr: Number((p.apy ?? p.apr ?? 0).toFixed(2)),
           tvl: Math.round((p.tvlUsd / 1_000_000) * 100) / 100,
           volume: Math.round(p.volume24h || 0),
         }));

@@ -46,26 +46,26 @@ export function HeroHeader({
   const titleAnim = reduceMotion
     ? {}
     : {
-        initial: { opacity: 0, y: 8 },
-        animate: { opacity: 1, y: 0 },
-        transition: { duration: 0.35 },
-      };
+      initial: { opacity: 0, y: 8 },
+      animate: { opacity: 1, y: 0 },
+      transition: { duration: 0.35 },
+    };
 
   const subtitleAnim = reduceMotion
     ? {}
     : {
-        initial: { opacity: 0, y: 6 },
-        animate: { opacity: 1, y: 0 },
-        transition: { duration: 0.35, delay: 0.05 },
-      };
+      initial: { opacity: 0, y: 6 },
+      animate: { opacity: 1, y: 0 },
+      transition: { duration: 0.35, delay: 0.05 },
+    };
 
   const ctaAnim = reduceMotion
     ? {}
     : {
-        initial: { opacity: 0, y: 4 },
-        animate: { opacity: 1, y: 0 },
-        transition: { duration: 0.3, delay: 0.1 },
-      };
+      initial: { opacity: 0, y: 4 },
+      animate: { opacity: 1, y: 0 },
+      transition: { duration: 0.3, delay: 0.1 },
+    };
 
   return (
     <section className={containerClasses}>

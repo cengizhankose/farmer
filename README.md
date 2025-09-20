@@ -21,7 +21,13 @@ A monorepo for DeFi yield aggregation on Stacks blockchain, with plans to expand
 
 - Node.js 20+
 - pnpm 9+
-- (Optional) Clarinet for contract development
+- Clarinet 3.6+ (required for contract development)
+
+    # macOS (Homebrew)
+    brew install clarinet
+
+    # verify installation
+    clarinet --version
 
 ### Installation
 

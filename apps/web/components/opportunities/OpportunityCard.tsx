@@ -2,6 +2,9 @@
 import React from "react";
 import { useRouter } from "next/router";
 import { CHAINS } from "@/lib/chains";
+// Temporarily removed risk components due to TypeScript errors
+// import { RiskTooltip } from "@/components/risk/RiskTooltip";
+// import { RiskScore } from "@shared/core";
 
 // Type definition for component props (supports both real and legacy data)
 type Opportunity = {
@@ -40,6 +43,32 @@ export const OpportunityCard: React.FC<
     CHAINS.find((c) => c.id === data.chain)?.label || data.chain;
   const [imgOk, setImgOk] = React.useState(Boolean(data.logoUrl));
   const isArkadiko = data.protocol.toLowerCase() === 'arkadiko';
+
+  // Risk components temporarily removed due to TypeScript errors
+  // const getMockRiskScore = (): RiskScore => {
+  //   const baseScore = data.risk === 'Low' ? 25 : data.risk === 'Medium' ? 50 : 75;
+  //   return {
+  //     total: baseScore,
+  //     overall: baseScore,
+  //     label: data.risk.toLowerCase() as 'low' | 'medium' | 'high',
+  //     components: {
+  //       liquidity: baseScore + Math.random() * 10 - 5,
+  //       stability: baseScore + Math.random() * 10 - 5,
+  //       yield: baseScore + Math.random() * 10 - 5,
+  //       concentration: baseScore + Math.random() * 10 - 5,
+  //       momentum: baseScore + Math.random() * 10 - 5,
+  //     },
+  //     confidence: 'high',
+  //     timestamp: Date.now(),
+  //     drivers: [
+  //       `${data.protocol} protocol stability`,
+  //       'Market volatility conditions',
+  //       'Liquidity depth analysis',
+  //     ]
+  //   };
+  // };
+
+  // const riskScore = getMockRiskScore();
   const Action = (
     <Button
       className="w-full text-white hover:bg-[var(--brand-orange-700)] transition-colors"
@@ -133,6 +162,7 @@ export const OpportunityCard: React.FC<
             {data.pair}
           </div>
         </div>
+        {/* RiskTooltip temporarily removed due to TypeScript errors */}
         <Badge className={`${riskColors[data.risk]} border-0 text-xs font-medium`}>
           {data.risk}
         </Badge>

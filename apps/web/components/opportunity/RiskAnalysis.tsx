@@ -194,7 +194,7 @@ export function RiskAnalysis({ data }: RiskAnalysisProps) {
   // Create seeded random for consistent risk scores
   const createSeededRandom = (seed: number) => {
     let state = seed;
-    return function () {
+    return function() {
       state = (state * 9301 + 49297) % 233280;
       return state / 233280;
     };
@@ -275,7 +275,7 @@ export function RiskAnalysis({ data }: RiskAnalysisProps) {
             Multi-factor risk assessment based on protocol metrics
           </p>
         </div>
-
+        
         {/* Overall Score */}
         <div className="text-right">
           <div className="text-2xl font-bold text-zinc-900 tabular-nums">
@@ -318,7 +318,7 @@ export function RiskAnalysis({ data }: RiskAnalysisProps) {
                 </div>
               </div>
             </div>
-
+            
             {/* Progress Bar */}
             <div className="relative h-2 rounded-full bg-zinc-100 overflow-hidden">
               <motion.div
@@ -337,7 +337,7 @@ export function RiskAnalysis({ data }: RiskAnalysisProps) {
         <Info size={14} className="text-blue-600 mt-0.5" />
         <div className="flex-1">
           <p className="text-xs text-blue-700">
-            Risk scores are derived from real series: TVL volatility/drawdown, APR/APY volatility,
+            Risk scores are derived from real series: TVL volatility/drawdown, APR/APY volatility, 
             liquidity turnover, volume concentration and recent momentum. Lower scores indicate lower risk.
           </p>
         </div>

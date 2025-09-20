@@ -24,6 +24,9 @@
     "reset": "pnpm clean && pnpm install",
     "contracts:check": "pnpm --filter @contracts/core check",
     "contracts:console": "pnpm --filter @contracts/core console",
+    "contracts:clarinet:test": "pnpm --filter @contracts/core clarinet:test",
+    "contracts:clarinet:check": "pnpm --filter @contracts/core clarinet:check",
+    "stacks:prepare:web": "pnpm --filter web stacks:prepare",
     "setup": "pnpm install && pnpm build"
   },
   "keywords": ["stacks", "defi", "yield", "aggregator", "hackathon"],

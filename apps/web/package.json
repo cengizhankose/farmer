@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "jest"
+    "test": "jest",
+    "stacks:prepare": "pnpm install @stacks/connect @stacks/transactions @stacks/network"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.89.0",

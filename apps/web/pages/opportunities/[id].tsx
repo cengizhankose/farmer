@@ -41,7 +41,7 @@ export default function OpportunityDetailPage() {
   const router = useRouter();
   const { id } = router.query;
   const { addItem } = useCompare();
-  
+
   const [data, setData] = React.useState<CardOpportunity | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -57,24 +57,24 @@ export default function OpportunityDetailPage() {
   // Load opportunity data
   React.useEffect(() => {
     if (!id) return;
-    
+
     const opportunityId = Array.isArray(id) ? id[0] : id;
-    
+
     let mounted = true;
-    
+
     async function loadRealOpportunity() {
       try {
         setLoading(true);
         setError(null);
-        
+
         Logger.info(`Loading opportunity detail via API`, { opportunityId });
         const resp = await fetch(`/api/opportunities/${opportunityId}`);
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         const json = await resp.json();
         const opportunity: CardOpportunity | null = json.item || null;
-        
+
         if (!mounted) return;
-        
+
         if (opportunity) {
           Logger.info(`Loaded opportunity detail from REAL APIs`, { opportunityId });
           Logger.debug(`Data loaded`, { opportunityId, protocol: opportunity.protocol });
@@ -84,7 +84,7 @@ export default function OpportunityDetailPage() {
           setError('Opportunity data is temporarily unavailable');
           setErrorType('general');
         }
-        
+
       } catch (fetchError) {
         Logger.error(`Failed to load real data`, fetchError, { opportunityId });
         const errorMessage = fetchError instanceof Error ? fetchError.message : 'Unknown error';
@@ -108,9 +108,9 @@ export default function OpportunityDetailPage() {
         }
       }
     }
-    
+
     loadRealOpportunity();
-    
+
     return () => {
       mounted = false;
     };
@@ -132,7 +132,7 @@ export default function OpportunityDetailPage() {
       </div>
     );
   }
-  
+
   // Error or not found state
   if (!data && error) {
     return (
@@ -173,7 +173,7 @@ export default function OpportunityDetailPage() {
   return (
     <main className="min-h-screen pb-20">
       <div className="mx-auto max-w-7xl px-6 py-8">
-        
+
         {/* Real Data Status Indicator */}
         {!error && !loading && data && (
           <div className="mb-6 rounded-lg border border-green-200 bg-green-50 p-4">
@@ -190,7 +190,7 @@ export default function OpportunityDetailPage() {
             </div>
           </div>
         )}
-        
+
         {/* Error Indicator */}
         {error && data && (
           <div className="mb-6">
@@ -208,7 +208,7 @@ export default function OpportunityDetailPage() {
             )}
           </div>
         )}
-        
+
         {/* Hero Section */}
         {data && <OpportunityHero data={data} />}
 
@@ -239,7 +239,7 @@ export default function OpportunityDetailPage() {
           <div className="lg:col-span-2 space-y-6">
             {/* Performance Overview */}
             {data && <OpportunityOverviewCard data={data} />}
-            
+
             {/* Risk Analysis */}
             {data && <RiskAnalysis data={data} />}
           </div>

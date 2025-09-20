@@ -42,7 +42,7 @@ export function CompareModal({ itemA, itemB, onClose }: CompareModalProps) {
       const pts: Array<{ timestamp: number; tvlUsd: number; apy?: number; apr?: number }> = json.series || [];
       return pts.map((p) => ({
         date: new Date(p.timestamp).toISOString().slice(5, 10),
-        apr: Number(((p.apy ?? p.apr ?? 0) * 100).toFixed(2)),
+        apr: Number((p.apy ?? p.apr ?? 0).toFixed(2)),
         tvl: Math.round((p.tvlUsd / 1_000_000) * 100) / 100,
       }));
     }
