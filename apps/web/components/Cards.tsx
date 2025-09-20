@@ -43,7 +43,7 @@ export const CardsGrid: React.FC<{ progress?: number }> = ({ progress = 0 }) => 
   const [hasAnimated, setHasAnimated] = React.useState(false);
   const [items, setItems] = React.useState<CardItem[] | null>(null);
   const total = 12;
-  
+
   // Trigger animation only once when cards become visible (progress > 0.1)
   React.useEffect(() => {
     if (progress > 0.1 && !hasAnimated) {
@@ -82,8 +82,8 @@ export const CardsGrid: React.FC<{ progress?: number }> = ({ progress = 0 }) => 
             color: logo.fg,
             letter: logo.letter,
             // Always use local Arkadiko logo to avoid broken/blank logos
-            logoUrl: o.protocol.toLowerCase() === 'arkadiko' 
-              ? '/logos/arkadiko.svg' 
+            logoUrl: o.protocol.toLowerCase() === 'arkadiko'
+              ? '/logos/arkadiko.svg'
               : (o as unknown as { logoUrl?: string }).logoUrl,
             apr: Number(o.apr.toFixed(1)),
             apy: Number(o.apy.toFixed(1)),
@@ -129,7 +129,7 @@ export const CardsGrid: React.FC<{ progress?: number }> = ({ progress = 0 }) => 
               Medium: "bg-amber-100 text-amber-900",
               High: "bg-rose-100 text-rose-800",
             };
-            
+
             return (
               <div
                 key={`${it.id}-${idx}`}
@@ -137,10 +137,14 @@ export const CardsGrid: React.FC<{ progress?: number }> = ({ progress = 0 }) => 
               >
                 {/* Curved corner logo badge */}
                 <div
-                  className="absolute -top-3 -left-3 h-12 w-12 md:h-14 md:w-14 grid place-items-center"
-                  style={{ 
-                    background: 'var(--badge-lilac)', 
-                    borderRadius: '16px',
+                  className="absolute grid place-items-center"
+                  style={{
+                    top: '-3px',
+                    left: '-3px',
+                    width: `46px`,
+                    height: `46px`,
+                    background: 'var(--badge-lilac)',
+                    borderRadius: '18px 0px 18px 0px',
                     boxShadow: '0 4px 10px rgba(0,0,0,.06)',
                     overflow: 'hidden'
                   }}
@@ -153,14 +157,14 @@ export const CardsGrid: React.FC<{ progress?: number }> = ({ progress = 0 }) => 
                     <img
                       src="/logos/arkadiko.svg"
                       alt="Arkadiko logo"
-                      style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '6px' }}
+                      style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                     />
                   ) : it.logoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={it.logoUrl}
                       alt={it.protocol}
-                      style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '6px' }}
+                      style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                       onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
                     />
                   ) : (
@@ -192,11 +196,11 @@ export const CardsGrid: React.FC<{ progress?: number }> = ({ progress = 0 }) => 
                     <div className="text-[11px] uppercase font-medium text-zinc-500 tracking-wide">APR</div>
                     <div className="text-sm md:text-base font-semibold leading-tight text-zinc-900 tabular-nums">
                       {hasAnimated ? (
-                        <CountUp 
-                          end={it.apr} 
-                          duration={1.2} 
+                        <CountUp
+                          end={it.apr}
+                          duration={1.2}
                           decimals={1}
-                          suffix="%" 
+                          suffix="%"
                           preserveValue
                         />
                       ) : (
@@ -208,11 +212,11 @@ export const CardsGrid: React.FC<{ progress?: number }> = ({ progress = 0 }) => 
                     <div className="text-[11px] uppercase font-medium text-zinc-500 tracking-wide">APY</div>
                     <div className="text-sm md:text-base font-semibold leading-tight text-zinc-900 tabular-nums">
                       {hasAnimated ? (
-                        <CountUp 
-                          end={it.apy} 
-                          duration={1.4} 
+                        <CountUp
+                          end={it.apy}
+                          duration={1.4}
                           decimals={1}
-                          suffix="%" 
+                          suffix="%"
                           preserveValue
                         />
                       ) : (
@@ -224,9 +228,9 @@ export const CardsGrid: React.FC<{ progress?: number }> = ({ progress = 0 }) => 
                     <div className="text-[11px] uppercase font-medium text-zinc-500 tracking-wide">TVL</div>
                     <div className="text-sm md:text-base font-semibold leading-tight text-zinc-900 tabular-nums">
                       {hasAnimated ? (
-                        <CountUp 
-                          end={it.tvl} 
-                          duration={1.6} 
+                        <CountUp
+                          end={it.tvl}
+                          duration={1.6}
                           decimals={1}
                           prefix="$"
                           suffix="M"
