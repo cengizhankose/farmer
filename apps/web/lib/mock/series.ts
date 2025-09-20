@@ -7,6 +7,17 @@ export type SeriesPoint = {
   change24h: number;
 };
 
+// Generate consistent base timestamp to avoid hydration mismatch
+function getConsistentBaseTimestamp(): number {
+  // Use client-side only timestamp generation with consistent alignment
+  if (typeof window === 'undefined') {
+    // Server-side: use a fixed base timestamp
+    return Math.floor(Date.now() / (12 * 60 * 60 * 1000)) * (12 * 60 * 60 * 1000);
+  }
+  // Client-side: use consistent alignment
+  return Math.floor(Date.now() / (12 * 60 * 60 * 1000)) * (12 * 60 * 60 * 1000);
+}
+
 function sma(values: number[], window: number, idx: number) {
   const start = Math.max(0, idx - window + 1);
   const slice = values.slice(start, idx + 1);
@@ -17,12 +28,13 @@ function sma(values: number[], window: number, idx: number) {
 // Geometric Brownian Motion series -> derive value, pnl, change24h
 export function generateMockSeries(count = 60, seed = 42): SeriesPoint[] {
   // 60 points, 12h step ≈ 30 days
-  const now = Date.now();
+  // Use consistent base timestamp to avoid hydration mismatch
+  const now = getConsistentBaseTimestamp();
   const dt = 12 * 60 * 60 * 1000; // 12h in ms
   const mu = 0.0008; // drift
   const sigma = 0.12; // volatility
 
-  // seeded RNG
+  // seeded RNG - consistent across server/client
   let s = seed >>> 0;
   const rand = () => {
     // xorshift32

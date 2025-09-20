@@ -191,6 +191,19 @@ export function RiskAnalysis({ data }: RiskAnalysisProps) {
     total: Math.round((liquidityRisk + stabilityRisk + yieldRisk + concentrationRisk + momentumRisk) / 5),
   };
 
+  // Create seeded random for consistent risk scores
+  const createSeededRandom = (seed: number) => {
+    let state = seed;
+    return function() {
+      state = (state * 9301 + 49297) % 233280;
+      return state / 233280;
+    };
+  };
+
+  // Use opportunity ID as seed for consistency
+  const riskSeed = data.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const random = createSeededRandom(riskSeed);
+
   const risks: RiskItem[] = [
     {
       category: "Liquidity Risk",

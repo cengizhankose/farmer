@@ -17,15 +17,33 @@ import clsx from "clsx";
 
 // ---- demo data generator (replace with real) ----
 type Point = { date: string; ALEX: number; DIKO: number; OTHER?: number };
-function genData(days = 30): Point[] {
+
+// Seeded random number generator for consistent data generation
+function createSeededRandom(seed: number) {
+  let state = seed;
+  return function() {
+    state = (state * 9301 + 49297) % 233280;
+    return state / 233280;
+  };
+}
+
+function genData(days = 30, seed?: number): Point[] {
   const out: Point[] = [];
   let a = 40, d = 18, o = 8;
+
+  // Use consistent seed for reproducible data
+  const consistentSeed = seed || Math.floor(Date.now() / (24 * 3600 * 1000));
+  const random = createSeededRandom(consistentSeed);
+
+  // Use consistent base date to avoid hydration mismatch
+  const baseDate = new Date(Math.floor(Date.now() / (24 * 3600 * 1000)) * (24 * 3600 * 1000));
+
   for (let i = days - 1; i >= 0; i--) {
-    // küçük dalgalanmalar (demo)
-    a = Math.max(0, a + (Math.random() - 0.45) * 6);
-    d = Math.max(0, d + (Math.random() - 0.5) * 3);
-    o = Math.max(0, o + (Math.random() - 0.55) * 4);
-    const dt = new Date(Date.now() - i * 24 * 3600 * 1000);
+    // küçük dalgalanmalar (demo) - use seeded random
+    a = Math.max(0, a + (random() - 0.45) * 6);
+    d = Math.max(0, d + (random() - 0.5) * 3);
+    o = Math.max(0, o + (random() - 0.55) * 4);
+    const dt = new Date(baseDate.getTime() - i * 24 * 3600 * 1000);
     out.push({
       date: dt.toISOString().slice(0, 10),
       ALEX: parseFloat(a.toFixed(2)),

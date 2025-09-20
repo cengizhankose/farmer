@@ -233,7 +233,7 @@ export const Footer = () => (
       
       <div className="mt-8 pt-6 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
         <div className="text-xs text-white/50">
-          © {new Date().getFullYear()} Stacks Opportunities. Built on Stacks. All rights reserved.
+          © 2025 Stacks Opportunities. Built on Stacks. All rights reserved.
         </div>
         <div className="flex gap-6 text-xs text-white/50">
           <span>Non-custodial</span>

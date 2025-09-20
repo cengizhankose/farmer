@@ -22,7 +22,8 @@
   ],
   "dependencies": {
     "@shared/core": "workspace:*",
-    "axios": "^1.12.2"
+    "axios": "^1.12.2",
+    "date-fns": "^3.6.0"
   },
   "devDependencies": {
     "typescript": "^5.5.0"

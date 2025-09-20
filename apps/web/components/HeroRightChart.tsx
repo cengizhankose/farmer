@@ -74,10 +74,18 @@ export default function HeroRightChart(props: HeroRightChartProps) {
   const tvl = props.tvl ?? 0;
   const netPnl = props.netPnl ?? 0;
 
-  // moving beacon index
-  const [iBeacon, setIBeacon] = React.useState(series.length - 1);
+  // moving beacon index - client-side only to avoid hydration mismatch
+  const [iBeacon, setIBeacon] = React.useState(0);
+  const [isClient, setIsClient] = React.useState(false);
+
   React.useEffect(() => {
-    if (prefersReducedMotion) return;
+    setIsClient(true);
+    // Initialize with a consistent value
+    setIBeacon(series.length > 0 ? series.length - 1 : 0);
+  }, [series.length]);
+
+  React.useEffect(() => {
+    if (!isClient || prefersReducedMotion) return;
     let raf: number | null = null;
     let t = 0;
     const loop = () => {
@@ -89,7 +97,7 @@ export default function HeroRightChart(props: HeroRightChartProps) {
     };
     raf = requestAnimationFrame(loop);
     return () => { if (raf) cancelAnimationFrame(raf); };
-  }, [series.length, prefersReducedMotion]);
+  }, [series.length, prefersReducedMotion, isClient]);
 
   // keyboard-accessible demo tooltip
   const [kbdTip, setKbdTip] = React.useState(false);

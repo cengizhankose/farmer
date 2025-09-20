@@ -1,3 +1,5 @@
+"use client";
+
 import { motion } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
 import { useReducedMotion } from 'framer-motion'
@@ -43,7 +45,7 @@ export default function BackgroundFx({ play }: BackgroundFxProps) {
       }
       previousTimeRef.current = time
       // Only continue animating if document is visible
-      if (!document.hidden) {
+      if (typeof document !== 'undefined' && !document.hidden) {
         requestRef.current = requestAnimationFrame(animate)
       }
     }
@@ -61,11 +63,20 @@ export default function BackgroundFx({ play }: BackgroundFxProps) {
     }
 
     start()
-    const onVisibility = () => (document.hidden ? stop() : start())
-    document.addEventListener('visibilitychange', onVisibility)
+    const onVisibility = () => {
+      if (typeof document !== 'undefined') {
+        document.hidden ? stop() : start()
+      }
+    }
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', onVisibility)
+    }
 
     return () => {
-      document.removeEventListener('visibilitychange', onVisibility)
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', onVisibility)
+      }
       stop()
     }
   }, [mousePosition, prefersReducedMotion])

@@ -14,8 +14,10 @@ type Row = { t: string; total: number; pnl: number; chg24h: number };
 function demo(rows = 30): Row[] {
   const out: Row[] = [];
   let total = 100000, pnl = 0;
+  // Use fixed base date to avoid hydration mismatch
+  const baseDate = new Date(Math.floor(Date.now() / 86400000) * 86400000);
   for (let i = rows - 1; i >= 0; i--) {
-    const dt = new Date(Date.now() - i * 86400000);
+    const dt = new Date(baseDate.getTime() - i * 86400000);
     const r = (Math.random() - 0.45) * 0.02; // ±2%
     const change = total * r;
     total = Math.max(2000, total + change);
