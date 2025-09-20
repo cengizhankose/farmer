@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a **Stacks-focused Yield Farming Aggregator** built as a pnpm monorepo. The project aggregates DeFi yield farming opportunities, provides normalized APR/APY data with risk scoring, and enables deposits through a secure router contract. Currently focused on Stacks ecosystem (ALEX, Arkadiko) with plans to expand to Ethereum and Solana.
+This is a **Farmer** - a Stacks-focused Yield Farming Aggregator built as a pnpm monorepo. The project aggregates DeFi yield farming opportunities, provides normalized APR/APY data with risk scoring, and enables deposits through a secure router contract. Currently focused on Stacks ecosystem (ALEX, Arkadiko) with plans to expand to Ethereum and Solana.
 
 ## Architecture & Workspace Structure
 
@@ -30,7 +30,7 @@ This is a **pnpm monorepo** with workspace-based packages:
 ```bash
 # Initial setup
 pnpm i
-pnpm -r --filter "./packages/*" run build
+pnpm  run build
 
 # Development servers
 pnpm dev:web              # Next.js web app

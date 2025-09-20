@@ -352,7 +352,7 @@ interface Adapter {
 ```bash
 # Clone repository
 git clone <repository-url>
-cd stacks-yield-agg
+cd farmer
 
 # Install dependencies
 pnpm install
